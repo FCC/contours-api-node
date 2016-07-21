@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>FCC Contour API</title>
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,700italic,400,300,700|Lato:500" rel="stylesheet" type="text/css">
+
+    <!--#include file="inc/swagger-css.shtm" -->
+    <link href='js/vendor/swagger/css/typography.css' media='screen' rel='stylesheet' type='text/css'/>
+    <link href='js/vendor/swagger/css/reset.css' media='screen' rel='stylesheet' type='text/css'/>
+    <link href='js/vendor/swagger/css/screen.css' media='screen' rel='stylesheet' type='text/css'/>
+    <link href='js/vendor/swagger/css/reset.css' media='print' rel='stylesheet' type='text/css'/>
+    <link href='js/vendor/swagger/css/print.css' media='print' rel='stylesheet' type='text/css'/>
+
+
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+    <link href="css/yamm.css" rel="stylesheet">
+    <link href="css/page.css" rel="stylesheet">
+    <link href="css/header.css" rel="stylesheet">
+    <link href="css/footer.css" rel="stylesheet">
+    <link href="css/helpers.css" rel="stylesheet">
+    <link href="css/icon-styles.css" rel="stylesheet">
+    <link href="css/app-theme.css" rel="stylesheet">
+    <!--[if lt IE 9]>
+      <script src="js/vendor/html5shiv.min.js"></script>
+      <script src="js/vendor/respond.min.js"></script>
+    <![endif]-->
+	
+	
+	
+	<style>
+	.id-span-am, .id-span-fm, .id-span-tv {color: #00F; cursor: pointer; font-size: 12px}
+	.id-span-am:hover, .id-span-fm:hover, .id-span-tv:hover {text-decoration: underline}
+	#contour-info {font-size: 13px}
+	.download-data {color: #6666ff}
+	
+	</style>
+
+
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+	<link href="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css" rel="stylesheet">
+	<script src='https://api.tiles.mapbox.com/mapbox.js/v2.2.1/mapbox.js'></script>
+	<link href='https://api.tiles.mapbox.com/mapbox.js/v2.2.1/mapbox.css' rel='stylesheet' />
+	<script src="//api.tiles.mapbox.com/mapbox.js/plugins/leaflet-pip/v0.1.0/leaflet-pip.min.js"></script>
+<script>
+
+	var map;
+	var contour_json;
+	var station_marker;
+	var serviceTypeNow = "";
+	var idTypeNow = "";
+	var idNow = "";
+	var host = 'http://contour-node-dev-1.elasticbeanstalk.com';
+	//var host = 'http://localhost:6479';
+	var geo_host = "http://contour-geoserver.elasticbeanstalk.com";
+	var geo_space = "contour";
+
+	contour_style = {color: "#266AD0", opacity: 1.0,  fillOpacity: 0.5, fillColor: '#ddddff', weight: 4};
+	
+	function createMap() {
+ 
+		L.mapbox.accessToken = 'pk.eyJ1IjoiY29tcHV0ZWNoIiwiYSI6InMyblMya3cifQ.P8yppesHki5qMyxTc2CNLg';
+		map = L.mapbox.map('map', 'fcc.k74ed5ge', {
+             attributionControl: true,
+             maxZoom: 19
+         })
+         .setView([45, -93], 3);
+		 
+		 
+		baseStreet = L.mapbox.tileLayer('fcc.k74ed5ge').addTo(map);
+		baseSatellite = L.mapbox.tileLayer('fcc.k74d7n0g');
+		baseTerrain = L.mapbox.tileLayer('fcc.k74cm3ol');
+		 
+		L.control.scale({
+         position: 'bottomright'
+		}).addTo(map);
+
+		geocoder = L.mapbox.geocoder('mapbox.places-v1');
+
+		layerControl = new L.Control.Layers({
+         'Street': baseStreet.addTo(map),
+         'Satellite': baseSatellite,
+         'Terrain': baseTerrain
+		}, {
+		}, {
+			position: 'topleft'
+		}
+		).addTo(map);
+		 
+	}
+
+	function getAllTVCallsign() {
+	
+	var url = host + "/id/tv/callsign.json";
+	
+	console.log(url);
+	$.ajax(url, {
+        type: "GET",
+        url: url,
+        dataType: "json",
+        success: function(data){
+		
+		console.log(data)
+		
+			callsigns = data.list;
+		  callsigns = getUniqArray(callsigns);
+		  callsigns.push("KRBK");
+		  var str1 = ""
+		  for (var i = 0; i < callsigns.length; i++) {
+		  str1 += '<span id="' + callsigns[i] + '" class="id-span-tv">' + callsigns[i] + '</span> <br>';
+		  }
+		  $("#display-area-tv").html(str1);
+		  //$("#num-tv").html("total:" + callsigns.length);
+		  
+		  $(".id-span-tv").on("click", function(e) {
+			clickedOnCallsignTV(e);
+			});
+			}
+	});
+	}
+	
+	function getAllTVFilenumber() {
+	
+	var url = host + "/id/tv/filenumber.json";
+	
+	console.log(url);
+	$.ajax(url, {
+        type: "GET",
+        url: url,
+        dataType: "json",
+        success: function(data){
+		
+		console.log(data)
+		
+			filenumbers = data.list;
+		  filenumbers = getUniqArray(filenumbers);
+		  var str1 = ""
+		  for (var i = 0; i < filenumbers.length; i++) {
+		  str1 += '<span id="' + callsigns[i] + '" class="id-span-tv">' + callsigns[i] + '</span> <br>';
+		  }
+		  $("#display-area-tv").html(str1);
+		  //$("#num-tv").html("total:" + callsigns.length);
+		  
+		  $(".id-span-tv").on("click", function(e) {
+			clickedOnCallsignTV(e);
+			});
+			}
+	});
+	}
+	
+	
+	function getAllFMCallsign() {
+	
+	var url = host + "/id/fm/callsign.json";
+	console.log(url);
+	$.ajax(url, {
+        type: "GET",
+        url: url,
+        dataType: "json",
+        success: function(data){
+			callsigns = data.list;
+		  callsigns = getUniqArray(callsigns);
+		  var str1 = ""
+		  for (var i = 0; i < callsigns.length; i++) {
+		  str1 += '<span id="' + callsigns[i] + '" class="id-span-fm">' + callsigns[i] + '</span> <br>';
+		  }
+		  $("#display-area-fm").html(str1);
+		  //$("#num-fm").html("total:" + callsigns.length);
+		  
+		  $(".id-span-fm").on("click", function(e) {
+			clickedOnCallsignFM(e);
+			});
+			}
+	});
+	}
+	
+	function getAllAMCallsign() {
+	
+	var url = host + "/id/am/callsign.json";
+	console.log(url);
+	$.ajax(url, {
+        type: "GET",
+        url: url,
+        dataType: "json",
+        success: function(data){
+			callsigns = data.list;
+		  callsigns = getUniqArray(callsigns);
+		  var str1 = ""
+		  for (var i = 0; i < callsigns.length; i++) {
+		  str1 += '<span id="' + callsigns[i] + '" class="id-span-am">' + callsigns[i] + '</span> <br>';
+		  }
+		  $("#display-area-am").html(str1);
+		  //$("#num-am").html("total:" + callsigns.length);
+		  
+		  $(".id-span-am").on("click", function(e) {
+			clickedOnCallsignAM(e);
+			});
+			}
+	});
+	}
+	
+	
+function getUniqArray(x) {
+
+a = [];
+for (var i = 0; i < x.length; i++) {
+a[i] = x[i];
+}
+
+if (a.length < 2) {
+return a;
+}
+var b = a.sort();
+var u = [];
+for (var i = 0; i < b.length-1; i++) {
+if (b[i] != b[i+1]) {
+u.push(b[i]);
+}
+}
+u.push(b[b.length-1]);
+
+return u;
+}
+
+
+function clickedOnCallsignTV(e) {
+
+var callsign = e.currentTarget.id;
+var url = host + "/contour/tv/callsign/" + callsign + ".json";
+
+serviceTypeNow = "tv";
+idTypeNow = "callsign";
+idNow = callsign;
+
+console.log(url);
+
+serviceTypeNow = "tv";
+idTypeNow = "callsign";
+idNow = callsign;
+
+$.ajax(url, {
+        type: "GET",
+        url: url,
+        dataType: "json",
+        success: function(data){
+		
+		if (data.features.length == 0) {
+			return;
+		}
+		
+		var p = data.features[0].properties;
+		var type = "TV";
+		var application_id = p.application_id;
+		var service = p.service;
+		var callsign = p.callsign;
+		var facility_id = p.facility_id;
+		var filenumber = p.filenumber;
+		var station_lat = p.station_lat;
+		var station_lon = p.station_lon;
+		
+		var text = "Type: " + type + " | Facility ID: " + facility_id + " | Application ID: " + application_id + " | Service: " + service + " | Call Sign: " + callsign + " | File Number: " + filenumber + "<br>Station Lat: " + station_lat + " | Station Lon: " + station_lon; 
+		$("#contour-info").html(text);
+		
+		
+		if (map.hasLayer(contour_json)) {
+		map.removeLayer(contour_json);
+		}
+		
+		contour_json = L.geoJson(data, {
+style: contour_style
+
+}).addTo(map);
+
+		if (map.hasLayer(station_marker)) {
+			map.removeLayer(station_marker);
+		}
+		station_marker = L.marker([station_lat, station_lon]).addTo(map);
+map.fitBounds(contour_json.getBounds());
+		  
+        }
+
+
+});
+
+}
+
+
+function clickedOnCallsignFM(e) {
+var callsign = e.currentTarget.id;
+var url = host + "/contour/fm/callsign/" + callsign + ".json";
+serviceTypeNow = "fm";
+idTypeNow = "callsign";
+idNow = callsign;
+
+console.log(url);
+$.ajax(url, {
+        type: "GET",
+        url: url,
+        dataType: "json",
+        success: function(data){
+		
+				if (data.features.length == 0) {
+			return;
+		}
+		
+		var p = data.features[0].properties;
+		var type = "FM";
+		var application_id = p.application_id;
+		var service = p.service;
+		var callsign = p.callsign;
+		var facility_id = p.facility_id;
+		var filenumber = p.filenumber;
+		var station_lat = p.station_lat;
+		var station_lon = p.station_lon;
+		
+		var text = "Type: " + type + " | Facility ID: " + facility_id + " | Application ID: " + application_id + " | Service: " + service + " | Call Sign: " + callsign + " | File Number: " + filenumber + "<br>Station Lat: " + station_lat + " | Station Lon: " + station_lon; 
+		$("#contour-info").html(text);
+		
+		if (map.hasLayer(contour_json)) {
+		map.removeLayer(contour_json);
+		}
+		contour_json = L.geoJson(data, {
+			style: contour_style
+		}).addTo(map);
+	
+		if (map.hasLayer(station_marker)) {
+			map.removeLayer(station_marker);
+		}
+		station_marker = L.marker([station_lat, station_lon]).addTo(map);
+
+map.fitBounds(contour_json.getBounds()); 
+        }
+});
+}
+
+function clickedOnCallsignAM(e) {
+var callsign = e.currentTarget.id;
+var url = host + "/contour/am/callsign/" + callsign + ".json/B/day";
+serviceTypeNow = "am";
+idTypeNow = "callsign";
+idNow = callsign;
+
+console.log(url);
+$.ajax(url, {
+        type: "GET",
+        url: url,
+        dataType: "json",
+        success: function(data){
+		
+		if (data.features.length == 0) {
+			return;
+		}
+		
+		var p = data.features[0].properties;
+		var type = "AM";
+		var antid = p.antid;
+		var time_period = p.time_period;
+		var callsign = p.callsign;
+		var facility_id = p.facility_id;
+		var frequency = p.frequency;
+		var frequency_unit = p.frequency_unit;
+		var station_lat = p.station_lat;
+		var station_lon = p.station_lon;
+		var contour_level = p.contour_level
+		
+		var text = "Type: " + type + " | Facility ID: " + facility_id + " | Antenna ID: " + antid + " | Time Period: " + time_period + " | Call Sign: " + callsign + " | Frequency: " + frequency + " " + frequency_unit + " | Level: " + contour_level  + "<br>Station Lat: " + station_lat + " | Station Lon: " + station_lon; 
+		$("#contour-info").html(text);
+		
+		if (map.hasLayer(contour_json)) {
+		map.removeLayer(contour_json);
+		}
+		
+		contour_json = L.geoJson(data, {
+style: contour_style
+}).addTo(map);
+
+		if (map.hasLayer(station_marker)) {
+			map.removeLayer(station_marker);
+		}
+		station_marker = L.marker([station_lat, station_lon]).addTo(map);
+
+map.fitBounds(contour_json.getBounds()); 
+        }
+});
+}
+
+function setupListener() {
+
+$(".download-data").on("click", function(e) {
+e.preventDefault();
+var id = e.target.id;
+
+var typeName = "contour:" + serviceTypeNow + "_contours";
+var filter = idTypeNow + "='" + idNow + "'";
+if (serviceTypeNow == 'am') {
+filter = idTypeNow + "='" + idNow + "' AND contour_level=2";
+}
+
+if (id == "download-data-json") {
+var outputFormat = "application/json"
+}
+if (id == "download-data-shp") {
+var outputFormat = "shape-zip"
+}
+if (id == "download-data-csv") {
+var outputFormat = "csv"
+}
+if (id == "download-data-gml") {
+var outputFormat = "GML2"
+}
+
+var url = geo_host + "/" +  geo_space + "/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=" + typeName + "&maxFeatures=50&outputFormat=" + outputFormat + "&cql_filter=" + filter;
+
+if (serviceTypeNow == "am") {
+url = geo_host + "/" +  geo_space + "/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=" + typeName + "&maxFeatures=50&outputFormat=" + outputFormat + "&cql_filter=" + filter;
+}
+
+window.open(url);
+
+
+});
+
+}
+	
+	
+$(document).ready(function() {
+
+	createMap();
+	getAllTVCallsign();
+	getAllFMCallsign();
+	getAllAMCallsign();
+	setupListener();
+
+
+
+});
+
+
+
+</script>
+	
+	
+</head>
+
+<body>
+    <div class="page row-offcanvas row-offcanvas-right">
+        <header class="site-header">
+        <div class="jumpLinks"> <a href="#skiptarget1" class="sr-only focusable">Skip to main content</a> <a href="#skiptarget3" class="sr-only focusable">Skip to footer and contact information</a> </div>
+            <nav role="navigation">
+                <div class="navbar navbar-default navbar-primary">
+                    <div class="container">
+                        <div class="navbar-header">
+                            <h1 class="navbar-brand">
+                          <a title="Home" href="/api-docs" class="navbar-logo">
+                            <span class="sr-only">Federal Communications Commission</span>
+                          </a>
+                        </h1>
+                        </div>
+                        <!--ul aria-hidden="true" id="menu-primary" class="nav navbar-nav nav-offcanvas-right">
+                            <li class="active">
+                                <a aria-controls="browse-by-category" data-toggle="tab" href="#browse-by-category">
+                                    <div class="text-prefix">Licensing &amp; Databases</div>
+                                    <strong class="title-emphasis">Public Inspection File</strong>
+                                </a>
+                            </li>
+                        </ul-->
+                    </div>
+                </div>
+                <div aria-hidden="true" class="navbar-secondary navbar-default yamm nav-offcanvas nav-offcanvas-right">
+                    <div id="menu-secondary" class="tab-content">
+                        <div class="container tab-pane active" id="browse-by-category">
+                            <ul class="nav nav-tabs menu-secondary">
+                                <li class="dropdown dropdown-left yamm-fw" role="presentation">
+                                    <a href="/" class="dropdown-toggle">
+                                        <span class="link-title dropdown-link-title">Documentation</span>
+                                    </a>
+                                </li>
+								<li class="dropdown dropdown-left yamm-fw" role="presentation">
+                                    <a href="/contour_demo.html" class="dropdown-toggle">
+                                        <span class="link-title dropdown-link-title">Demo</span>
+                                    </a>
+                                </li>
+                            </ul>                            
+                        </div>
+                    </div>
+                </div>
+                <!-- .secondary-menu -->
+            </nav>
+        </header>
+        <div class="clearfix"></div>
+
+		<center>
+
+<p>
+<span id="contour-info"></span>
+<table >
+<tr>
+<td><h2>
+Contour API Demo
+</h2></td>
+</tr>
+
+<tr>
+<td>
+<br>
+<div id="map" style="width: 700px; height: 700px; vertical-align: top">
+
+
+<div style="position: absolute; left: 100px; top: 10px;  z-index: 99999">
+
+						<div id="download-data-div" class="pull-right">
+							Download Contour: 
+							<span class="download-data" id="download-data-json" href="" target="_blank">JSON</span>
+							| 
+							<span class="download-data" id="download-data-shp" href="" target="_blank">SHP</span>							
+							|
+							<span class="download-data" id="download-data-csv" href="" target="_blank">CSV</span>
+							|  
+							<span class="download-data" id="download-data-gml" href="" target="_blank">GML</span>
+						</div>	
+</div>
+
+
+
+</div>
+</td>
+<td width=10></td>
+<td height=700 width=120 valign=top>
+TV Callsigns:<br>
+<span id="num-tv"></span>
+<div id="display-area-tv" style="height: 100%;overflow: auto; ">
+
+</div>
+
+</td>
+
+<td height=700 width=120>
+FM Callsigns:<br>
+<span id="num-fm"></span>
+<div id="display-area-fm" style="height: 100%;overflow: auto; ">
+
+</div>
+</td>
+
+<td height=700 width=120>
+AM Callsigns:<br>
+<span id="num-am"></span>
+<div id="display-area-am" style="height: 100%;overflow: auto; ">
+
+</div>
+</td>
+
+</tr>
+</table>
+
+</center>
+
+
+        
+
+    <script src='js/vendor/swagger/lib/jquery.slideto.min.js' type='text/javascript'></script>
+    <script src='js/vendor/swagger/lib/jquery.wiggle.min.js' type='text/javascript'></script>
+    <script src='js/vendor/swagger/lib/jquery.ba-bbq.min.js' type='text/javascript'></script>
+    <script src='js/vendor/swagger/lib/handlebars-2.0.0.js' type='text/javascript'></script>
+    <script src='js/vendor/swagger/lib/underscore-min.js' type='text/javascript'></script>
+    <script src='js/vendor/swagger/lib/backbone-min.js' type='text/javascript'></script>
+    <script src='js/vendor/swagger/swagger-ui.js' type='text/javascript'></script>
+    <script src='js/vendor/swagger/lib/highlight.7.3.pack.js' type='text/javascript'></script>
+    <script src='js/vendor/swagger/lib/marked.js' type='text/javascript'></script>
+    <script src='js/vendor/swagger/lib/swagger-oauth.js' type='text/javascript'></script>
+
+    
+</body>
+
+</html>

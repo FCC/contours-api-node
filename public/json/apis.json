@@ -1,0 +1,116 @@
+{
+    "swagger":"2.0",
+    "info": {
+        "version": "0.9.0",
+        "title": "FCC Contour API"
+    },
+    "basePath": "/",
+    "tags":[
+        {
+            "name": "contour",
+            "description": "FCC Contour API"
+        }
+    ],
+    "paths":{
+
+		"/{serviceType}/{idType}/{idValue}.{format}": {
+            "get":{
+                "tags": ["contour"],
+                "summary": "Get Contour by Service Type",
+                "description": "Get contour based on serviceType (AM, FM, TV), idType (callsign, applicationid, fileNumber, antennaid), and idValue. Response returned in GeoJSON, JSONP, Shapefile, KML, GML, CSV.",
+                "parameters": [
+                    {
+						"name":"serviceType",
+						"in":"path",
+						"description":"Type of broadcast service. <br /><br />Valid values: tv, fm, am",
+						"required":true,
+						"type":"string",
+						"defaultValue": "tv",
+						"enum": [
+							"tv",
+							"fm",
+							"am"
+						]
+					},
+					{
+						"name":"idType",
+						"in":"path",
+						"description":"Identification type for service. <br /><br />Valid values: facilityid, callsign, fileNumber (TV and FM only), applicationid (TV and FM only), antennaid (AM only)",
+						"required":true,
+						"type":"string",
+						"defaultValue": "facilityid",
+						"enum": [
+							"facilityid",
+							"callsign",
+							"filenumber",
+							"applicationid",
+							"antennaid"
+						]
+					},
+					{
+						"name":"idValue",
+						"in":"path",
+						"description":"Name or ID of service. <br /><br />Values of facilityid, callsign, filenumber, applicationid, or antennaid. <br /><br />Examples: 1051 (facilityid); WJLA-TV (callsign)",
+						"required":true,
+						"type":"string",
+						"defaultValue": ""
+					},
+					{
+						"name":"format",
+						"in":"path",
+						"description":"Format for the returned results.<br /><br />Valid values: json, jsonp, shp, kml, gml, csv. Shapefiles (.shp) download as zip archive (.zip). <br /><br />Defaults to json.",
+						"required":false,
+						"type":"string",
+						"defaultValue": "json",
+						"enum": [
+							"json",
+							"jsonp",
+							"shp",
+							"kml",
+							"gml",
+							"csv"
+						]
+					},
+					{
+						"name":"stationClass",
+						"in":"query",
+						"description":"Class of the station. <br /><br />Values can be: a, b, c, or d. <br /><br />AM only - value will be ignored for TV and FM",
+						"required":false,
+						"type":"string",
+						"defaultValue": "",
+						"enum": [
+							"a",
+							"b",
+							"c",
+							"d"
+						]
+					},
+					{
+						"name":"timePeriod",
+						"in":"query",
+						"description":"Time of day. <br /><br />Values can be: day or night. [Values can be only day for now]. <br /><br />AM only - value will be ignored for TV and FM",
+						"required":false,
+						"type":"string",
+						"defaultValue": "",
+						"enum": [
+							"day"
+						]
+					}
+				],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                },
+                "produces": [
+                    "application/json",
+					"text/javascript",
+					"application/zip",					
+					"application/vnd.google-earth.kml+xml",
+					"text/xml",
+					"text/csv"				
+                ]
+            }            
+        }	        
+    }
+}

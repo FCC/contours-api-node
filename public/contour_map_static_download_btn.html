@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>FCC Contour API</title>
+    <style>
+		.download-data {color: #6666ff; cursor: pointer}
+		.download {position: absolute; left: 18px; top: 120px;  z-index: 999;}
+		.download a {content: ''; display: inline-block; /*width: 26px; height: 16px;*/ vertical-align: middle; background:#fff; border: 1px solid #999; text-align: center; color: #404040; border-radius: 3px; padding:3px 6px;}
+		#download-data-div {border: solid 1px #999; background-color: #FFF; padding: 3px 10px 3px 6px; border-radius: 3px; position: absolute; top: 0; left: 0;display: none;}
+		#download-data-div ul { list-style: none; margin:0; padding: 0;}
+		#download-data-div>ul>li>a { font: 12px/20px 'Helvetica Neue',Arial,Helvetica,sans-serif; border:none; text-decoration: none; }
+		#download-data-div>ul>li>a:hover { text-decoration: underline;}
+	</style>
+
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+	<link href="https://code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css" rel="stylesheet">
+	<script src='https://api.tiles.mapbox.com/mapbox.js/v2.2.1/mapbox.js'></script>
+	<link href='https://api.tiles.mapbox.com/mapbox.js/v2.2.1/mapbox.css' rel='stylesheet' />
+	<script src="//api.tiles.mapbox.com/mapbox.js/plugins/leaflet-pip/v0.1.0/leaflet-pip.min.js"></script>
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.4.0/css/font-awesome.min.css">
+<script>
+
+	var map;
+	var contour_json;
+	var station_marker;
+	var host = 'http://gis-contour-node-dev.us-west-2.elasticbeanstalk.com';
+	var geo_host = "http://contour-geoserver.elasticbeanstalk.com";
+	var geo_space = "contour";
+	
+
+	//TV example
+	var serviceType = "TV";
+	var idType = "facility_id";
+	var callsign = "DK02CG";
+	var facility_id = 121;
+	
+	//FM example
+	var serviceType = "FM";
+	var callsign = "870831MK";
+	var facility_id = 5343;
+	
+	//AM example
+	var serviceType = "TV";
+	var callsign = "xxxxx";
+	var facility_id = 47906;
+	
+	
+	contour_style = {color: "#13428B", fillColor: "#13428B", opacity: 1.0,  fillOpacity: 0.3, weight: 4};
+	
+	function createMap() {
+ 
+     L.mapbox.accessToken = 'pk.eyJ1IjoiY29tcHV0ZWNoIiwiYSI6InMyblMya3cifQ.P8yppesHki5qMyxTc2CNLg';
+     map = L.mapbox.map('map', 'fcc.k74ed5ge', {
+             attributionControl: true,
+             maxZoom: 19
+         })
+         .setView([45, -93], 3);
+		 
+	 baseStreet = L.mapbox.tileLayer('fcc.k74ed5ge').addTo(map);
+     baseSatellite = L.mapbox.tileLayer('fcc.k74d7n0g');
+     baseTerrain = L.mapbox.tileLayer('fcc.k74cm3ol');
+		 
+	 L.control.scale({
+         position: 'bottomright'
+     }).addTo(map);
+
+     geocoder = L.mapbox.geocoder('mapbox.places-v1');
+
+     layerControl = new L.Control.Layers({
+         'Street': baseStreet.addTo(map),
+         'Satellite': baseSatellite,
+         'Terrain': baseTerrain
+     }, {
+     }, {
+		position: 'topleft'
+	 }
+	 ).addTo(map);
+
+	if (serviceType == "AM") { 
+		var url = host + "/am/facilityid/" + facility_id + ".json/B/day";
+	}
+	if (serviceType == "TV") { 
+		var url = host + "/tv/facilityid/" + facility_id + ".json";
+	}
+	if (serviceType == "FM") { 
+		var url = host + "/fm/facilityid/" + facility_id + ".json";
+	}
+
+	 console.log(url);
+	 
+               $.ajax({
+                    url: "http://gis-contour-node-dev.us-west-2.elasticbeanstalk.com/tv/facilityid/53930.json",
+                    async: true,
+                    type: "GET",
+                    dataType: "json",
+                    success: function(data){
+					
+						var station_markers = [];
+						var highlight_contour;
+						var contour_highlight_style = {color: "#ffff00", fillColor: "#ffffff", opacity: 1.0,  fillOpacity: 0, weight: 10};
+
+                        if (data.features.length == 0) {
+                            $('#contour_msg').css({"visibility": "visible"});
+                            return;
+                        }
+
+                        if (map.hasLayer(contour_json)) {
+                            map.removeLayer(contour_json);
+                        }
+
+                        contour_json = L.geoJson(data, {
+                            style: contour_style,
+							onEachFeature: onEachFeature
+                        }).addTo(map);
+						map.fitBounds(contour_json.getBounds());
+
+						
+						//add station marker
+						for (var i = 0; i < data.features.length; i++) {
+							p = data.features[i].properties;
+							var station_lat = p.station_lat;
+							var station_lon = p.station_lon;
+							if (station_markers.length > i && map.hasLayer(station_markers[i])) {
+								map.removeLayer(station_marker);
+							}
+							station_markers[i] = L.marker([station_lat, station_lon]).addTo(map);
+						}
+						
+						function onEachFeature(feature, layer) {
+							layer.on({
+								mouseover: mouseover
+							});
+						}
+				
+						function mouseover(e) {
+							var layer = e.target
+							var p = layer.feature.properties;
+							var application_id = p.application_id;
+							var service = p.service;
+							var callsign = p.callsign;
+							var filenumber = p.filenumber;
+							var station_lat = p.station_lat;
+							var station_lon = p.station_lon;
+							var area = Math.round(p.area/1000000/0.386102);
+							if (map.hasLayer(highlight_contour)) {
+								map.removeLayer(highlight_contour);
+							}
+							highlight_contour = L.geoJson({'type': 'FeatureCollection', 'features': [layer.feature]}, {
+								style: contour_highlight_style
+							}).addTo(map).bringToBack();
+							
+							var station_info = "Call Sign: " + callsign + "<br>Service: " + service + "<br>Application ID: " + application_id + "<br>File Number: " + filenumber + "<br>Coverage Area: " + area + " mi<sup>2</sup>";
+							var popup = L.popup({closeButton: true, offset: [0, -15]})
+								.setLatLng([station_lat, station_lon])
+								.setContent(station_info)
+								.openOn(map);
+						}
+
+						map.on('click', function(e) {
+							if (map.hasLayer(highlight_contour)) {
+								map.removeLayer(highlight_contour);
+							}
+						});
+						
+
+                    }
+
+
+                });
+	 
+	  
+	}
+	
+function setupListener() {
+
+$(".download-data").on("click", function(e) {
+e.preventDefault();
+var id = e.target.id;
+
+var typeName = "contour:" + serviceType.toLowerCase() + "_contours";
+var filter = "facility_id=" + facility_id;
+if (serviceType.toLowerCase() == 'am') {
+filter = "facility_id=" + facility_id; + " AND contour_level=2";
+}
+
+if (id == "download-data-json") {
+var outputFormat = "application/json"
+}
+if (id == "download-data-shp") {
+var outputFormat = "shape-zip"
+}
+if (id == "download-data-csv") {
+var outputFormat = "csv"
+}
+if (id == "download-data-gml") {
+var outputFormat = "GML2"
+}
+
+var url = geo_host + "/" +  geo_space + "/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=" + typeName + "&maxFeatures=50&outputFormat=" + outputFormat + "&cql_filter=" + filter;
+
+if (serviceType.toLowerCase() == "am") {
+url = geo_host + "/" +  geo_space + "/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=" + typeName + "&maxFeatures=50&outputFormat=" + outputFormat + "&cql_filter=" + filter;
+}
+
+window.open(url);
+
+
+});
+
+}
+
+
+$(document).ready(function() {
+	createMap();
+	setupListener();
+	$('.download').hover(function (e) {
+		if (e.type == "mouseenter") {
+        	$('#download-data-div').show();
+	    } else {
+	        $('#download-data-div').hide();
+	    }
+	});
+});
+
+
+</script>
+</head>
+
+<body>
+<div>
+<div id="map" style="width: 1200px; height: 800px; vertical-align: top">
+</div>
+<div id="contour_msg" style="position: absolute; top: 10px; left:100px; font-size: 20px; z-index: 999; visibility: hidden">Currently no contours are available for this facility.</div>
+</div>
+<div class="download" style="">
+	<div><a href="#"><i class="fa fa-arrow-circle-o-down"></i></a></div>
+
+	<div id="download-data-div">
+		<ul>
+			<li ><a class="download-data" id="download-data-json">JSON</a></li>
+			<li><a class="download-data" id="download-data-shp">SHP</a></li>
+			<li><a class="download-data" id="download-data-csv">CSV</a></li>
+			<li><a class="download-data" id="download-data-gml">GML</a></li>
+		</ul>
+
+	</div>
+</div>
+</body>
+
+</html>

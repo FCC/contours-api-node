@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>FCC Contour API</title>
+    <style>
+		.download-data {color: #6666ff; cursor: pointer}
+		#download-data-div {border: solid 1px black; background-color: #FFF; padding: 3px; border-radius: 5px;}
+	</style>
+
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+	<link href="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css" rel="stylesheet">
+	<script src='https://api.tiles.mapbox.com/mapbox.js/v2.2.1/mapbox.js'></script>
+	<link href='https://api.tiles.mapbox.com/mapbox.js/v2.2.1/mapbox.css' rel='stylesheet' />
+	<script src="//api.tiles.mapbox.com/mapbox.js/plugins/leaflet-pip/v0.1.0/leaflet-pip.min.js"></script>
+<script>
+
+	var map;
+	var contour_json;
+	var station_marker;
+	var host = 'http://contour-node-dev-1.elasticbeanstalk.com';
+	var geo_host = "http://contour-geoserver.elasticbeanstalk.com";
+	var geo_space = "contour";
+	
+
+	//TV example
+	var serviceType = "TV";
+	var idType = "facility_id";
+	var callsign = "DK02CG";
+	var facility_id = 121;
+	
+	//FM example
+	var serviceType = "FM";
+	var callsign = "870831MK";
+	var facility_id = 5343;
+	
+	//AM example
+	var serviceType = "AM";
+	var callsign = "DWEDC";
+	var facility_id = 22044;
+	
+	
+	contour_style = {color: "#000", opacity: 1.0,  fillOpacity: 0.0, weight: 4};
+	
+	function createMap() {
+ 
+     L.mapbox.accessToken = 'pk.eyJ1IjoiY29tcHV0ZWNoIiwiYSI6InMyblMya3cifQ.P8yppesHki5qMyxTc2CNLg';
+     map = L.mapbox.map('map', 'fcc.k74ed5ge', {
+             attributionControl: true,
+             maxZoom: 19
+         })
+         .setView([45, -93], 3);
+		 
+	 baseStreet = L.mapbox.tileLayer('fcc.k74ed5ge').addTo(map);
+     baseSatellite = L.mapbox.tileLayer('fcc.k74d7n0g');
+     baseTerrain = L.mapbox.tileLayer('fcc.k74cm3ol');
+		 
+	 L.control.scale({
+         position: 'bottomright'
+     }).addTo(map);
+
+     geocoder = L.mapbox.geocoder('mapbox.places-v1');
+
+     layerControl = new L.Control.Layers({
+         'Street': baseStreet.addTo(map),
+         'Satellite': baseSatellite,
+         'Terrain': baseTerrain
+     }, {
+     }, {
+		position: 'topleft'
+	 }
+	 ).addTo(map);
+
+	if (serviceType == "AM") { 
+		var url = host + "/contour/am/facilityid/" + facility_id + ".json/B/day";
+	}
+	if (serviceType == "TV") { 
+		var url = host + "/contour/tv/facilityid/" + facility_id + ".json";
+	}
+	if (serviceType == "FM") { 
+		var url = host + "/contour/fm/facilityid/" + facility_id + ".json";
+	}
+
+	 
+	$.ajax(url, {
+        type: "GET",
+        url: url,
+        dataType: "json",
+        success: function(data){
+		
+		if (data.features.length == 0) {
+			$('#contour_msg').css({"visibility": "visible"});
+			return;
+		}
+		
+		var p = data.features[0].properties;
+		var application_id = p.application_id;
+		var service = p.service;
+		var callsign = p.callsign;
+		var filenumber = p.filenumber;
+		var station_lat = p.station_lat;
+		var station_lon = p.station_lon;
+		
+
+		
+		if (map.hasLayer(contour_json)) {
+		map.removeLayer(contour_json);
+		}
+		
+		contour_json = L.geoJson(data, {
+			style: contour_style
+		}).addTo(map);
+
+		if (map.hasLayer(station_marker)) {
+			map.removeLayer(station_marker);
+		}
+		station_marker = L.marker([station_lat, station_lon]).addTo(map);
+		map.fitBounds(contour_json.getBounds());
+		  
+        }
+
+
+});
+	 
+	  
+	}
+	
+function setupListener() {
+
+$(".download-data").on("click", function(e) {
+e.preventDefault();
+var id = e.target.id;
+
+var typeName = "contour:" + serviceType.toLowerCase() + "_contours";
+var filter = "facility_id=" + facility_id;
+if (serviceType.toLowerCase() == 'am') {
+filter = "facility_id=" + facility_id; + " AND contour_level=2";
+}
+
+if (id == "download-data-json") {
+var outputFormat = "application/json"
+}
+if (id == "download-data-shp") {
+var outputFormat = "shape-zip"
+}
+if (id == "download-data-csv") {
+var outputFormat = "csv"
+}
+if (id == "download-data-gml") {
+var outputFormat = "GML2"
+}
+
+var url = geo_host + "/" +  geo_space + "/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=" + typeName + "&maxFeatures=50&outputFormat=" + outputFormat + "&cql_filter=" + filter;
+
+if (serviceType.toLowerCase() == "am") {
+url = geo_host + "/" +  geo_space + "/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=" + typeName + "&maxFeatures=50&outputFormat=" + outputFormat + "&cql_filter=" + filter;
+}
+
+window.open(url);
+
+
+});
+
+}
+
+
+$(document).ready(function() {
+	createMap();
+	setupListener();
+});
+
+
+</script>
+</head>
+
+<body>
+<div>
+<div id="map" style="width: 700px; height: 700px; vertical-align: top">
+</div>
+<div id="contour_msg" style="position: absolute; top: 10px; left:100px; font-size: 20px; z-index: 999; visibility: hidden">Currently no contours are available for this facility.</div>
+</div>
+<div style="position: absolute; left: 100px; top: 50px;  z-index: 999">
+
+						<div id="download-data-div" class="pull-right">
+							Download Contour: 
+							<span class="download-data" id="download-data-json" href="" target="_blank">JSON</span>
+							| 
+							<span class="download-data" id="download-data-shp" href="" target="_blank">SHP</span>							
+							|
+							<span class="download-data" id="download-data-csv" href="" target="_blank">CSV</span>
+							|  
+							<span class="download-data" id="download-data-gml" href="" target="_blank">GML</span>
+						</div>
+
+</body>
+
+</html>

@@ -1,0 +1,335 @@
+<html>
+
+<head>
+
+	<style>
+	.id-span-am, .id-span-fm, .id-span-tv {color: #00F; cursor: pointer; font-size: 12px}
+	.id-span-am:hover, .id-span-fm:hover, .id-span-tv:hover {text-decoration: underline}
+	#contour-info {font-size: 13px}
+	
+	</style>
+
+
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+	<link href="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css" rel="stylesheet">
+	<script src='https://api.tiles.mapbox.com/mapbox.js/v2.2.1/mapbox.js'></script>
+	<link href='https://api.tiles.mapbox.com/mapbox.js/v2.2.1/mapbox.css' rel='stylesheet' />
+	<script src="//api.tiles.mapbox.com/mapbox.js/plugins/leaflet-pip/v0.1.0/leaflet-pip.min.js"></script>
+<script>
+
+	var map;
+	var contour_json;
+	var host = 'http://localhost:6479';
+
+	contour_style = {color: "#000", opacity: 1.0,  fillOpacity: 0.0, weight: 4};
+	
+	function createMap() {
+ 
+     L.mapbox.accessToken = 'pk.eyJ1IjoiY29tcHV0ZWNoIiwiYSI6InMyblMya3cifQ.P8yppesHki5qMyxTc2CNLg';
+     map = L.mapbox.map('map', 'fcc.k74ed5ge', {
+             attributionControl: true,
+             maxZoom: 19
+         })
+         .setView([45, -93], 3);
+		 
+	}
+
+	function getAllTVCallsign() {
+	
+	url = host + "/getAllTVCallsign";
+	
+	console.log(url);
+	$.ajax(url, {
+        type: "GET",
+        url: url,
+        dataType: "json",
+        success: function(data){
+		
+		console.log(data)
+		
+			callsigns = data.callsign;
+		  callsigns = getUniqArray(callsigns);
+		  var str1 = ""
+		  for (var i = 0; i < callsigns.length; i++) {
+		  str1 += '<span id="' + callsigns[i] + '" class="id-span-tv">' + callsigns[i] + '</span> <br>';
+		  }
+		  $("#display-area-tv").html(str1);
+		  $("#num-tv").html("total:" + callsigns.length);
+		  
+		  $(".id-span-tv").on("click", function(e) {
+			clickedOnCallsignTV(e);
+			});
+			}
+	});
+	}
+	
+	
+	function getAllFMCallsign() {
+	
+	url = host + "/getAllFMCallsign";
+	console.log(url);
+	$.ajax(url, {
+        type: "GET",
+        url: url,
+        dataType: "json",
+        success: function(data){
+			callsigns = data.callsign;
+		  callsigns = getUniqArray(callsigns);
+		  var str1 = ""
+		  for (var i = 0; i < callsigns.length; i++) {
+		  str1 += '<span id="' + callsigns[i] + '" class="id-span-fm">' + callsigns[i] + '</span> <br>';
+		  }
+		  $("#display-area-fm").html(str1);
+		  $("#num-fm").html("total:" + callsigns.length);
+		  
+		  $(".id-span-fm").on("click", function(e) {
+			clickedOnCallsignFM(e);
+			});
+			}
+	});
+	}
+	
+	function getAllAMCallsign() {
+	
+	url = host + "/getAllAMCallsign";
+	console.log(url);
+	$.ajax(url, {
+        type: "GET",
+        url: url,
+        dataType: "json",
+        success: function(data){
+			callsigns = data.callsign;
+		  callsigns = getUniqArray(callsigns);
+		  var str1 = ""
+		  for (var i = 0; i < callsigns.length; i++) {
+		  str1 += '<span id="' + callsigns[i] + '" class="id-span-am">' + callsigns[i] + '</span> <br>';
+		  }
+		  $("#display-area-am").html(str1);
+		  $("#num-am").html("total:" + callsigns.length);
+		  
+		  $(".id-span-am").on("click", function(e) {
+			clickedOnCallsignAM(e);
+			});
+			}
+	});
+	}
+	
+	
+function getUniqArray(x) {
+
+a = [];
+for (var i = 0; i < x.length; i++) {
+a[i] = x[i];
+}
+
+if (a.length < 2) {
+return a;
+}
+var b = a.sort();
+var u = [];
+for (var i = 0; i < b.length-1; i++) {
+if (b[i] != b[i+1]) {
+u.push(b[i]);
+}
+}
+u.push(b[b.length-1]);
+
+return u;
+}
+
+
+function clickedOnCallsignTV(e) {
+
+var callsign = e.currentTarget.id;
+url = host + "/getTVContourByCallsign/" + callsign;
+console.log(url);
+$.ajax(url, {
+        type: "GET",
+        url: url,
+        dataType: "json",
+        success: function(data){
+		
+		if (data.features.length == 0) {
+			return;
+		}
+		
+		var p = data.features[0].properties;
+		var type = "TV";
+		var application_id = p.application_id;
+		var service = p.service;
+		var callsign = p.callsign;
+		var filenumber = p.filenumber;
+		var station_lat = p.station_lat;
+		var station_lon = p.station_lon;
+		
+		var text = "Type: " + type + " | Application ID: " + application_id + " | Service: " + service + " | Call Sign: " + callsign + " | File Number: " + filenumber + "<br>Station Lat: " + station_lat + " | Station Lon: " + station_lon; 
+		$("#contour-info").html(text);
+		
+		
+		if (map.hasLayer(contour_json)) {
+		map.removeLayer(contour_json);
+		}
+		
+		contour_json = L.geoJson(data, {
+style: contour_style
+
+}).addTo(map);
+
+map.fitBounds(contour_json.getBounds());
+		  
+        }
+
+
+});
+
+}
+
+
+function clickedOnCallsignFM(e) {
+var callsign = e.currentTarget.id;
+url = host + "/getFMContourByCallsign/" + callsign;
+console.log(url);
+$.ajax(url, {
+        type: "GET",
+        url: url,
+        dataType: "json",
+        success: function(data){
+		
+				if (data.features.length == 0) {
+			return;
+		}
+		
+		var p = data.features[0].properties;
+		var type = "FM";
+		var application_id = p.application_id;
+		var service = p.service;
+		var callsign = p.callsign;
+		var filenumber = p.filenumber;
+		var station_lat = p.station_lat;
+		var station_lon = p.station_lon;
+		
+		var text = "Type: " + type + " | Application ID: " + application_id + " | Service: " + service + " | Call Sign: " + callsign + " | File Number: " + filenumber + "<br>Station Lat: " + station_lat + " | Station Lon: " + station_lon; 
+		$("#contour-info").html(text);
+		
+		if (map.hasLayer(contour_json)) {
+		map.removeLayer(contour_json);
+		}
+		
+		contour_json = L.geoJson(data, {
+style: contour_style
+}).addTo(map);
+
+map.fitBounds(contour_json.getBounds()); 
+        }
+});
+}
+
+function clickedOnCallsignAM(e) {
+var callsign = e.currentTarget.id;
+url = host + "/getAMContourByCallsign/" + callsign + "/B/daytime";
+
+console.log(url);
+$.ajax(url, {
+        type: "GET",
+        url: url,
+        dataType: "json",
+        success: function(data){
+		
+		if (data.features.length == 0) {
+			return;
+		}
+		
+		var p = data.features[0].properties;
+		var type = "AM";
+		var antid = p.antid;
+		var time_period = p.time_period;
+		var callsign = p.callsign;
+		var frequency = p.frequency;
+		var frequency_unit = p.frequency_unit;
+		var station_lat = p.station_lat;
+		var station_lon = p.station_lon;
+		var contour_level = p.contour_level
+		
+		var text = "Type: " + type + " | Antenna ID: " + antid + " | Time Period: " + time_period + " | Call Sign: " + callsign + " | Frequency: " + frequency + " " + frequency_unit + " | Level: " + contour_level  + "<br>Station Lat: " + station_lat + " | Station Lon: " + station_lon; 
+		$("#contour-info").html(text);
+		
+		if (map.hasLayer(contour_json)) {
+		map.removeLayer(contour_json);
+		}
+		
+		contour_json = L.geoJson(data, {
+style: contour_style
+}).addTo(map);
+
+map.fitBounds(contour_json.getBounds()); 
+        }
+});
+}
+
+function setupListener() {
+
+
+
+}
+	
+	
+$(document).ready(function() {
+
+	createMap();
+	getAllTVCallsign();
+	getAllFMCallsign();
+	getAllAMCallsign();
+	setupListener();
+
+
+
+});
+
+
+
+</script>
+
+</head>
+
+<body>
+<b>
+Contour Preview - TV, FM, AM
+</b>
+<p>
+<span id="contour-info"></span>
+<table><tr>
+<td valign=top>
+<div id="map" style="width: 700px; height: 700px; vertical-align: top"></div>
+</td>
+<td height=700 width=120>
+TV Callsigns:<br>
+<span id="num-tv"></span>
+<div id="display-area-tv" style="height: 100%;overflow: auto; ">
+
+</div>
+</td>
+
+<td height=700 width=120>
+FM Callsigns:<br>
+<span id="num-fm"></span>
+<div id="display-area-fm" style="height: 100%;overflow: auto; ">
+
+</div>
+</td>
+
+<td height=700 width=120>
+AM Callsigns:<br>
+<span id="num-am"></span>
+<div id="display-area-am" style="height: 100%;overflow: auto; ">
+
+</div>
+</td>
+
+</tr>
+</table>
+
+
+
+</body>
+
+</html>

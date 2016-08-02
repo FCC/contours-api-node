@@ -19,6 +19,7 @@ var bodyparser = require('body-parser');
 var package_json = require('./package.json');
 
 var contour = require('./controllers/contour.js');
+var contours = require('./controllers/contours.js');
 
 // **********************************************************
 // config
@@ -101,6 +102,10 @@ app.param('ext', function(req, res, next, ext) {
 	}
 });
 
+app.get('/elevation/:lat/:lon', function(req, res){
+	contours.elevation(req, res);
+});
+
 
 app.get('/:serviceType/:idType/:id.:ext', function(req, res){
 	contour.getContour(req, res);
@@ -109,6 +114,8 @@ app.get('/:serviceType/:idType/:id.:ext', function(req, res){
 app.get('/:serviceType/:idType/:id', function(req, res){
 	contour.getContour(req, res);
 });
+
+
 
 // **********************************************************
 // error

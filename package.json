@@ -4,7 +4,8 @@
   "description": "FCC Contour API - Node.js",
   "main": "app.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node app.js",
+    "test": "./node_modules/.bin/mocha -R spec test/**/test-*.js"
   },
   "repository": {
     "type": "git",
@@ -34,5 +35,11 @@
     "moment": "^2.10.3",
     "morgan": "^1.6.1",
     "request": "^2.69.0"
+  },
+  "devDependencies": {
+    "mocha": "^3.0.0",
+    "nodemon": "^1.10.0",
+    "should": "^10.0.0",
+    "supertest": "^2.0.0"
   }
 }

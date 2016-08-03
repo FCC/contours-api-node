@@ -14,6 +14,8 @@ var geo_space = configEnv[NODE_ENV].GEO_SPACE;
 
 var fs = require('fs');
 
+var data_dir = '/var/data';
+
 function elevation(req, res) {
 
  var lat = req.params.lat;
@@ -41,7 +43,7 @@ function elevation(req, res) {
 	var lat_str = padZero(lat_ul, 2);
 	var lon_str = padZero(lon_ul, 3);
 	var filename = 'usgs_ned_13_n' + lat_str + 'w' + lon_str + '_gridfloat.flt';
-	var filepath = 'data/ned13/' + filename;
+	var filepath = data_dir + '/ned13/' + filename;
 	
 	if (!fs.existsSync(filepath)) {
 		res.send({'status': 'error', 'msg': 'data unavailable'});

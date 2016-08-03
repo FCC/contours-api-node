@@ -102,7 +102,7 @@ app.param('ext', function(req, res, next, ext) {
 	}
 });
 
-app.get('/elevation/:lat/:lon', function(req, res){
+app.get('/elevation/:datatype/:lat/:lon', function(req, res){
 	contours.elevation(req, res);
 });
 

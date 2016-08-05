@@ -150,4 +150,10 @@ function padZero(a, n) {
 	return a_str;
 }
 
+function getVersions(req, res) {
+	res.send(process.versions);
+
+}
+
 module.exports.elevation = elevation;
+module.exports.getVersions = getVersions;

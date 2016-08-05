@@ -115,7 +115,9 @@ app.get('/:serviceType/:idType/:id', function(req, res){
 	contour.getContour(req, res);
 });
 
-
+app.get('/getVersions', function(req, res){
+	contours.getVersions(req, res);
+});
 
 // **********************************************************
 // error

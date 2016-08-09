@@ -35,7 +35,8 @@
     "js2xmlparser": "^0.1.9",
     "moment": "^2.10.3",
     "morgan": "^1.6.1",
-    "request": "^2.69.0"
+    "request": "^2.69.0",
+    "aws-sdk": "^2.1.38"
   },
   "devDependencies": {
     "mocha": "^3.0.0",

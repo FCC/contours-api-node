@@ -113,8 +113,10 @@ function getElevation(req, res) {
 		var lat_str = padZero(lat_ul, 2);
 		var lon_str = padZero(lon_ul, 3);
 		
-		var usgs_filename = 'usgs_' + datatype + '_' + ns + lat_str + ew + lon_str + '_gridfloat.flt';
 		
+		var usgs_filename = 'float' + ns + lat_str + ew + lon_str + '_1.flt';
+		// sample file floatn15w093_1.flt		
+
 		console.log('usgs_filename:'+usgs_filename);
 		
 		if (datatype == 'ned_13') {

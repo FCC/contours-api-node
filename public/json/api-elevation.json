@@ -1,0 +1,68 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "version": "0.9.0",
+        "title": "FCC Elevation API"
+    },
+    "basePath": "/",
+    "tags": [{
+        "name": "elevation",
+        "description": "FCC Elevation API"
+    }],
+    "paths": {
+        "/elevation.{format}": {
+            "get": {
+                "tags": ["elevation"],
+                "summary": "Get elevation",
+                "description": "Get elevation data based on latitude, longitude, data source and unit of measurement. Response returned in JSON format.",
+                "parameters": [{
+                    "name": "lat",
+                    "in": "query",
+                    "description": "Latitude",
+                    "required": true,
+                    "type": "string",
+                    "defaultValue": ""
+                }, {
+                    "name": "long",
+                    "in": "query",
+                    "description": "Longitude",
+                    "required": true,
+                    "type": "string",
+                    "defaultValue": ""
+                }, {
+                    "name": "src",
+                    "in": "query",
+                    "description": "Data source.",
+                    "required": false,
+                    "type": "string",
+                    "defaultValue": "ned_1"
+                }, {
+                    "name": "unit",
+                    "in": "query",
+                    "description": "Unit of measurement.",
+                    "required": false,
+                    "type": "string",
+                    "defaultValue": "meters"
+                }, {
+                    "name": "format",
+                    "in": "path",
+                    "description": "Format for the returned results.<br /><br />Valid values: json.",
+                    "required": true,
+                    "type": "string",
+                    "defaultValue": "json",
+                    "enum": [
+                        "json"
+                    ]
+                }],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                },
+                "produces": [
+                    "application/json"
+                ]
+            }
+        }
+    }
+}

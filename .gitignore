@@ -34,3 +34,6 @@ node_modules
 # DevOps
 .ebextensions
 app.zip
+
+#data
+data

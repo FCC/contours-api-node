@@ -1,7 +1,23 @@
 # Contour API (Node.JS)
 **System Requirements**: Node.JS v4
 ### setting up locally
-Copy the env.json file from the Bamboo build plan (or AWS instructions below) from the config folder.
+1. Copy the env.json file from the Bamboo build plan (or AWS instructions below) from the config folder.
+
+2. Install node modules.  
+   ```
+   npm install
+   ```
+
+3. Test the app.  
+   ```
+   npm test
+   ```
+
+4. Run the app.  
+   ```
+   npm start
+   ```
+
 
 ### setting up in AWS
 Before packaging our code we need to create the Elastic Beanstalk environment, as that URL is necessary as an environment variable in our zip. At creation, just deploy a sample application until we are ready to upload our zip. We recommend naming the environment with the Cloud DevOps Naming Convention of **system-project-technology-environment##**. An example for this repo would be **contour-api-node-at01**.

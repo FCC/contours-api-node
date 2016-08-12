@@ -35,14 +35,26 @@
                     "description": "Data source.",
                     "required": false,
                     "type": "string",
-                    "defaultValue": "ned_1"
+                    "defaultValue": "ned_1",
+                    "enum": [
+                        "ned_1",
+                        "ned_2",
+                        "ned_13",
+                        "usgs"
+                    ]
                 }, {
                     "name": "unit",
                     "in": "query",
                     "description": "Unit of measurement.",
                     "required": false,
                     "type": "string",
-                    "defaultValue": "meters"
+                    "defaultValue": "meters",
+                    "enum": [
+                    	"",
+                        "meters",
+                        "miles",
+                        "feet"
+                    ]
                 }, {
                     "name": "format",
                     "in": "path",

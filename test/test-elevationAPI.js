@@ -68,7 +68,7 @@ describe('Elevation API test', function() {
 
         function chkSrc(key) {
             it('should return elevation data if src = ' + key, function(done) {
-              var url = '/elevation.json?lat=38.22&long=-78.5&src=' + key;
+                var url = '/elevation.json?lat=38.22&long=-78.5&src=' + key;
 
                 request(server)
                     .get(url)
@@ -105,18 +105,18 @@ describe('Elevation API test', function() {
 
     describe('unit', function() {
         var unitVals = {
-            'meters': 'meters'
-                // 'miles': 'miles',
-                // 'feet': 'ft'
+            'meters': 'meters',
+            'miles': 'miles',
+            'feet': 'feet'
         };
 
         for (var key in unitVals) {
             chkUnit(key);
-        }       
+        }
 
         function chkUnit(key) {
             it('should return elevation data in ' + key, function(done) {
-              var url = '/elevation.json?lat=38.22&long=-78.5&unit=' + key;
+                var url = '/elevation.json?lat=38.22&long=-78.5&unit=' + key;
 
                 request(server)
                     .get(url)

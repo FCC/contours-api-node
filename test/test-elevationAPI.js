@@ -5,7 +5,7 @@ describe('Elevation API test', function() {
 
     describe('lat/lon', function(done) {
         it('should return elevation data based on lat and lon only', function(done) {
-            this.timeout(4000);
+            this.timeout(10000);
 
             request(server)
                 .get('/elevation.json?lat=38.22&long=-78.5')
@@ -22,7 +22,7 @@ describe('Elevation API test', function() {
         });
 
         it('should not return elevation data if lat and lon are not provided', function(done) {
-            this.timeout(4000);
+            this.timeout(10000);
 
             request(server)
                 .get('/elevation.json')
@@ -40,7 +40,7 @@ describe('Elevation API test', function() {
         });
 
         it('should check for invalid lat/lon input values', function(done) {
-            this.timeout(4000);
+            this.timeout(10000);
 
             request(server)
                 .get('/elevation.json?lat=9999&long=9999')

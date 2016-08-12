@@ -3,8 +3,9 @@ var server = require('../app.js');
 
 describe('Elevation API test', function() {
 
-    describe('lat/lon', function() {
+    describe('lat/lon', function(done) {
         it('should return elevation data based on lat and lon only', function(done) {
+            this.timeout(4000);
 
             request(server)
                 .get('/elevation.json?lat=38.22&long=-78.5')
@@ -21,6 +22,7 @@ describe('Elevation API test', function() {
         });
 
         it('should not return elevation data if lat and lon are not provided', function(done) {
+            this.timeout(4000);
 
             request(server)
                 .get('/elevation.json')
@@ -38,6 +40,7 @@ describe('Elevation API test', function() {
         });
 
         it('should check for invalid lat/lon input values', function(done) {
+            this.timeout(4000);
 
             request(server)
                 .get('/elevation.json?lat=9999&long=9999')
@@ -58,7 +61,6 @@ describe('Elevation API test', function() {
     describe('src', function() {
         var srcVals = {
             'ned_1': '3DEP 1 arc-second',
-            // 'ned_13': '3DEP 1/3 arc-second',            
             'usgs': '3DEP 1/3 arc-second'
         };
 

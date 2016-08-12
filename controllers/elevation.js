@@ -24,8 +24,7 @@ var AWS_SECRET_KEY = configEnv[NODE_ENV].AWS_SECRET_KEY;
     AWS.config.update({endpoint: 's3-us-west-2.amazonaws.com'});
 var S3_BUCKET = configEnv[NODE_ENV].S3_BUCKET;
 var S3_NED_LOCATION;
-var S3_NED1_LOCATION = configEnv[NODE_ENV].S3_NED1_LOCATION;
-var S3_NED13_LOCATION = configEnv[NODE_ENV].S3_NED13_LOCATION;
+var S3_ELEV_LOCATION = configEnv[NODE_ENV].S3_ELEV_LOCATION;
 
 var fs = require('fs');
 
@@ -33,6 +32,7 @@ var data_dir;
 var filepath;
 var data_src = 'ned_1';
 var param_unit = 'meters';
+var file_ext = '_1';
 
 if (NODE_ENV == 'LOCAL') {
 	data_dir = 'data/';	
@@ -43,7 +43,7 @@ else {
 
 
 function getElevation(req, res) {
-	//console.log('--- beginning elevation ---');
+	console.log('--- beginning elevation ---');
 
 	try {
 		
@@ -52,7 +52,7 @@ function getElevation(req, res) {
 		var datatype = req.query.src;
 		var unit = req.query.unit;
 
-		//console.log('params: lat='+latitude+',long='+longitude+', src='+datatype);
+		console.log('params: lat='+latitude+',long='+longitude+', src='+datatype);
 
 		if(!datatype){
 			datatype = data_src;
@@ -119,18 +119,13 @@ function getElevation(req, res) {
 		var lat_str = padZero(lat_ul, 2);
 		var lon_str = padZero(lon_ul, 3);
 		
-		
-		var usgs_filename = 'float' + ns + lat_str + ew + lon_str + '_1.flt';
-		// sample file floatn15w093_1.flt		
-
-		//console.log('usgs_filename:'+usgs_filename);
 
 		if (datatype == 'usgs') {
-			//console.log('calling USGS API to get data..');
+			console.log('calling USGS API to get data..');
 			// /epqs/pqs.php?x=-77&y=38&units=Meters&output=json
 			performRequest('nationalmap.gov', '/epqs/pqs.php?x='+lon+'&y='+lat+'&units=Meters&output=json', function(data) {
-			    ////console.log('callback data ' + JSON.stringify(data));
-			    //console.log('callback elevation: '+data.Elevation);
+			    //console.log('callback data ' + JSON.stringify(data));
+			    console.log('callback elevation: '+data.Elevation);
 			    var elevation = data.Elevation;
 			    if( unit == 'miles'){
 					elevation = Math.round(1000*elevation*0.000621371)/1000;
@@ -159,20 +154,18 @@ function getElevation(req, res) {
 			
 			var nrow0 = 3600;
 			var ncol0 = 3600;
-			
-			var row = (lat_ul - lat) * nrow0 + 6 + 1;
-			var col = (lon_ul - Math.abs(lon)) * ncol0 + 6;
+			file_ext = '_1';
+		}
 
-			var filepath = data_dir + 'ned_1/' + usgs_filename;
-			S3_NED_LOCATION = S3_NED1_LOCATION;
+		else if (datatype == 'ned_2') {
+			var data_source = '3DEP 2 arc-second';
+		
+			var nrow = 1812;
+			var ncol = 1812;
 			
-			row = Math.floor(row);
-			col = Math.floor(col);
-
-			var length = 4;
-			var position = (row-1) * ncol * 4 + (col - 1) * 4 ;
-			
-			//console.log('row=' + row + ' col=' + col + ' pos=' + position);
+			var nrow0 = 1800;
+			var ncol0 = 1800;			
+			file_ext = '_2';
 		}
 		
 		else if (datatype == 'ned_13') {
@@ -183,35 +176,41 @@ function getElevation(req, res) {
 			
 			var nrow0 = 10800;
 			var ncol0 = 10800;
-			
+			file_ext = '_3';
+		}
+		
+		
+		if (datatype != 'usgs') {
+
+			var usgs_filename = 'float' + ns + lat_str + ew + lon_str + file_ext +'.flt';
+			// sample file floatn15w093_1.flt		
+
+			console.log('usgs_filename:'+usgs_filename);
+
 			var row = (lat_ul - lat) * nrow0 + 6 + 1;
 			var col = (lon_ul - Math.abs(lon)) * ncol0 + 6;
 
-			var filepath = data_dir + 'ned_13/' + usgs_filename;
-			S3_NED_LOCATION = S3_NED13_LOCATION;
-
+			var filepath = data_dir + datatype + '/' + usgs_filename;
+			S3_NED_LOCATION =  S3_ELEV_LOCATION + datatype + '/';
+			
 			row = Math.floor(row);
 			col = Math.floor(col);
 
 			var length = 4;
 			var position = (row-1) * ncol * 4 + (col - 1) * 4 ;
 			
-			//console.log('row=' + row + ' col=' + col + ' pos=' + position);
-		}
-		
-		
-		if (datatype != 'usgs') {
+			console.log('row=' + row + ' col=' + col + ' pos=' + position);
 
-			//console.log('S3_BUCKET='+S3_BUCKET);
-			//console.log('S3_NED_LOCATION='+S3_NED_LOCATION);
-			//console.log('filepath='+ filepath);
+			console.log('S3_BUCKET='+S3_BUCKET);
+			console.log('S3_NED_LOCATION='+S3_NED_LOCATION);
+			console.log('filepath='+ filepath);
 
 			var st_time = new Date().getTime();	
-			//console.log('st_time='+st_time);
+			console.log('st_time='+st_time);
 
 			if (fs.existsSync(filepath)) { // file is already exist
 				// readfile to calculate elevation data
-				//console.log('file exist in file system');
+				console.log('file exist in file system');
 				fs.open(filepath, 'r', function(err, fd) {
 					if(err) {
 						throw console.error(err);
@@ -232,8 +231,8 @@ function getElevation(req, res) {
 						}
 						
 						var ed_time = new Date().getTime();
-					    //console.log('ed_time='+ed_time);
-						//console.log('file transfer complete in :' + (ed_time - st_time)/1000);
+					    console.log('ed_time='+ed_time);
+						console.log('file transfer complete in :' + (ed_time - st_time)/1000);
 
 						var elevation = Math.round(100*buffer.readFloatLE(0))/100;
 						if( unit == 'miles'){
@@ -275,7 +274,7 @@ function getElevation(req, res) {
 							res.send(json);
 			            } 
 			            else {
-							//console.log('downloading file...');
+							console.log('downloading file...');
 					        var fd = fs.openSync(filepath, 'a+');
 					        fs.writeSync(fd, data.Body, 0, data.Body.length, 0);
 					        fs.closeSync(fd);
@@ -311,8 +310,8 @@ function getElevation(req, res) {
 									}
 									
 									var ed_time = new Date().getTime();
-								    //console.log('ed_time='+ed_time);
-			    					//console.log('file transfer complete in :' + (ed_time - st_time)/1000);
+								    console.log('ed_time='+ed_time);
+			    					console.log('file transfer complete in :' + (ed_time - st_time)/1000);
 
 									var elevation = Math.round(100*buffer.readFloatLE(0))/100;
 									if( unit == 'miles'){
@@ -362,7 +361,7 @@ function padZero(a, n) {
 }
 
 function performRequest(host, path, success) {
-	//console.log('performRequest host='+host+', path='+path);
+	console.log('performRequest host='+host+', path='+path);
 
   	try {
 
@@ -382,13 +381,13 @@ function performRequest(host, path, success) {
 				try {
 					var json_data = JSON.parse(data);	
 				
-					//console.log('json_data='+JSON.stringify(data));	
-					//console.log('json_data elevation: '+json_data.USGS_Elevation_Point_Query_Service.Elevation_Query.Elevation);
+					console.log('json_data='+JSON.stringify(data));	
+					console.log('json_data elevation: '+json_data.USGS_Elevation_Point_Query_Service.Elevation_Query.Elevation);
 
 					return success(json_data.USGS_Elevation_Point_Query_Service.Elevation_Query);
 				}
 				catch (err) {
-					//console.log('\n\n res err ');	
+					console.log('\n\n res err ');	
 					return;
 				}			
 			});

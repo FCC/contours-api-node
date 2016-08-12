@@ -176,7 +176,7 @@ function getElevation(req, res) {
 			
 			var nrow0 = 10800;
 			var ncol0 = 10800;
-			file_ext = '_3';
+			file_ext = '_13';
 		}
 		
 		

@@ -75,7 +75,8 @@ app.use(bodyparser.urlencoded({ extended: false }));
 // route
 
 app.use('/', express.static(__dirname + '/public'));
-app.use('/api-docs', express.static(__dirname + '/public/api-docs.html'));
+app.use('/api-docs', express.static(__dirname + '/public/index.html'));
+app.use('/contour-demo', express.static(__dirname + '/public/contour-demo.html'));
 
 app.param('uuid', function(req, res, next, uuid){
     // check format of uuid

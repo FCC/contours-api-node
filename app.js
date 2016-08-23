@@ -20,6 +20,7 @@ var package_json = require('./package.json');
 
 var contour = require('./controllers/contour.js');
 var elevation = require('./controllers/elevation.js');
+var haat = require('./controllers/haat.js');
 
 
 // **********************************************************

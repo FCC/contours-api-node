@@ -28,6 +28,9 @@ var S3_ELEV_LOCATION = configEnv[NODE_ENV].S3_ELEV_LOCATION;
 
 var fs = require('fs');
 
+var ned_1_files = require('../data/ned_1_files.json');
+var ned_2_files = require('../data/ned_2_files.json');
+
 var data_dir;
 var filepath;
 var data_src = 'ned_1';
@@ -84,7 +87,7 @@ function getElevation(req, res) {
 			return;
 		}
 		
-		if (datatype != 'ned_1' && datatype != 'ned_2' && datatype != 'ned_13' && datatype != 'usgs') {
+		if (datatype != 'ned' && datatype != 'ned_1' && datatype != 'ned_2' && datatype != 'ned_13' && datatype != 'usgs') {
 			res.send({
 				'status': 'error',
             	'statusCode':'400',
@@ -118,7 +121,27 @@ function getElevation(req, res) {
 		
 		var lat_str = padZero(lat_ul, 2);
 		var lon_str = padZero(lon_ul, 3);
+
+		var usgs_filename;
+		var coordname = ns + lat_str + ew + lon_str;
 		
+		console.log('coordname='+coordname);
+
+		if(datatype == 'ned') {
+			if(ned_1_files[coordname]){
+				datatype = 'ned_1';
+				usgs_filename = ned_1_files[coordname].file;
+				console.log('ned_1 coordname file='+usgs_filename);	
+			}
+			else if(ned_2_files[coordname]){
+				datatype = 'ned_2';
+				usgs_filename = ned_2_files[coordname].file;
+				console.log('ned_2 coordname file='+usgs_filename);	
+			}
+			else {
+				throw 'ned file not found';
+			}	
+		}
 
 		if (datatype == 'usgs') {
 			console.log('calling USGS API to get data..');
@@ -164,7 +187,7 @@ function getElevation(req, res) {
 			var ncol = 1812;
 			
 			var nrow0 = 1800;
-			var ncol0 = 1800;			
+			var ncol0 = 1800;
 			file_ext = '_2';
 		}
 		
@@ -182,7 +205,10 @@ function getElevation(req, res) {
 		
 		if (datatype != 'usgs') {
 
-			var usgs_filename = 'float' + ns + lat_str + ew + lon_str + file_ext +'.flt';
+			if(datatype != 'ned'){
+				usgs_filename = 'float' + coordname + file_ext +'.flt';
+			}
+			//var usgs_filename = 'float' + ns + lat_str + ew + lon_str + file_ext +'.flt';
 			// sample file floatn15w093_1.flt		
 
 			console.log('usgs_filename:'+usgs_filename);
@@ -274,7 +300,7 @@ function getElevation(req, res) {
 							res.send(json);
 			            } 
 			            else {
-							console.log('downloading file...');
+							console.log('downloading file from s3..., time='+new Date().getTime());
 					        var fd = fs.openSync(filepath, 'a+');
 					        fs.writeSync(fd, data.Body, 0, data.Body.length, 0);
 					        fs.closeSync(fd);
@@ -341,6 +367,7 @@ function getElevation(req, res) {
 		
 	}
 	catch(err) {
+		console.error(err);
 		res.send({
 			'status': 'error',
         	'statusCode':'400',

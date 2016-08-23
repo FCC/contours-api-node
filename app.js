@@ -119,6 +119,18 @@ app.get('/getVersions', function(req, res){
 	contours.getVersions(req, res);
 });
 
+app.get('/haat/:datatype/:lat/:lon/:rcamsl/:nradial/:format', function(req, res){
+	haat.getHAAT(req, res);
+});
+
+app.get('/haat/:datatype/:lat/:lon/:rcamsl/:nradial', function(req, res){
+	haat.getHAAT(req, res);
+});
+
+app.get('/haat/:query_string', function(req, res){
+	haat.getHAAT(req, res);
+});
+
 // **********************************************************
 // error
 

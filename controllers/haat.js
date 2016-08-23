@@ -167,7 +167,7 @@ function getHAAT(req, res) {
 	
 	endTime = new Date().getTime();
 	var elapsed_time = endTime - startTime;
-	output_haat['elapsed_time'] = elapsed_time + ' ms';
+	//output_haat['elapsed_time'] = elapsed_time + ' ms';
 	
 	res.send(output_haat);
 	

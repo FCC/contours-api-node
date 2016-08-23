@@ -7,7 +7,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Contour Demo - FCC Contour API</title>
     <link href="https://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,700italic,400,300,700|Lato:500" rel="stylesheet" type="text/css">
-    <!--#include file="inc/swagger-css.shtm" -->
     <link href="https://api.tiles.mapbox.com/mapbox.js/v2.2.1/mapbox.css" rel="stylesheet">
     <link href="css/bootstrap.min.css" rel="stylesheet">
     <link href="css/app-theme.css" rel="stylesheet">
@@ -22,6 +21,24 @@
         content: "*";
         left: 4px;
         font-size: 13px;
+    }
+    fieldset {
+        margin-bottom: 15px;
+    }
+    legend {
+        font-size: 16px;
+    }
+
+    .dl-elevation {
+        margin-bottom: 0;
+    }
+
+    .dl-elevation dt {
+        width: auto;
+    }
+
+    .dl-elevation dd {
+        margin-left: 80px;
     }
     </style>
 </head>
@@ -81,59 +98,100 @@
                     <br>
                     <br>
                     <div class="alert alert-danger" style="display: none;">
-                        <p>Unable to generate a contour based on the provided parameters. Please revise the parameters and try again.</p>
+                        <p>Unable to retrieve contour data based on the provided parameter values. Please revise the parameters and try again.</p>
                     </div>
                 </div>
             </div>
             <div class="row">
                 <div class="col-sm-3">
                     <form id="form-params" action="/">
-                        <div class="form-group">
-                            <label for="serviceType" required>Service Type</label>
-                            <select id="serviceType" class="form-control" name="serviceType">
-                                <option value="tv">TV</option>
-                                <option value="fm">FM</option>
-                                <option value="am">AM</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label for="idType" required>ID Type</label>
-                            <select id="idType" class="form-control" name="idType">
-                                <option value="facilityid">facilityid</option>
-                                <option value="callsign">callsign</option>
-                                <option value="filenumber">filenumber</option>
-                                <option value="applicationid">applicationid</option>
-                                <option value="antennaid" style="display: none;">antennaid</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label for="idValue" required>Facility ID</label>
-                            <input id="idValue" class="form-control" type="text" name="idValue">
-                        </div>
-                        <div class="js-am-only form-group" style="display: none;">
-                            <label for="stationClass">Station Class</label>
-                            <select id="stationClass" class="form-control" name="stationClass">
-                                <option value=""></option>
-                                <option value="a">a</option>
-                                <option value="b">b</option>
-                                <option value="c">c</option>
-                                <option value="d">d</option>
-                            </select>
-                        </div>
-                        <div class="js-am-only form-group" style="display: none;">
-                            <label for="timePeriod">Time Period</label>
-                            <select id="timePeriod" class="form-control" name="timePeriod">
-                                <option value=""></option>
-                                <option value="day">day</option>
-                            </select>
-                        </div>
-                        <button id="btn-createContour" class="btn btn-primary" type="button">View Contour</button>
+                        <fieldset>
+                            <legend>Select API</legend>
+                            <div class="form-group">
+                                <label for="apiType" required>API</label>
+                                <select id="apiType" class="form-control" name="apiType">
+                                    <option value="contour">Contour</option>
+                                    <option value="elevation">Elevation</option>
+                                    <option value="haat">HAAT</option>
+                                </select>
+                            </div>
+                        </fieldset>
+                        <fieldset id="frm-contour" class="fields fields-contour">
+                            <legend>Contour API</legend>
+                            <div class="form-group">
+                                <label for="serviceType" required>Service Type</label>
+                                <select id="serviceType" class="form-control" name="serviceType">
+                                    <option value="tv" selected>TV</option>
+                                    <option value="fm">FM</option>
+                                    <option value="am">AM</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="idType" required>ID Type</label>
+                                <select id="idType" class="form-control" name="idType">
+                                    <option value="facilityid" selected>facilityid</option>
+                                    <option value="callsign">callsign</option>
+                                    <option value="filenumber">filenumber</option>
+                                    <option value="applicationid">applicationid</option>
+                                    <option value="antennaid" style="display: none;">antennaid</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="idValue" required>Facility ID</label>
+                                <input id="idValue" class="form-control" type="text" name="idValue">
+                            </div>
+                            <div class="js-am-only form-group" style="display: none;">
+                                <label for="stationClass">Station Class</label>
+                                <select id="stationClass" class="form-control" name="stationClass">
+                                    <option value="a" selected>a</option>
+                                    <option value="b">b</option>
+                                    <option value="c">c</option>
+                                    <option value="d">d</option>
+                                </select>
+                            </div>
+                            <div class="js-am-only form-group" style="display: none;">
+                                <label for="timePeriod">Time Period</label>
+                                <select id="timePeriod" class="form-control" name="timePeriod">                                    
+                                    <option value="day" selected>day</option>
+                                </select>
+                            </div>
+                        </fieldset>
+                        <fieldset id="frm-elevation" class="fields fields-elevation" style="display: none;">
+                            <legend>Elevation API</legend>
+                            <div class="form-group">
+                                <label for="lat" required>Latitude</label>
+                                <input id="lat" class="form-control" type="text" name="lat">
+                            </div>
+                            <div class="form-group">
+                                <label for="long" required>Longitude</label>
+                                <input id="long" class="form-control" type="text" name="long">
+                            </div>
+                            <div class="form-group">
+                                <label for="src">Source</label>
+                                <select id="src" class="form-control" name="src">
+                                    <option value="ned" selected>ned</option>
+                                    <option value="ned_1">ned_1</option>
+                                    <option value="ned_2">ned_2</option>
+                                    <option value="ned_13">ned_13</option>                                    
+                                    <option value="usgs">usgs</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="unit">Unit</label>
+                                <select id="unit" class="form-control" name="unit">
+                                    <option value="meters" selected>meters</option>
+                                    <option value="miles">miles</option>
+                                    <option value="feet">feet</option>                                                                        
+                                </select>
+                            </div>                            
+                        </fieldset>
+                        <button id="btn-getAPI" class="btn btn-primary" type="button" data-api="contour">View</button>
                     </form>
                     <br>
                     <br>
                 </div>
                 <div class=col-sm-9>
-                    <div id="map"></div>
+                    <div id="map"></div>                    
                 </div>
             </div>
         </main>
@@ -146,7 +204,10 @@
     <script src="https://api.tiles.mapbox.com/mapbox.js/v2.2.1/mapbox.js"></script>
     <script src="//api.tiles.mapbox.com/mapbox.js/plugins/leaflet-pip/v0.1.0/leaflet-pip.min.js"></script>
     <script src="js/vendor/bootstrap.min.js"></script>
-    <script src="js/contour-demo.js"></script>
+    <script src="js/apiForm.js"></script>
+    <script src="js/map.js"></script>
+    <script src="js/contourMap.js"></script>    
+    <script src="js/elevationMap.js"></script>
 </body>
 
 </html>

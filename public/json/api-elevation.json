@@ -35,8 +35,9 @@
                     "description": "Data source.",
                     "required": false,
                     "type": "string",
-                    "defaultValue": "ned_1",
+                    "defaultValue": "ned",
                     "enum": [
+                        "ned",
                         "ned_1",
                         "ned_2",
                         "ned_13",

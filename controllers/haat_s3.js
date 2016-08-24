@@ -197,6 +197,7 @@ function getHAAT(req, res) {
 				
 				fs.writeFile(filepath, data.Body, 'binary', function(err) {
 					if(err) {
+							callback();
 							return console.log(err);
 					}
 
@@ -243,7 +244,8 @@ function getHAAT(req, res) {
 	
 	function readDataFile(n, filepath, latlon) {
 		var i, j, lat, lon, az, npoint;
-			
+		res.send({'status': 'read', 'filepath': filepath});;
+		
 		var data = fs.readFileSync(filepath);
 
 		var filename = filepath.replace(/^.*\//, '');

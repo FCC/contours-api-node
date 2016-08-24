@@ -22,56 +22,54 @@ else {
 }
 
 function getHAAT(req, res) {
+	
+	console.log(req.url);
 
+	var url = req.url;
+	
 	var startTime = new Date().getTime();
 	var endTime;
 
 
-	var datatype = req.params.datatype;
-	var lat = req.params.lat;
-	var lon = req.params.lon;
-	var rcamsl = req.params.rcamsl;
-	var nradial = req.params.nradial;
-	var format = req.params.format;
+	var src, lat, lon, rcamsl, nradial, format, unit;
 	var output_data = [];
-	
-	var query_string = req.params.query_string;
-	if (query_string != undefined && query_string.match(/&/)) {
 		
-		if (!query_string.match(/datatype=/)) {
-			//res.send({'status': 'error', 'msg': 'missing datatype value'});
-			//return;
-		}
-		if (!query_string.match(/lat=/)) {
-			res.send({'status': 'error', 'msg': 'missing lat value'});
-			return;
-		}
-		if (!query_string.match(/lon=/)) {
-			res.send({'status': 'error', 'msg': 'missing lon value'});
-			return;
-		}
-		if (!query_string.match(/rcamsl=/)) {
-			res.send({'status': 'error', 'msg': 'missing rcamsl value'});
-			return;
-		}
-		if (!query_string.match(/nradial=/)) {
-			res.send({'status': 'error', 'msg': 'missing nradial value'});
-			return;
-		}
-	
-		datatype = query_string.replace(/^.*datatype=/, '').replace(/&.*$/, '').toLowerCase();
-		if (datatype != "ned_1" && datatype != "ned_2" && datatype != "ned_13" && datatype != "gtopo30" && datatype != "globe") {
-			datatype = "ned_1";
-		}
-		lat = query_string.replace(/^.*lat=/, '').replace(/&.*$/, '');
-		lon = query_string.replace(/^.*lon=/, '').replace(/&.*$/, '');
-		rcamsl = query_string.replace(/^.*rcamsl=/, '').replace(/&.*$/, '');
-		nradial = query_string.replace(/^.*nradial=/, '').replace(/&.*$/, '');
-		format = query_string.replace(/^.*format=/, '').replace(/&.*$/, '').toLowerCase();
+
+	if (!url.match(/lat=/i)) {
+		res.send({'status': 'error', 'msg': 'missing lat value'});
+		return;
+	}
+	if (!url.match(/lon=/i)) {
+		res.send({'status': 'error', 'msg': 'missing lon value'});
+		return;
+	}
+	if (!url.match(/rcamsl=/i)) {
+		res.send({'status': 'error', 'msg': 'missing rcamsl value'});
+		return;
+	}
+	if (!url.match(/nradial=/i)) {
+		res.send({'status': 'error', 'msg': 'missing nradial value'});
+		return;
+	}
+
+	src = url.replace(/^.*src=/i, '').replace(/&.*$/, '').toLowerCase();
+	src = src.toLowerCase();
+	if (src != "ned_1" && src != "ned_2" && src != "ned_13" && src != "gtopo30" && src != "globe") {
+		src = "ned_1";
+	}
+	lat = url.replace(/^.*lat=/i, '').replace(/&.*$/, '');
+	console.log(lat)
+	lon = url.replace(/^.*lon=/i, '').replace(/&.*$/, '');
+	rcamsl = url.replace(/^.*rcamsl=/i, '').replace(/&.*$/, '');
+	nradial = url.replace(/^.*nradial=/i, '').replace(/&.*$/, '');
+	format = url.replace(/^.*haat\./i, '').replace(/\?.*$/, '');
+	unit = url.replace(/^.*unit=/i, '').replace(/&.*$/, '');
+	unit = unit.toLowerCase();
+	if (unit != "meters" && unit != "miles" && unit != "feet") {
+		unit = "meters";
 	}
 	
 	var i, j;
-	
 	if ( !lat.match(/^-?\d+\.?\d*$/) || !lon.match(/^-?\d+\.?\d*$/) ) {
 		res.send({'status': 'error', 'msg': 'invalid Lat/Lon value'});
 		return;
@@ -85,32 +83,21 @@ function getHAAT(req, res) {
 		return;
 	}
 	if ( parseFloat(lat) > 90 || parseFloat(lat) < -90 ) {
-		res.send({'status': 'error', 'msg': 'invalid Lat value out of range'});
+		res.send({'status': 'error', 'msg': 'Lat value out of range'});
 		return;
 	}
 	if ( parseFloat(lon) > 180 || parseFloat(lon) < -180 ) {
-		res.send({'status': 'error', 'msg': 'invalid Lon value out of range'});
+		res.send({'status': 'error', 'msg': 'Lon value out of range'});
 		return;
 	}
-	if ( parseFloat(lon) > 180 || parseFloat(lon) < -180 ) {
-		res.send({'status': 'error', 'msg': 'invalid Lon value out of range'});
-		return;
-	}
-	
-	
+
 	lat = parseFloat(lat);
 	lon = parseFloat(lon);
 	rcamsl = parseFloat(rcamsl);
 	nradial = parseInt(nradial);
-	datatype = datatype.toLowerCase();
-	if (datatype != "ned_1" && datatype != "ned_2" && datatype != "ned_13" && datatype != "gtopo30" && datatype != "globe") {
-			datatype = "ned_1";
-		}
-	if (format != "json" && format != "csv") {
-		format = "csv";
-	}
+	src = src.toLowerCase();
 	
-	console.log('datatype=' + datatype + ' lat=' + lat + ' lon=' + lon + ' rcamsl=' + rcamsl + ' nradial=' + nradial + ' format=' + format);
+	console.log('src=' + src + ' lat=' + lat + ' lon=' + lon + ' rcamsl=' + rcamsl + ' nradial=' + nradial + ' format=' + format + ' unit=' + unit);
 	
 	
 	var num_points_per_radial = 51;
@@ -142,7 +129,7 @@ function getHAAT(req, res) {
 			latlon0 = getLatLonFromDist(lat1, lon1, azimuths[i], d);
 			lat_all.push(latlon0[0]);
 			lon_all.push(latlon0[1]);
-			filename = makeFileName(latlon0[0], latlon0[1], datatype);
+			filename = makeFileName(latlon0[0], latlon0[1], src);
 			latlon.push([i, j, latlon0[0], latlon0[1], filename]);
 		}
 	
@@ -193,7 +180,7 @@ function getHAAT(req, res) {
 
 			//console.log('lat_ul=' + lat_ul + ' lon_ul=' + lon_ul + ' lat=' + lat + ' lon=' + lon);
 
-				if (datatype == 'ned_1') {
+				if (src == 'ned_1') {
 					var data_source = '3DEP 1 arc-second';
 				
 					var nrow = 3612;
@@ -259,6 +246,28 @@ function getHAAT(req, res) {
 	
 	var haat_total = Math.round(100*arrMean(haat_av))/100;
 	
+	//unit conversion
+	
+	var feet_per_meter = 3.28084;
+	var miles_per_meter = 0.000621371;
+	if (unit != "meters") {
+		for (i = 0; i < haat_av.length; i++) {
+			if (unit == "feet") {
+				haat_av[i] = Math.round(100 * haat_av[i] * feet_per_meter) / 100;
+			}
+			else if (unit == "miles") {
+				haat_av[i] = Math.round(100000 * haat_av[i] * miles_per_meter) / 100000;
+			}
+		}
+		if (unit == "feet") {
+			haat_total = Math.round(100 * haat_total * feet_per_meter) / 100;
+		}
+		else if (unit == "miles") {
+			haat_total = Math.round(100000 * haat_total * miles_per_meter) / 100000;
+		}
+		
+	}
+	
 	if (format == 'csv') {
 		var content = 'azimuth,haat\n'
 		for (i = 0; i < nradial; i++) {
@@ -277,7 +286,7 @@ function getHAAT(req, res) {
 							'haat_average': 'average of the HAATs of all the radials',
 							'elapsed_time': 'time taken by the system to process this request'
 							},
-						'elevation_data_source': datatype,
+						'elevation_data_source': src,
 						'lat': lat,
 						'lon': lon,
 						'rcamsl': rcamsl,
@@ -285,7 +294,8 @@ function getHAAT(req, res) {
 						'format': format,
 						'azimuth': azimuths,
 						'haat_azimuth': haat_av,
-						'haat_average': haat_total
+						'haat_average': haat_total,
+						'unit': unit
 	
 		};
 		return content;	
@@ -331,7 +341,7 @@ function getLatLonFromFileName(filename) {
 	return [lat, lon];
 }
 
-function makeFileName(lat, lon, datatype) {
+function makeFileName(lat, lon, src) {
 
 	
 	if (lat <= -90 || lat > 90 || lon < -180 || lon > 180) {
@@ -339,7 +349,7 @@ function makeFileName(lat, lon, datatype) {
 		return;
 	}
 	
-	if (datatype != 'ned_1' && datatype != 'ned_13') {
+	if (src != 'ned_1' && src != 'ned_13') {
 		res.send({'status': 'error', 'msg': 'Wrong data type'});
 		return;
 	}
@@ -361,7 +371,7 @@ function makeFileName(lat, lon, datatype) {
 	
 	
 	
-	var filename = 'float' + ns + lat_str + ew + lon_str + '_' + datatype.replace('ned_', '') + '.flt';
+	var filename = 'float' + ns + lat_str + ew + lon_str + '_' + src.replace('ned_', '') + '.flt';
 
 	return filename;
 }

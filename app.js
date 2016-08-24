@@ -133,6 +133,14 @@ app.get('/haat/:query_string', function(req, res){
 	haat.getHAAT(req, res);
 });
 
+app.get('/haat.json', function(req, res){
+	haat.getHAAT(req, res);
+});
+
+app.get('/haat.csv', function(req, res){
+	haat.getHAAT(req, res);
+});
+
 // **********************************************************
 // error
 

@@ -23,7 +23,7 @@
                     "type": "string",
                     "defaultValue": ""
                 }, {
-                    "name": "long",
+                    "name": "lon",
                     "in": "query",
                     "description": "Longitude",
                     "required": true,
@@ -46,15 +46,14 @@
                 }, {
                     "name": "unit",
                     "in": "query",
-                    "description": "Unit of measurement.",
+                    "description": "Unit of measurement: m=meters, mi=miles, ft=feet",
                     "required": false,
                     "type": "string",
                     "defaultValue": "meters",
                     "enum": [
-                    	"",
-                        "meters",
-                        "miles",
-                        "feet"
+                    	"m",
+                        "mi",
+                        "ft"
                     ]
                 }, {
                     "name": "format",

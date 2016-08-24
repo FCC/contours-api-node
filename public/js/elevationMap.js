@@ -57,7 +57,7 @@
             elevMeta += '<dt>Longitude:</dt>';
             elevMeta += '<dd>' + data.longitude + '</dd>';
             elevMeta += '<dt>Data Source:</dt>';
-            elevMeta += '<dd>' + data['data source'] + '</dd>';
+            elevMeta += '<dd>' + data.dataSource + '</dd>';
             elevMeta += '</dl>';
 
             Map.stationMarker = L.marker([data.latitude, data.longitude])

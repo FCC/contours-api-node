@@ -34,7 +34,7 @@ var ned_2_files = require('../data/ned_2_files.json');
 var data_dir;
 var filepath;
 var data_src = 'ned_1';
-var param_unit = 'meters';
+var param_unit = 'm';
 var file_ext = '_1';
 
 if (NODE_ENV == 'LOCAL') {
@@ -107,7 +107,7 @@ function getElevation(req, res) {
 			return;
 		}
 
-		if (unit != 'meters' && unit != 'miles' && unit != 'feet') {
+		if (unit != 'm' && unit != 'mi' && unit != 'ft') {
 			res.status(400).send({
 				'status': 'error',
             	'statusCode':'400',
@@ -160,10 +160,10 @@ function getElevation(req, res) {
 			    //console.log('callback data ' + JSON.stringify(data));
 			    console.log('callback elevation: '+data.Elevation);
 			    var elevation = data.Elevation;
-			    if( unit == 'miles'){
+			    if( unit == 'mi'){
 					elevation = Math.round(1000*elevation*0.000621371)/1000;
 				}
-				else if(unit == 'feet'){
+				else if(unit == 'ft'){
 					elevation = Math.round(1000*elevation*3.28084)/1000;
 				}
 			    var ret = {
@@ -271,10 +271,10 @@ function getElevation(req, res) {
 						console.log('file transfer complete in :' + (ed_time - st_time)/1000);
 
 						var elevation = Math.round(100*buffer.readFloatLE(0))/100;
-						if( unit == 'miles'){
+						if( unit == 'mi'){
 							elevation = Math.round(1000*elevation*0.000621371)/1000;
 						}
-						else if(unit == 'feet'){
+						else if(unit == 'ft'){
 							elevation = Math.round(1000*elevation*3.28084)/1000;
 						}
 						var ret = {
@@ -350,10 +350,10 @@ function getElevation(req, res) {
 			    					console.log('file transfer complete in :' + (ed_time - st_time)/1000);
 
 									var elevation = Math.round(100*buffer.readFloatLE(0))/100;
-									if( unit == 'miles'){
+									if( unit == 'mi'){
 										elevation = Math.round(1000*elevation*0.000621371)/1000;
 									}
-									else if(unit == 'feet'){
+									else if(unit == 'ft'){
 										elevation = Math.round(1000*elevation*3.28084)/1000;
 									}
 									var ret = {

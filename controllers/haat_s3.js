@@ -244,7 +244,7 @@ function getHAAT(req, res) {
 	
 	function readDataFile(n, filepath, latlon) {
 		var i, j, lat, lon, az, npoint;
-		res.send({'status': 'read', 'filepath': filepath});;
+		res.send({'status': 'read', 'filepath': filepath, 'filenames_no': filenames_no});;
 		
 		var data = fs.readFileSync(filepath);
 

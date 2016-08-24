@@ -12,7 +12,26 @@ var host =  configEnv[NODE_ENV].HOST;
 var geo_host =  configEnv[NODE_ENV].GEO_HOST;
 var geo_space = configEnv[NODE_ENV].GEO_SPACE;
 
+var data_dir = configEnv[NODE_ENV].DATA_DIR;
+var bucket = configEnv[NODE_ENV].BUCKET_NAME;
+var access_key = configEnv[NODE_ENV].ACCESS_KEY;
+var secret_key = configEnv[NODE_ENV].SECRET_KEY;
+
 var fs = require('fs');
+var AWS = require('aws-sdk');
+var async = require('async');
+
+AWS.config.update({
+        accessKeyId: access_key,
+        secretAccessKey: secret_key,
+        region: 'us-west-2',
+        apiVersions: {
+                s3: '2006-03-01',
+                // other service API versions
+                }
+});
+
+var s3 = new AWS.S3();
 
 if (NODE_ENV == 'LOCAL') {
 	var data_dir = 'data';
@@ -62,7 +81,7 @@ function getHAAT(req, res) {
 	lon = url.replace(/^.*lon=/i, '').replace(/&.*$/, '');
 	rcamsl = url.replace(/^.*rcamsl=/i, '').replace(/&.*$/, '');
 	nradial = url.replace(/^.*nradial=/i, '').replace(/&.*$/, '');
-	format = url.replace(/^.*haat\./i, '').replace(/\?.*$/, '');
+	format = url.replace(/\?.*$/i, '').replace(/^.*\./, '');
 	unit = url.replace(/^.*unit=/i, '').replace(/&.*$/, '');
 	unit = unit.toLowerCase();
 	if (unit != "meters" && unit != "miles" && unit != "feet") {
@@ -144,7 +163,64 @@ function getHAAT(req, res) {
 	}
 	filenames = uniqArray(filenames);
 	
+	console.log(filenames);
+	//check if file exists
+	var filenames_no = [];
 	for (i = 0; i < filenames.length; i++) {
+		filepath = data_dir + '/' + src + '/' + filenames[i]
+		if (!fs.existsSync(filepath)) {
+			filenames_no.push(filenames[i]);
+		}
+	}
+	
+	console.log(filenames_no);
+	//fetch data from S3
+
+	var getFileFromS3 = function(filename) { return function(callback) {
+		console.log('getting ' + filename);
+			
+		var params = {
+			Bucket: bucket,
+			Key : 'elevation/' + src + '/' + filename
+		};
+		
+		s3.getObject(params, function(err, data) {
+			if (err) {
+					console.log(err, err.stack);
+					callback();
+			}
+			else {
+					//write to disk
+				var filepath = data_dir + '/' + src + '/' + filename;
+				console.log('filepath=' + filepath);
+				
+				fs.writeFile(filepath, data.Body, 'binary', function(err) {
+					if(err) {
+							return console.log(err);
+					}
+
+					var endTime = new Date().getTime();
+					var dt = endTime - startTime;
+					console.log(filename + ' ok, dt=' + dt);
+
+					callback();
+					
+				});
+
+			}
+		});
+		
+
+	}
+	}
+	
+	var asyncTasks = [];
+	for (i = 0; i < filenames_no.length; i++) {
+	asyncTasks.push(getFileFromS3(filenames_no[i]));
+	}
+	async.parallel(asyncTasks, function() {
+		console.log("all done");
+			for (i = 0; i < filenames.length; i++) {
 		filepath = data_dir + '/ned_1/' + filenames[i]
 		readDataFile(i, filepath, latlon);
 	}
@@ -154,9 +230,14 @@ function getHAAT(req, res) {
 	
 	endTime = new Date().getTime();
 	var elapsed_time = endTime - startTime;
-	//output_haat['elapsed_time'] = elapsed_time + ' ms';
+	output_haat['elapsed_time'] = elapsed_time + ' ms';
 	
 	res.send(output_haat);
+	});
+	
+
+	
+
 	
 	function readDataFile(n, filepath, latlon) {
 		var i, j, lat, lon, az, npoint;
@@ -267,6 +348,8 @@ function getHAAT(req, res) {
 		}
 		
 	}
+	
+	console.log('format=' + format);
 	
 	if (format == 'csv') {
 		var content = 'azimuth,haat\n'

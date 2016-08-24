@@ -10,9 +10,8 @@
 
     APIForm.bindEvents();
     Map.init();
-    ElevationForm.bindEvents();
-    ElevationMap.init();
-    ContourForm.bindEvents();
+    ElevationForm.getParams();
+    ElevationMap.init();    
+    ContourForm.getParams();    
     ContourMap.init();
-
 }());

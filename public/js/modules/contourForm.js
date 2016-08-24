@@ -1,7 +1,7 @@
 (function() {
     'use strict';
 
-    var ContourMap = require('./contourMap.js');
+    var ContourMap = require('./contourMap.js');   
 
     var ContourForm = {
         bindEvents: function() {
@@ -54,6 +54,35 @@
                     $('#btn-getAPI').click();
                 }
             });
+        },
+        getParams: function() {
+            // get parameters (form fields) from Swagger JSON
+            $.ajax({
+                url: 'json/api-contour.json',
+                async: true,
+                type: "GET",
+                dataType: "json",
+                success: function(data) {
+                    var paramsData = data.paths['/{serviceType}/{idType}/{idValue}.{format}'].get.parameters;
+
+                    ContourForm.createTemplate(paramsData);
+                }
+            });
+        },
+        createTemplate: function(data) {
+            var fields = {};
+            var source = $('#contour-template').html();
+            var template, fieldsetHTML;
+
+
+
+            template = Handlebars.compile(source);
+
+            fields.params = data;
+            fieldsetHTML = template(fields);
+            $('#frm-contour').append(fieldsetHTML);
+            
+            ContourForm.bindEvents();
         }
     };
 

@@ -21,6 +21,8 @@
                 "parameters": [
                     {
 						"name":"serviceType",
+						"label": "Service Type",
+						"display": true,
 						"in":"path",
 						"description":"Type of broadcast service. <br /><br />Valid values: tv, fm, am",
 						"required":true,
@@ -34,6 +36,8 @@
 					},
 					{
 						"name":"idType",
+						"label": "ID Type",
+						"display": true,
 						"in":"path",
 						"description":"Identification type for service. <br /><br />Valid values: facilityid, callsign, fileNumber (TV and FM only), applicationid (TV and FM only), antennaid (AM only)",
 						"required":true,
@@ -49,6 +53,8 @@
 					},
 					{
 						"name":"idValue",
+						"label": "Facility ID",
+						"display": true,
 						"in":"path",
 						"description":"Name or ID of service. <br /><br />Values of facilityid, callsign, filenumber, applicationid, or antennaid. <br /><br />Examples: 1051 (facilityid); WBAL-TV (callsign)",
 						"required":true,
@@ -57,6 +63,8 @@
 					},
 					{
 						"name":"format",
+						"label": "Format",
+						"display": false,
 						"in":"path",
 						"description":"Format for the returned results.<br /><br />Valid values: json, jsonp, shp, kml, gml, csv. Shapefiles (.shp) download as zip archive (.zip). <br /><br />Defaults to json.",
 						"required":false,
@@ -73,6 +81,9 @@
 					},
 					{
 						"name":"stationClass",
+						"label": "Station Class",
+						"display": true,
+						"amOnly": true,
 						"in":"query",
 						"description":"Class of the station. <br /><br />Values can be: a, b, c, or d. <br /><br />AM only - value will be ignored for TV and FM",
 						"required":false,
@@ -87,6 +98,9 @@
 					},
 					{
 						"name":"timePeriod",
+						"label": "Time Period",
+						"display": true,
+						"amOnly": true,
 						"in":"query",
 						"description":"Time of day. <br /><br />Values can be: day or night. [Values can be only day for now]. <br /><br />AM only - value will be ignored for TV and FM",
 						"required":false,

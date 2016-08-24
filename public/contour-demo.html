@@ -22,21 +22,23 @@
         left: 4px;
         font-size: 13px;
     }
+    
     fieldset {
         margin-bottom: 15px;
     }
+    
     legend {
         font-size: 16px;
     }
-
+    
     .dl-elevation {
         margin-bottom: 0;
     }
-
+    
     .dl-elevation dt {
         width: auto;
     }
-
+    
     .dl-elevation dd {
         margin-left: 80px;
     }
@@ -56,7 +58,7 @@
                                 <span class="sr-only">Federal Communications Commission</span>
                               </a>
                             </h1>
-                        </div>                        
+                        </div>
                     </div>
                 </div>
                 <div aria-hidden="true" class="navbar-secondary navbar-default yamm nav-offcanvas nav-offcanvas-right">
@@ -110,84 +112,61 @@
                         </fieldset>
                         <fieldset id="frm-contour" class="fields fields-contour">
                             <legend>Contour API</legend>
-                            <div class="form-group">
-                                <label for="serviceType" required>Service Type</label>
-                                <select id="serviceType" class="form-control" name="serviceType">
-                                    <option value="tv" selected>TV</option>
-                                    <option value="fm">FM</option>
-                                    <option value="am">AM</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label for="idType" required>ID Type</label>
-                                <select id="idType" class="form-control" name="idType">
-                                    <option value="facilityid" selected>facilityid</option>
-                                    <option value="callsign">callsign</option>
-                                    <option value="filenumber">filenumber</option>
-                                    <option value="applicationid">applicationid</option>
-                                    <option value="antennaid" style="display: none;">antennaid</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label for="idValue" required>Facility ID</label>
-                                <input id="idValue" class="form-control" type="text" name="idValue">
-                            </div>
-                            <div class="js-am-only form-group" style="display: none;">
-                                <label for="stationClass">Station Class</label>
-                                <select id="stationClass" class="form-control" name="stationClass">
-                                    <option value="a" selected>a</option>
-                                    <option value="b">b</option>
-                                    <option value="c">c</option>
-                                    <option value="d">d</option>
-                                </select>
-                            </div>
-                            <div class="js-am-only form-group" style="display: none;">
-                                <label for="timePeriod">Time Period</label>
-                                <select id="timePeriod" class="form-control" name="timePeriod">                                    
-                                    <option value="day" selected>day</option>
-                                </select>
-                            </div>
+                            <script id="contour-template" type="text/x-handlebars-template">
+                                {{#each params}}
+                                    {{#if display}}
+                                        {{#if amOnly}}
+                                            <div class="js-am-only form-group" style="display: none;">
+                                        {{else}}
+                                            <div class="form-group">
+                                        {{/if}}
+                                        <label for="{{name}}" required>{{label}}</label>
+                                        {{#if enum}}
+                                            <select id="{{name}}" class="form-control" name="{{name}}">
+                                                {{#enum}}
+                                                    <option value="{{this}}">{{this}}</option>
+                                                {{/enum}}
+                                            </select>
+                                        {{else}}
+                                            <input id="{{name}}" class="form-control" type="text" name="{{name}}">
+                                        {{/if}}
+                                        </div>
+                                    {{/if}}
+                                {{/each}}
+                            </script>                            
                         </fieldset>
                         <fieldset id="frm-elevation" class="fields fields-elevation" style="display: none;">
                             <legend>Elevation API</legend>
-                            <div class="form-group">
-                                <label for="lat" required>Latitude</label>
-                                <input id="lat" class="form-control" type="text" name="lat">
-                            </div>
-                            <div class="form-group">
-                                <label for="long" required>Longitude</label>
-                                <input id="lon" class="form-control" type="text" name="lon">
-                            </div>
-                            <div class="form-group">
-                                <label for="src">Source</label>
-                                <select id="src" class="form-control" name="src">
-                                    <option value="ned" selected>ned</option>
-                                    <option value="ned_1">ned_1</option>
-                                    <option value="ned_2">ned_2</option>
-                                    <option value="ned_13">ned_13</option>                                    
-                                    <option value="usgs">usgs</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label for="unit">Unit</label>
-                                <select id="unit" class="form-control" name="unit">
-                                    <option value="m" selected>meters (m)</option>
-                                    <option value="mi">miles (mi)</option>
-                                    <option value="ft">feet (ft)</option>                                                                        
-                                </select>
-                            </div>                            
+                            <script id="elevation-template" type="text/x-handlebars-template">
+                                {{#each params}}
+                                    {{#if display}}
+                                        <div class="form-group">
+                                            <label for="{{name}}" required>{{label}}</label>
+                                            {{#if enum}}
+                                                <select id="{{name}}" class="form-control" name="{{name}}">
+                                                    {{#enum}}
+                                                        <option value="{{this}}">{{this}}</option>
+                                                    {{/enum}}
+                                                </select>
+                                            {{else}}
+                                                <input id="{{name}}" class="form-control" type="text" name="{{name}}">
+                                            {{/if}}
+                                        </div>
+                                    {{/if}}
+                                {{/each}}                                
+                            </script>
                         </fieldset>
                         <button id="btn-getAPI" class="btn btn-primary" type="button" data-api="contour">View</button>
                     </form>
                     <br>
                     <br>
+                    </div>
+                    <div class=col-sm-9>
+                        <div id="map"></div>
+                    </div>
                 </div>
-                <div class=col-sm-9>
-                    <div id="map"></div>                    
-                </div>
-            </div>
         </main>
-    </div>
+        </div>
     </div>
     <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
     <script>
@@ -195,8 +174,9 @@
     </script>
     <script src="https://api.tiles.mapbox.com/mapbox.js/v2.2.1/mapbox.js"></script>
     <script src="//api.tiles.mapbox.com/mapbox.js/plugins/leaflet-pip/v0.1.0/leaflet-pip.min.js"></script>
+    <script src="js/vendor/handlebars.min.js"></script>
     <script src="js/vendor/bootstrap.min.js"></script>
-    <script src="js/app.js"></script>    
+    <script src="js/app.js"></script>
 </body>
 
 </html>

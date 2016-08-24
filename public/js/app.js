@@ -11,11 +11,10 @@
 
     APIForm.bindEvents();
     Map.init();
-    ElevationForm.bindEvents();
-    ElevationMap.init();
-    ContourForm.bindEvents();
+    ElevationForm.getParams();
+    ElevationMap.init();    
+    ContourForm.getParams();    
     ContourMap.init();
-
 }());
 
 },{"./modules/apiForm.js":2,"./modules/contourForm.js":3,"./modules/contourMap.js":4,"./modules/elevationForm.js":5,"./modules/elevationMap.js":6,"./modules/map.js":7}],2:[function(require,module,exports){
@@ -67,7 +66,7 @@
 (function() {
     'use strict';
 
-    var ContourMap = require('./contourMap.js');
+    var ContourMap = require('./contourMap.js');   
 
     var ContourForm = {
         bindEvents: function() {
@@ -120,6 +119,34 @@
                     $('#btn-getAPI').click();
                 }
             });
+        },
+        getParams: function() {
+            $.ajax({
+                url: 'json/api-contour.json',
+                async: true,
+                type: "GET",
+                dataType: "json",
+                success: function(data) {
+                    var paramsData = data.paths['/{serviceType}/{idType}/{idValue}.{format}'].get.parameters;
+
+                    ContourForm.createTemplate(paramsData);
+                }
+            });
+        },
+        createTemplate: function(data) {
+            var fields = {};
+            var source = $('#contour-template').html();
+            var template, fieldsetHTML;
+
+
+
+            template = Handlebars.compile(source);
+
+            fields.params = data;
+            fieldsetHTML = template(fields);
+            $('#frm-contour').append(fieldsetHTML);
+            
+            ContourForm.bindEvents();
         }
     };
 
@@ -188,6 +215,32 @@
     var ElevationForm = {
         bindEvents: function() {
             $('#form-params').on('click.elevationAPI', '[data-api="elevation"]', ElevationMap.getData);
+        },
+        getParams: function() {
+            $.ajax({
+                url: 'json/api-elevation.json',
+                async: true,
+                type: "GET",
+                dataType: "json",
+                success: function(data) {
+                    var paramsData = data.paths['/elevation.{format}'].get.parameters;
+
+                    ElevationForm.createTemplate(paramsData);
+                }
+            });
+        },
+        createTemplate: function(data) {
+            var fields = {};
+            var source = $('#elevation-template').html();
+            var template, fieldsetHTML;
+
+            template = Handlebars.compile(source);
+
+            fields.params = data;
+            fieldsetHTML = template(fields);
+            $('#frm-elevation').append(fieldsetHTML);
+            
+            ElevationForm.bindEvents();
         }        
     };
     

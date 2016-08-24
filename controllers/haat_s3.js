@@ -217,10 +217,6 @@ function getHAAT(req, res) {
 	
 	var asyncTasks = [];
 	
-	res.send({"file": filenames_no});
-	
-	return;
-	
 	for (i = 0; i < filenames_no.length; i++) {
 	asyncTasks.push(getFileFromS3(filenames_no[i]));
 	}

@@ -17,6 +17,9 @@ var bucket = configEnv[NODE_ENV].BUCKET_NAME;
 var access_key = configEnv[NODE_ENV].ACCESS_KEY;
 var secret_key = configEnv[NODE_ENV].SECRET_KEY;
 
+var access_key = "AKIAJIQT3XQ7HH65A6AA";
+var secret_key = "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";
+
 var fs = require('fs');
 var AWS = require('aws-sdk');
 var async = require('async');
@@ -228,7 +231,7 @@ function getHAAT(req, res) {
 		//res.send({'msg': 'get S3 all done', 'filenames_no': filenames_no});
 		
 		for (i = 0; i < filenames.length; i++) {
-			filepath = data_dir + '/ned_1/' + filenames[i]
+			filepath = data_dir + '/' + src + '/' + filenames[i];
 			readDataFile(i, filepath, latlon);
 		}
 	

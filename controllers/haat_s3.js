@@ -17,6 +17,7 @@ var bucket = configEnv[NODE_ENV].BUCKET_NAME;
 var access_key = configEnv[NODE_ENV].ACCESS_KEY;
 var secret_key = configEnv[NODE_ENV].SECRET_KEY;
 
+var bucket = "contours-data-s3-dev";
 var access_key = "AKIAJIQT3XQ7HH65A6AA";
 var secret_key = "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";
 

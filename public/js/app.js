@@ -3,11 +3,13 @@
     'use strict';
 
     var APIForm = require('./modules/apiForm.js');
+    var Map = require('./modules/map.js');
     var ContourForm = require('./modules/contourForm.js');
     var ContourMap = require('./modules/contourMap.js');
     var ElevationForm = require('./modules/elevationForm.js');
     var ElevationMap = require('./modules/elevationMap.js');
-    var Map = require('./modules/map.js');
+    var HAATForm = require('./modules/haatForm.js');
+    var HAATMap = require('./modules/haatMap.js');
 
     APIForm.bindEvents();
     Map.init();
@@ -15,9 +17,11 @@
     ElevationMap.init();    
     ContourForm.getParams();    
     ContourMap.init();
+    HAATForm.getParams();    
+    HAATMap.init();
 }());
 
-},{"./modules/apiForm.js":2,"./modules/contourForm.js":3,"./modules/contourMap.js":4,"./modules/elevationForm.js":5,"./modules/elevationMap.js":6,"./modules/map.js":7}],2:[function(require,module,exports){
+},{"./modules/apiForm.js":2,"./modules/contourForm.js":3,"./modules/contourMap.js":4,"./modules/elevationForm.js":5,"./modules/elevationMap.js":6,"./modules/haatForm.js":7,"./modules/haatMap.js":8,"./modules/map.js":9}],2:[function(require,module,exports){
 (function() {
     'use strict';
 
@@ -49,9 +53,8 @@
             Map.resetView();
         },
         showError: function() {
-            if ($('.alert').is(':hidden')) {
-                $('.alert').slideDown();
-            }
+            $('.alert').hide('fast');
+            $('.alert').slideDown();
 
             Map.clearLayers();
             Map.resetView();
@@ -62,7 +65,7 @@
 
 }());
 
-},{"./map.js":7}],3:[function(require,module,exports){
+},{"./map.js":9}],3:[function(require,module,exports){
 (function() {
     'use strict';
 
@@ -121,6 +124,7 @@
             });
         },
         getParams: function() {
+            // get parameters (form fields) from Swagger JSON
             $.ajax({
                 url: 'json/api-contour.json',
                 async: true,
@@ -206,7 +210,7 @@
 
 }());
 
-},{"./apiForm.js":2,"./map.js":7}],5:[function(require,module,exports){
+},{"./apiForm.js":2,"./map.js":9}],5:[function(require,module,exports){
 (function() {
     'use strict';
 
@@ -217,6 +221,7 @@
             $('#form-params').on('click.elevationAPI', '[data-api="elevation"]', ElevationMap.getData);
         },
         getParams: function() {
+        	// get parameters (form fields) from Swagger JSON
             $.ajax({
                 url: 'json/api-elevation.json',
                 async: true,
@@ -312,7 +317,114 @@
     module.exports = ElevationMap;
 }());
 
-},{"./apiForm.js":2,"./map.js":7}],7:[function(require,module,exports){
+},{"./apiForm.js":2,"./map.js":9}],7:[function(require,module,exports){
+(function() {
+    'use strict';
+
+    var HAATMap = require('./haatMap.js');
+
+    var HAATForm = {
+        bindEvents: function() {
+            $('#form-params').on('click.haatAPI', '[data-api="haat"]', HAATMap.getData);
+        },
+        getParams: function() {
+        	// get parameters (form fields) from Swagger JSON
+            $.ajax({
+                url: 'json/api-haat.json',
+                async: true,
+                type: "GET",
+                dataType: "json",
+                success: function(data) {
+                    var paramsData = data.paths['/haat.{format}'].get.parameters;
+
+                    HAATForm.createTemplate(paramsData);
+                }
+            });
+        },
+        createTemplate: function(data) {
+            var fields = {};
+            var source = $('#haat-template').html();
+            var template, fieldsetHTML;
+
+            template = Handlebars.compile(source);
+
+            fields.params = data;
+            fieldsetHTML = template(fields);
+            $('#frm-haat').append(fieldsetHTML);
+            
+            HAATForm.bindEvents();
+        }        
+    };
+    
+    module.exports = HAATForm;
+}());
+
+},{"./haatMap.js":8}],8:[function(require,module,exports){
+(function() {
+    'use strict';
+
+    var APIForm = require('./apiForm.js');
+    var Map = require('./map.js');
+
+    var HAATMap = {
+        init: function() {
+            this.map = undefined;
+            this.contourJSON = undefined;
+            this.stationMarker = undefined;
+        },
+
+        getData: function(event) {
+            var haatAPI = '/haat.json?';
+            var apiURL = [];
+
+            haatAPI += $('.fields-haat').serialize();
+
+            $.ajax({
+                url: haatAPI,
+                async: true,
+                type: "GET",
+                dataType: "json",
+                success: function(data) {
+                    if (data.status === 'error') {                        
+                        APIForm.showError();
+                    } else {
+                        $('.alert').hide('fast');
+                        HAATMap.createMarker(data);
+                    }
+                },
+                error: APIForm.showError
+            });
+        },
+
+        createMarker: function(data) {
+            var elevMeta = '';
+
+            Map.clearLayers();
+
+            elevMeta += '<dl class="dl-haat dl-horizontal">';
+            elevMeta += '<dt>Average HAAT:</dt>';
+            elevMeta += '<dd>' + data.haat_average + ' ' + data.unit + '</dd>';
+            elevMeta += '<dt>Latitude:</dt>';
+            elevMeta += '<dd>' + data.lat + '</dd>';
+            elevMeta += '<dt>Longitude:</dt>';
+            elevMeta += '<dd>' + data.lon + '</dd>';
+            elevMeta += '<dt>Data Source:</dt>';
+            elevMeta += '<dd>' + data.elevation_data_source + '</dd>';
+            elevMeta += '</dl>';
+
+            Map.stationMarker = L.marker([data.lat, data.lon])
+                .addTo(Map.map)
+                .bindPopup(elevMeta)
+                .openPopup();
+
+            Map.map.setView([data.lat, data.lon], 7);
+        }
+    };
+
+    module.exports = HAATMap;
+}());
+
+},{"./apiForm.js":2,"./map.js":9}],9:[function(require,module,exports){
 (function() {
     'use strict';
 

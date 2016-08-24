@@ -29,9 +29,8 @@
             Map.resetView();
         },
         showError: function() {
-            if ($('.alert').is(':hidden')) {
-                $('.alert').slideDown();
-            }
+            $('.alert').hide('fast');
+            $('.alert').slideDown();
 
             Map.clearLayers();
             Map.resetView();

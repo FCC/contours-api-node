@@ -17,6 +17,8 @@
                 "description": "Get HAAT data based on latitude, longitude, data source, number of radials, radiation center and unit of measurement. Response returned in JSON format.",
                 "parameters": [{
                     "name": "lat",
+                    "label": "Latitude",
+                    "display": true,
                     "in": "query",
                     "description": "Latitude",
                     "required": true,
@@ -24,6 +26,8 @@
                     "defaultValue": ""
                 }, {
                     "name": "lon",
+                    "label": "Longitude",
+                    "display": true,
                     "in": "query",
                     "description": "Longitude",
                     "required": true,
@@ -31,6 +35,8 @@
                     "defaultValue": ""
                 }, {
                     "name": "nradial",
+                    "label": "Number of Radials",
+                    "display": true,
                     "in": "query",
                     "description": "Number of radials",
                     "required": true,
@@ -38,13 +44,17 @@
                     "defaultValue": ""
                 }, {
                     "name": "rcamsl",
+                    "label": "Radiation Center Above Mean Sea Level",
+                    "display": true,
                     "in": "query",
-                    "description": "Radiation center above mean sea level",
+                    "description": "Radiation Center Above Mean Sea Level",
                     "required": true,
                     "type": "string",
                     "defaultValue": ""
                 }, {
                     "name": "src",
+                    "label": "Source",
+                    "display": true,
                     "in": "query",
                     "description": "Data source.",
                     "required": false,
@@ -59,6 +69,8 @@
                     ]
                 }, {
                     "name": "unit",
+                     "label": "Unit",
+                    "display": true,
                     "in": "query",
                     "description": "Unit of measurement: m=meters, mi=miles, ft=feet",
                     "required": false,
@@ -71,6 +83,8 @@
                     ]
                 }, {
                     "name": "format",
+                    "label": "Format",
+                    "display": false,
                     "in": "path",
                     "description": "Format for the returned results.<br /><br />Valid values: json.",
                     "required": true,

@@ -51,11 +51,11 @@ function getElevation(req, res) {
 	try {
 		
 		var latitude = req.query.lat;
-		var longitude = req.query.long;
+		var longitude = req.query.lon;
 		var datatype = req.query.src;
 		var unit = req.query.unit;
 
-		console.log('params: lat='+latitude+',long='+longitude+', src='+datatype);
+		console.log('params: lat='+latitude+',lon='+longitude+', src='+datatype+', unit='+unit);
 
 		if(!datatype){
 			datatype = data_src;
@@ -64,10 +64,20 @@ function getElevation(req, res) {
 			unit = param_unit;
 		}
 
-		if ( !latitude.match(/^-?\d+\.?\d*$/) || !longitude.match(/^-?\d+\.?\d*$/) ) {
-			res.send({'status': 'error', 
+		if(!datatype || !unit || !latitude || !longitude){
+			res.status(400).send({'status': 'error', 
 				'statusCode':'400',
-            	'statusMessage': 'Invalid Input - Latitude/Longitude',
+            	'statusMessage': 'invalid parameters',
+            	'latitude':latitude,
+                'longitude':longitude});
+			return;
+		}
+
+
+		if ( !latitude.match(/^-?\d+\.?\d*$/) || !longitude.match(/^-?\d+\.?\d*$/) ) {
+			res.status(400).send({'status': 'error', 
+				'statusCode':'400',
+            	'statusMessage': 'invalid input - latitude/longitude',
             	'latitude':latitude,
                 'longitude':longitude});
 			return;
@@ -77,10 +87,10 @@ function getElevation(req, res) {
 		var lon = parseFloat(longitude);
 		
 		if (lat <= -90 || lat > 90 || lon < -180 || lon > 180) {
-			res.send({
+			res.status(400).send({
 				'status': 'error',
             	'statusCode':'400',
-            	'statusMessage': 'Invalid Input - Latitude/Longitude',
+            	'statusMessage': 'invalid input - latitude/longitude',
             	'latitude':lat,
                 'longitude':lon
 			});
@@ -88,20 +98,20 @@ function getElevation(req, res) {
 		}
 		
 		if (datatype != 'ned' && datatype != 'ned_1' && datatype != 'ned_2' && datatype != 'ned_13' && datatype != 'usgs') {
-			res.send({
+			res.status(400).send({
 				'status': 'error',
             	'statusCode':'400',
-            	'statusMessage': 'Invalid Input - Source',
+            	'statusMessage': 'invalid input - source',
             	'latitude':lat,
                 'longitude':lon});
 			return;
 		}
 
 		if (unit != 'meters' && unit != 'miles' && unit != 'feet') {
-			res.send({
+			res.status(400).send({
 				'status': 'error',
             	'statusCode':'400',
-            	'statusMessage': 'Invalid Input - Unit',
+            	'statusMessage': 'invalid input - unit',
             	'latitude':lat,
                 'longitude':lon});
 			return;
@@ -162,7 +172,7 @@ function getElevation(req, res) {
             		'statusMessage': 'ok',
             		'latitude':lat,
             		'longitude':lon, 
-            		'data source': data.Data_Source, 
+            		'dataSource': data.Data_Source, 
             		'elevation': elevation,
             		'unit': unit};				
 				res.send(ret);
@@ -246,7 +256,7 @@ function getElevation(req, res) {
 
 					fs.read(fd, buffer, 0, length, position, function(err, bytesRead) {
 						if(err) {
-							res.send({
+							res.status(400).send({
 								'status': 'error',
 		                    	'statusCode':'400',
 		                    	'statusMessage': 'unable to process elevation data',
@@ -273,7 +283,7 @@ function getElevation(req, res) {
 	                		'statusMessage': 'ok',
 	                		'latitude':lat,
 	                		'longitude':lon, 
-	                		'data source': data_source, 
+	                		'dataSource': data_source, 
 	                		'elevation': elevation,
 	                		'unit': unit};				
 						res.send(ret);
@@ -297,7 +307,7 @@ function getElevation(req, res) {
 			                    'longitude':lon
 			                };
 							//return common.sendRes(res, json, 'json');
-							res.send(json);
+							res.status(400).send(json);
 			            } 
 			            else {
 							console.log('downloading file from s3..., time='+new Date().getTime());
@@ -306,7 +316,7 @@ function getElevation(req, res) {
 					        fs.closeSync(fd);
 
 					        if (!fs.existsSync(filepath)) {
-								res.send({
+								res.status(400).send({
 									'status': 'error',
 			                    	'statusCode':'400',
 			                    	'statusMessage': 'unable to process elevation data',
@@ -325,7 +335,7 @@ function getElevation(req, res) {
 
 								fs.read(fd, buffer, 0, length, position, function(err, bytesRead) {
 									if(err) {
-										res.send({
+										res.status(400).send({
 											'status': 'error',
 					                    	'statusCode':'400',
 					                    	'statusMessage': 'unable to process elevation data',
@@ -352,7 +362,7 @@ function getElevation(req, res) {
 			                    		'statusMessage': 'ok',
 			                    		'latitude':lat,
 			                    		'longitude':lon, 
-			                    		'data source': data_source, 
+			                    		'dataSource': data_source, 
 			                    		'elevation': elevation,
 			                    		'unit': unit};				
 									res.send(ret);
@@ -368,7 +378,7 @@ function getElevation(req, res) {
 	}
 	catch(err) {
 		console.error(err);
-		res.send({
+		res.status(400).send({
 			'status': 'error',
         	'statusCode':'400',
         	'statusMessage': 'unable to process elevation data'

@@ -1,7 +1,7 @@
 (function() {
     'use strict';
 
-    window.Map = {
+   var Map = {
         init: function() {
             this.map = undefined;
             this.contourJSON = undefined;
@@ -76,12 +76,11 @@
             }
             
         },
-        resetView: function() { console.log('resetView');
-            Map.map.setView([41.05, -95], 4);
-            
+        resetView: function() { 
+            Map.map.setView([41.05, -95], 4);            
         }
     };
 
-    Map.init();
+     module.exports =  Map;
 
 }());

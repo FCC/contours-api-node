@@ -1,14 +1,13 @@
 (function() {
     'use strict';
 
-    window.APIForm = {
-        init: function() {
+    var Map = require('./map.js');
 
-        },
+    var APIForm = {
         bindEvents: function() {
             var apiType = $('#btn-getAPI').attr('data-api');
 
-            $('#apiType').on('change', APIForm.switchForm);
+            $('#apiType').on('change', this.switchForm);
         },
         switchForm: function() {
             var selectedAPI = this.value;
@@ -39,6 +38,6 @@
         }
     };
 
-    APIForm.bindEvents();
+    module.exports = APIForm;
 
 }());

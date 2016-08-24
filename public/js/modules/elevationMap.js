@@ -1,30 +1,21 @@
 (function() {
     'use strict';
 
-    var ElevationForm = {
-        bindEvents: function() {
-            $('#form-params').on('click.elevationAPI', '[data-api="elevation"]', ElevationMap.getData);
-        }        
-    };
+    var APIForm = require('./apiForm.js');
+    var Map = require('./map.js');
 
     var ElevationMap = {
         init: function() {
             this.map = undefined;
             this.contourJSON = undefined;
             this.stationMarker = undefined;
-
-            ElevationForm.bindEvents();            
         },
 
         getData: function(event) {
             var elevationAPI = '/elevation.json?';
-            var apiURL = [];
-
-            $('.fields-elevation').serialize();
+            var apiURL = [];            
 
             elevationAPI += $('.fields-elevation').serialize();
-
-            console.log(elevationAPI);
 
             $.ajax({
                 url: elevationAPI,
@@ -43,15 +34,14 @@
             });
         },
 
-        createMarker: function(data) {
-            console.log(data);
+        createMarker: function(data) {            
             var elevMeta = '';
 
             Map.clearLayers();
 
             elevMeta += '<dl class="dl-elevation dl-horizontal">';
             elevMeta += '<dt>Elevation:</dt>';
-            elevMeta += '<dd>' + data.elevation + ' ' + data.unit + '</dd>';            
+            elevMeta += '<dd>' + data.elevation + ' ' + data.unit + '</dd>';
             elevMeta += '<dt>Latitude:</dt>';
             elevMeta += '<dd>' + data.latitude + '</dd>';
             elevMeta += '<dt>Longitude:</dt>';
@@ -69,6 +59,5 @@
         }
     };
 
-    ElevationMap.init();
-
+    module.exports = ElevationMap;
 }());

@@ -188,12 +188,14 @@ function getHAAT(req, res) {
 		s3.getObject(params, function(err, data) {
 			if (err) {
 					console.log(err, err.stack);
+					//res.send({'msg': 's3 error, ' + filename});
 					callback();
 			}
 			else {
 					//write to disk
 				var filepath = data_dir + '/' + src + '/' + filename;
 				console.log('filepath=' + filepath);
+				//res.send({'msg': 's3 writeting'});
 				
 				fs.writeFile(filepath, data.Body, 'binary', function(err) {
 					if(err) {
@@ -223,7 +225,7 @@ function getHAAT(req, res) {
 	}
 	async.parallel(asyncTasks, function() {
 		console.log("all done");
-		res.send({'msg': 'get S3 all done', 'filenames_no': filenames_no});
+		//res.send({'msg': 'get S3 all done', 'filenames_no': filenames_no});
 		
 		for (i = 0; i < filenames.length; i++) {
 			filepath = data_dir + '/ned_1/' + filenames[i]
@@ -246,7 +248,7 @@ function getHAAT(req, res) {
 	
 	function readDataFile(n, filepath, latlon) {
 		var i, j, lat, lon, az, npoint;
-		res.send({'status': 'read', 'filepath': filepath, 'filenames_no': filenames_no});;
+		//res.send({'status': 'read', 'filepath': filepath, 'filenames_no': filenames_no});;
 		
 		var data = fs.readFileSync(filepath);
 

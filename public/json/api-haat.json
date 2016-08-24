@@ -1,0 +1,94 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "version": "0.9.0",
+        "title": "FCC HAAT API"
+    },
+    "basePath": "/",
+    "tags": [{
+        "name": "HAAT",
+        "description": "FCC HAAT API"
+    }],
+    "paths": {
+        "/haat.{format}": {
+            "get": {
+                "tags": ["HAAT"],
+                "summary": "Get HAAT",
+                "description": "Get HAAT data based on latitude, longitude, data source, number of radials, radiation center and unit of measurement. Response returned in JSON format.",
+                "parameters": [{
+                    "name": "lat",
+                    "in": "query",
+                    "description": "Latitude",
+                    "required": true,
+                    "type": "string",
+                    "defaultValue": ""
+                }, {
+                    "name": "lon",
+                    "in": "query",
+                    "description": "Longitude",
+                    "required": true,
+                    "type": "string",
+                    "defaultValue": ""
+                }, {
+                    "name": "nradial",
+                    "in": "query",
+                    "description": "Number of radials",
+                    "required": true,
+                    "type": "string",
+                    "defaultValue": ""
+                }, {
+                    "name": "rcamsl",
+                    "in": "query",
+                    "description": "Radiation center above mean sea level",
+                    "required": true,
+                    "type": "string",
+                    "defaultValue": ""
+                }, {
+                    "name": "src",
+                    "in": "query",
+                    "description": "Data source.",
+                    "required": false,
+                    "type": "string",
+                    "defaultValue": "ned",
+                    "enum": [
+                        "ned",
+                        "ned_1",
+                        "ned_2",
+                        "ned_13",
+                        "usgs"
+                    ]
+                }, {
+                    "name": "unit",
+                    "in": "query",
+                    "description": "Unit of measurement: m=meters, mi=miles, ft=feet",
+                    "required": false,
+                    "type": "string",
+                    "defaultValue": "meters",
+                    "enum": [
+                    	"m",
+                        "mi",
+                        "ft"
+                    ]
+                }, {
+                    "name": "format",
+                    "in": "path",
+                    "description": "Format for the returned results.<br /><br />Valid values: json.",
+                    "required": true,
+                    "type": "string",
+                    "defaultValue": "json",
+                    "enum": [
+                        "json"
+                    ]
+                }],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                },
+                "produces": [
+                    "application/json"
+                ]
+            }
+        }
+    }
+}

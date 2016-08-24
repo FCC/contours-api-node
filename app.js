@@ -22,6 +22,8 @@ var contour = require('./controllers/contour.js');
 var elevation = require('./controllers/elevation.js');
 var haat = require('./controllers/haat.js');
 
+var haat_s3 = require('./controllers/haat_s3.js');
+
 
 // **********************************************************
 // config
@@ -123,6 +125,14 @@ app.get('/haat.json', function(req, res){
 
 app.get('/haat.csv', function(req, res){
 	haat.getHAAT(req, res);
+});
+
+app.get('/haat_s3.json', function(req, res){
+	haat_s3.getHAAT(req, res);
+});
+
+app.get('/haat_s3.csv', function(req, res){
+	haat_s3.getHAAT(req, res);
 });
 
 // **********************************************************

@@ -191,7 +191,7 @@ function getHAAT(req, res) {
 		s3.getObject(params, function(err, data) {
 			if (err) {
 					console.log(err, err.stack);
-					res.send({'msg': 's3 error, ' + filename});
+					res.send({'msg': 's3 error', 'error': err.stack, 'file': filename});
 					callback();
 			}
 			else {

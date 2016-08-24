@@ -35,14 +35,15 @@
         margin-bottom: 0;
     }
     
-    .dl-elevation dt, .dl-haat dt {
+    .dl-elevation dt,
+    .dl-haat dt {
         width: auto;
     }
     
     .dl-elevation dd {
         margin-left: 80px;
     }
-
+    
     .dl-haat dd {
         margin-left: 95px;
     }
@@ -124,7 +125,11 @@
                                         {{else}}
                                             <div class="form-group">
                                         {{/if}}
-                                        <label for="{{name}}" required>{{label}}</label>
+                                        {{#if required}}
+                                            <label for="{{name}}" required>{{label}}</label>
+                                        {{else}}
+                                            <label for="{{name}}">{{label}}</label>
+                                        {{/if}}
                                         {{#if enum}}
                                             <select id="{{name}}" class="form-control" name="{{name}}">
                                                 {{#enum}}
@@ -137,7 +142,7 @@
                                         </div>
                                     {{/if}}
                                 {{/each}}
-                            </script>                            
+                            </script>
                         </fieldset>
                         <fieldset id="frm-elevation" class="fields fields-elevation" style="display: none;">
                             <legend>Elevation API</legend>
@@ -145,7 +150,11 @@
                                 {{#each params}}
                                     {{#if display}}
                                         <div class="form-group">
-                                            <label for="{{name}}" required>{{label}}</label>
+                                            {{#if required}}
+                                                <label for="{{name}}" required>{{label}}</label>
+                                            {{else}}
+                                                <label for="{{name}}">{{label}}</label>
+                                            {{/if}}
                                             {{#if enum}}
                                                 <select id="{{name}}" class="form-control" name="{{name}}">
                                                     {{#enum}}
@@ -166,7 +175,11 @@
                                 {{#each params}}
                                     {{#if display}}
                                         <div class="form-group">
-                                            <label for="{{name}}" required>{{label}}</label>
+                                            {{#if required}}
+                                                <label for="{{name}}" required>{{label}}</label>
+                                            {{else}}
+                                                <label for="{{name}}">{{label}}</label>
+                                            {{/if}}
                                             {{#if enum}}
                                                 <select id="{{name}}" class="form-control" name="{{name}}">
                                                     {{#enum}}
@@ -178,7 +191,7 @@
                                             {{/if}}
                                         </div>
                                     {{/if}}
-                                {{/each}}                                
+                                {{/each}}
                             </script>
                         </fieldset>
                         <button id="btn-getAPI" class="btn btn-primary" type="button" data-api="contour">View</button>

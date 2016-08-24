@@ -223,10 +223,12 @@ function getHAAT(req, res) {
 	}
 	async.parallel(asyncTasks, function() {
 		console.log("all done");
-			for (i = 0; i < filenames.length; i++) {
-		filepath = data_dir + '/ned_1/' + filenames[i]
-		readDataFile(i, filepath, latlon);
-	}
+		res.send({'msg': 'get S3 all done', 'filenames_no': filenames_no});
+		
+		for (i = 0; i < filenames.length; i++) {
+			filepath = data_dir + '/ned_1/' + filenames[i]
+			readDataFile(i, filepath, latlon);
+		}
 	
 	output_data = output_data.sort(comparator);
 	var output_haat = formatHAAT();

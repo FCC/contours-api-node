@@ -1,4 +1,7 @@
+'use strict';
+
 var request = require('supertest');
+var should = require('should');
 var server = require('../app.js');
 
 describe('Elevation API test', function() {
@@ -8,7 +11,7 @@ describe('Elevation API test', function() {
             this.timeout(10000);
 
             request(server)
-                .get('/elevation.json?lat=38.22&long=-78.5')
+                .get('/elevation.json?lat=38.22&lon=-78.5')
                 .expect('Content-Type', /json/)
                 .expect(200)
                 .end(function(err, res) {
@@ -16,7 +19,7 @@ describe('Elevation API test', function() {
                         throw err;
                     }
 
-                    res.body.should.have.property('elevation');
+                    res.body.features[0].properties.should.have.property('elevation');
                     done();
                 });
         });
@@ -27,14 +30,14 @@ describe('Elevation API test', function() {
             request(server)
                 .get('/elevation.json')
                 .expect('Content-Type', /json/)
-                .expect(200)
+                .expect(400)
                 .end(function(err, res) {
                     if (err) {
                         throw err;
                     }
 
-                    res.body.should.have.property('statusCode').be.equal('400');
-                    res.body.should.have.property('statusMessage').be.equal('unable to process elevation data');
+                    res.body.features[0].properties.should.have.property('statusCode').be.equal('400');
+                    res.body.features[0].properties.should.have.property('statusMessage').be.equal('invalid parameters');
                     done();
                 });
         });
@@ -43,16 +46,16 @@ describe('Elevation API test', function() {
             this.timeout(10000);
 
             request(server)
-                .get('/elevation.json?lat=9999&long=9999')
+                .get('/elevation.json?lat=9999&lon=9999')
                 .expect('Content-Type', /json/)
-                .expect(200)
+                .expect(400)
                 .end(function(err, res) {
                     if (err) {
                         throw err;
                     }
 
-                    res.body.should.have.property('statusCode').be.equal('400');
-                    res.body.should.have.property('statusMessage').be.equal('Invalid Input - Latitude/Longitude');
+                    res.body.features[0].properties.should.have.property('statusCode').be.equal('400');
+                    res.body.features[0].properties.should.have.property('statusMessage').be.equal('invalid input - latitude/longitude');
                     done();
                 });
         });
@@ -70,7 +73,7 @@ describe('Elevation API test', function() {
 
         function chkSrc(key) {
             it('should return elevation data if src = ' + key, function(done) {
-                var url = '/elevation.json?lat=38.22&long=-78.5&src=' + key;
+                var url = '/elevation.json?lat=38.22&lon=-78.5&src=' + key;
 
                 request(server)
                     .get(url)
@@ -81,7 +84,7 @@ describe('Elevation API test', function() {
                             throw err;
                         }
 
-                        res.body.should.have.property('data source').be.equal(srcVals[key]);
+                        res.body.features[0].properties.should.have.property('dataSource').be.equal(srcVals[key]);
                         done();
                     });
             });
@@ -90,16 +93,16 @@ describe('Elevation API test', function() {
         it('should check for invalid src values', function(done) {
 
             request(server)
-                .get('/elevation.json?lat=38.33&long=-78.2&src=9999&unit=9999')
+                .get('/elevation.json?lat=38.33&lon=-78.2&src=9999&unit=9999')
                 .expect('Content-Type', /json/)
-                .expect(200)
+                .expect(400)
                 .end(function(err, res) {
                     if (err) {
                         throw err;
                     }
 
-                    res.body.should.have.property('statusCode').be.equal('400');
-                    res.body.should.have.property('statusMessage').be.equal('Invalid Input - Source');
+                    res.body.features[0].properties.should.have.property('statusCode').be.equal('400');
+                    res.body.features[0].properties.should.have.property('statusMessage').be.equal('invalid input - source');
                     done();
                 });
         });
@@ -107,9 +110,9 @@ describe('Elevation API test', function() {
 
     describe('unit', function() {
         var unitVals = {
-            'meters': 'meters',
-            'miles': 'miles',
-            'feet': 'feet'
+            'meters': 'm',
+            'miles': 'mi',
+            'feet': 'ft'
         };
 
         for (var key in unitVals) {
@@ -117,8 +120,10 @@ describe('Elevation API test', function() {
         }
 
         function chkUnit(key) {
+            console.log(unitVals[key]);
+
             it('should return elevation data in ' + key, function(done) {
-                var url = '/elevation.json?lat=38.22&long=-78.5&unit=' + key;
+                var url = '/elevation.json?lat=38.22&lon=-78.5&unit=' + unitVals[key];
 
                 request(server)
                     .get(url)
@@ -129,7 +134,7 @@ describe('Elevation API test', function() {
                             throw err;
                         }
 
-                        res.body.should.have.property('unit').be.equal(unitVals[key]);
+                        res.body.features[0].properties.should.have.property('unit').be.equal(unitVals[key]);
                         done();
                     });
             });
@@ -138,16 +143,16 @@ describe('Elevation API test', function() {
         it('should check for invalid unit values', function(done) {
 
             request(server)
-                .get('/elevation.json?lat=38.33&long=-78.2&unit=9999')
+                .get('/elevation.json?lat=38.33&lon=-78.2&unit=9999')
                 .expect('Content-Type', /json/)
-                .expect(200)
+                .expect(400)
                 .end(function(err, res) {
                     if (err) {
                         throw err;
                     }
 
-                    res.body.should.have.property('statusCode').be.equal('400');
-                    res.body.should.have.property('statusMessage').be.equal('Invalid Input - Unit');
+                    res.body.features[0].properties.should.have.property('statusCode').be.equal('400');
+                    res.body.features[0].properties.should.have.property('statusMessage').be.equal('invalid input - unit');
                     done();
                 });
         });
@@ -159,7 +164,7 @@ describe('Elevation API test', function() {
         it('should return elevation data if src and unit provided', function(done) {
 
             request(server)
-                .get('/elevation.json?lat=38.22&long=-78.5&src=ned_1&unit=meters')
+                .get('/elevation.json?lat=38.22&lon=-78.5&src=ned_1&unit=m')
                 .expect('Content-Type', /json/)
                 .expect(200)
                 .end(function(err, res) {
@@ -167,7 +172,7 @@ describe('Elevation API test', function() {
                         throw err;
                     }
 
-                    res.body.should.have.property('elevation');
+                    res.body.features[0].properties.should.have.property('elevation');
                     done();
                 });
         });
@@ -178,7 +183,7 @@ describe('Elevation API test', function() {
         it('should return JSON format', function(done) {
 
             request(server)
-                .get('/elevation.json?lat=38.22&long=-78.5&src=ned_1&unit=meters')
+                .get('/elevation.json?lat=38.22&lon=-78.5&src=ned_1&unit=m')
                 .expect('Content-Type', /json/)
                 .expect(200, done);
         });

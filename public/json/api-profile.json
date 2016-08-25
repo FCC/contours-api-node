@@ -2,19 +2,19 @@
     "swagger": "2.0",
     "info": {
         "version": "0.9.0",
-        "title": "FCC Elevation API"
+        "title": "FCC Profile API"
     },
     "basePath": "/",
     "tags": [{
-        "name": "elevation",
-        "description": "FCC Elevation API"
+        "name": "Profile",
+        "description": "FCC Profile API"
     }],
     "paths": {
-        "/elevation.{format}": {
+        "/profile.{format}": {
             "get": {
-                "tags": ["elevation"],
-                "summary": "Get elevation",
-                "description": "Get elevation data based on latitude, longitude, data source and unit of measurement. Response returned in JSON format.",
+                "tags": ["Profile"],
+                "summary": "Get Profile",
+                "description": "Get Profile data based on latitude, longitude, azimuth, data source and unit of measurement. Response returned in JSON format.",
                 "parameters": [{
                     "name": "lat",
                     "label": "Latitude",
@@ -34,6 +34,15 @@
                     "type": "string",
                     "defaultValue": ""
                 }, {
+                    "name": "azimuth",
+                    "label": "Azimuth",
+                    "display": true,
+                    "in": "query",
+                    "description": "Azimuth along which the profile is made.",
+                    "required": true,
+                    "type": "string",
+                    "defaultValue": ""
+                }, {
                     "name": "src",
                     "label": "Source",
                     "display": true,
@@ -42,16 +51,12 @@
                     "required": false,
                     "type": "string",
                     "defaultValue": "ned",
-                    "enum": [
-                        "ned",
-                        "ned_1",
-                        "ned_2",
-                        "ned_13",
-                        "usgs"
+                    "enum": [                        
+                        "ned_1"
                     ]
                 }, {
                     "name": "unit",
-                    "label": "Unit",
+                     "label": "Unit",
                     "display": true,
                     "in": "query",
                     "description": "Unit of measurement: m=meters, mi=miles, ft=feet",
@@ -59,7 +64,7 @@
                     "type": "string",
                     "defaultValue": "meters",
                     "enum": [
-                        "m",
+                    	"m",
                         "mi",
                         "ft"
                     ]

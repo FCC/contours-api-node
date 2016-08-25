@@ -28,11 +28,15 @@ var S3_ELEV_LOCATION = configEnv[NODE_ENV].S3_ELEV_LOCATION;
 
 var fs = require('fs');
 
+var ned_1_files = require('../data/ned_1_files.json');
+var ned_2_files = require('../data/ned_2_files.json');
+
 var data_dir;
 var filepath;
-var data_src = 'ned_1';
-var param_unit = 'meters';
+var data_src = 'ned';
+var param_unit = 'm';
 var file_ext = '_1';
+var GeoJSON = require('geojson');
 
 if (NODE_ENV == 'LOCAL') {
 	data_dir = 'data/';	
@@ -45,14 +49,29 @@ else {
 function getElevation(req, res) {
 	console.log('--- beginning elevation ---');
 
+	var lat;
+	var lon;
+
+	var o_status = 'error',
+		o_statusCode = '400',
+		o_statusMessage = '',
+		o_dataSource = '',
+		o_elevation = 0,
+		o_unit = '';
+
 	try {
 		
 		var latitude = req.query.lat;
-		var longitude = req.query.long;
+		var longitude = req.query.lon;
 		var datatype = req.query.src;
 		var unit = req.query.unit;
 
-		console.log('params: lat='+latitude+',long='+longitude+', src='+datatype);
+		lat = latitude;
+		lon = longitude;
+
+		GeoJSON.defaults = {Point: ['latitude', 'longitude'], include: ['status','statusCode','statusMessage','dataSource','elevation','unit']};
+
+		console.log('params: lat='+latitude+',lon='+longitude+', src='+datatype+', unit='+unit);
 
 		if(!datatype){
 			datatype = data_src;
@@ -61,47 +80,95 @@ function getElevation(req, res) {
 			unit = param_unit;
 		}
 
-		if ( !latitude.match(/^-?\d+\.?\d*$/) || !longitude.match(/^-?\d+\.?\d*$/) ) {
-			res.send({'status': 'error', 
-				'statusCode':'400',
-            	'statusMessage': 'Invalid Input - Latitude/Longitude',
-            	'latitude':latitude,
-                'longitude':longitude});
+		o_dataSource = datatype;
+		o_unit = unit;
+
+		if(!datatype || !unit || !latitude || !longitude){
+				
+        	o_statusMessage = 'invalid parameters';
+        	
+        	var ret = [{ 
+				status: o_status,
+        		statusCode:o_statusCode,
+        		statusMessage: o_statusMessage,
+        		latitude: lat,
+        		longitude: lon, 
+        		dataSource: o_dataSource, 
+        		elevation: o_elevation,
+        		unit: o_unit}];
+        	res.status(400).send(GeoJSON.parse(ret, {}));
 			return;
 		}
 
-		var lat = parseFloat(latitude);
-		var lon = parseFloat(longitude);
+		if ( !latitude.match(/^-?\d+\.?\d*$/) || !longitude.match(/^-?\d+\.?\d*$/) ) {
+
+			o_statusMessage = 'invalid input - latitude/longitude';
+        	
+        	var ret = [{ 
+				status: o_status,
+        		statusCode:o_statusCode,
+        		statusMessage: o_statusMessage,
+        		latitude: lat,
+        		longitude: lon, 
+        		dataSource: o_dataSource, 
+        		elevation: o_elevation,
+        		unit: o_unit}];
+        	res.status(400).send(GeoJSON.parse(ret, {}));
+        	return;
+		}
+
+		lat = parseFloat(latitude);
+		lon = parseFloat(longitude);
 		
 		if (lat <= -90 || lat > 90 || lon < -180 || lon > 180) {
-			res.send({
-				'status': 'error',
-            	'statusCode':'400',
-            	'statusMessage': 'Invalid Input - Latitude/Longitude',
-            	'latitude':lat,
-                'longitude':lon
-			});
-			return;
-		}
-		
-		if (datatype != 'ned_1' && datatype != 'ned_2' && datatype != 'ned_13' && datatype != 'usgs') {
-			res.send({
-				'status': 'error',
-            	'statusCode':'400',
-            	'statusMessage': 'Invalid Input - Source',
-            	'latitude':lat,
-                'longitude':lon});
-			return;
+			
+			o_statusMessage = 'invalid input - latitude/longitude';
+        	
+        	var ret = [{ 
+				status: o_status,
+        		statusCode:o_statusCode,
+        		statusMessage: o_statusMessage,
+        		latitude: lat,
+        		longitude: lon, 
+        		dataSource: o_dataSource, 
+        		elevation: o_elevation,
+        		unit: o_unit}];
+        	res.status(400).send(GeoJSON.parse(ret, {}));
+        	return;
 		}
 
-		if (unit != 'meters' && unit != 'miles' && unit != 'feet') {
-			res.send({
-				'status': 'error',
-            	'statusCode':'400',
-            	'statusMessage': 'Invalid Input - Unit',
-            	'latitude':lat,
-                'longitude':lon});
-			return;
+		if (datatype != 'ned' && datatype != 'ned_1' && datatype != 'ned_2' && datatype != 'ned_13' && datatype != 'usgs') {
+			
+			o_statusMessage = 'invalid input - source';
+        	
+        	var ret = [{ 
+				status: o_status,
+        		statusCode:o_statusCode,
+        		statusMessage: o_statusMessage,
+        		latitude: lat,
+        		longitude: lon, 
+        		dataSource: o_dataSource, 
+        		elevation: o_elevation,
+        		unit: o_unit}];
+        	res.status(400).send(GeoJSON.parse(ret, {}));
+        	return;
+		}
+
+		if (unit != 'm' && unit != 'mi' && unit != 'ft') {
+			
+			o_statusMessage = 'invalid input - unit';
+        	
+        	var ret = [{ 
+				status: o_status,
+        		statusCode:o_statusCode,
+        		statusMessage: o_statusMessage,
+        		latitude: lat,
+        		longitude: lon, 
+        		dataSource: o_dataSource, 
+        		elevation: o_elevation,
+        		unit: o_unit}];
+        	res.status(400).send(GeoJSON.parse(ret, {}));
+        	return;
 		}
 
 		var ns = 'n';
@@ -118,7 +185,27 @@ function getElevation(req, res) {
 		
 		var lat_str = padZero(lat_ul, 2);
 		var lon_str = padZero(lon_ul, 3);
+
+		var usgs_filename;
+		var coordname = ns + lat_str + ew + lon_str;
 		
+		console.log('coordname='+coordname);
+
+		if(datatype == 'ned') {
+			if(ned_1_files[coordname]){
+				datatype = 'ned_1';
+				usgs_filename = ned_1_files[coordname].file;
+				console.log('ned_1 coordname file='+usgs_filename);	
+			}
+			else if(ned_2_files[coordname]){
+				datatype = 'ned_2';
+				usgs_filename = ned_2_files[coordname].file;
+				console.log('ned_2 coordname file='+usgs_filename);	
+			}
+			else {
+				throw 'ned file not found';
+			}	
+		}
 
 		if (datatype == 'usgs') {
 			console.log('calling USGS API to get data..');
@@ -127,22 +214,33 @@ function getElevation(req, res) {
 			    //console.log('callback data ' + JSON.stringify(data));
 			    console.log('callback elevation: '+data.Elevation);
 			    var elevation = data.Elevation;
-			    if( unit == 'miles'){
+			    if( unit == 'mi'){
 					elevation = Math.round(1000*elevation*0.000621371)/1000;
 				}
-				else if(unit == 'feet'){
+				else if(unit == 'ft'){
 					elevation = Math.round(1000*elevation*3.28084)/1000;
 				}
-			    var ret = {
-					'status': 'success',
-            		'statusCode':'200',
-            		'statusMessage': 'ok',
-            		'latitude':lat,
-            		'longitude':lon, 
-            		'data source': data.Data_Source, 
-            		'elevation': elevation,
-            		'unit': unit};				
-				res.send(ret);
+				
+            	o_status = 'success';
+            	o_statusCode = '200';
+            	o_statusMessage = 'ok',
+            	o_dataSource = data.Data_Source;
+            	o_elevation = elevation;
+            	o_unit = unit;
+
+            	var ret = [{ 
+					status: o_status,
+            		statusCode:o_statusCode,
+            		statusMessage: o_statusMessage,
+            		latitude: lat,
+            		longitude: lon, 
+            		dataSource: o_dataSource, 
+            		elevation: o_elevation,
+            		unit: o_unit}];
+
+				//GeoJSON.defaults = {Point: ['latitude', 'longitude'], include: ['status','statusCode','statusMessage','dataSource','elevation','unit']};
+				res.status(200).send(GeoJSON.parse(ret, {}));
+				return;
 			});
 		}	
 
@@ -164,7 +262,7 @@ function getElevation(req, res) {
 			var ncol = 1812;
 			
 			var nrow0 = 1800;
-			var ncol0 = 1800;			
+			var ncol0 = 1800;
 			file_ext = '_2';
 		}
 		
@@ -182,7 +280,10 @@ function getElevation(req, res) {
 		
 		if (datatype != 'usgs') {
 
-			var usgs_filename = 'float' + ns + lat_str + ew + lon_str + file_ext +'.flt';
+			if(datatype != 'ned'){
+				usgs_filename = 'float' + coordname + file_ext +'.flt';
+			}
+			//var usgs_filename = 'float' + ns + lat_str + ew + lon_str + file_ext +'.flt';
 			// sample file floatn15w093_1.flt		
 
 			console.log('usgs_filename:'+usgs_filename);
@@ -220,13 +321,20 @@ function getElevation(req, res) {
 
 					fs.read(fd, buffer, 0, length, position, function(err, bytesRead) {
 						if(err) {
-							res.send({
-								'status': 'error',
-		                    	'statusCode':'400',
-		                    	'statusMessage': 'unable to process elevation data',
-		                    	'latitude':lat,
-	                			'longitude':lon
-		                    });
+
+			            	o_statusMessage = 'unable to process elevation data';
+			            	
+			            	var ret = [{ 
+								status: o_status,
+			            		statusCode:o_statusCode,
+			            		statusMessage: o_statusMessage,
+			            		latitude: lat,
+			            		longitude: lon, 
+			            		dataSource: o_dataSource, 
+			            		elevation: o_elevation,
+			            		unit: o_unit}];
+
+							res.status(400).send(GeoJSON.parse(ret, {}));
 							return;
 						}
 						
@@ -235,22 +343,32 @@ function getElevation(req, res) {
 						console.log('file transfer complete in :' + (ed_time - st_time)/1000);
 
 						var elevation = Math.round(100*buffer.readFloatLE(0))/100;
-						if( unit == 'miles'){
+						if( unit == 'mi'){
 							elevation = Math.round(1000*elevation*0.000621371)/1000;
 						}
-						else if(unit == 'feet'){
+						else if(unit == 'ft'){
 							elevation = Math.round(1000*elevation*3.28084)/1000;
 						}
-						var ret = {
-							'status': 'success',
-	                		'statusCode':'200',
-	                		'statusMessage': 'ok',
-	                		'latitude':lat,
-	                		'longitude':lon, 
-	                		'data source': data_source, 
-	                		'elevation': elevation,
-	                		'unit': unit};				
-						res.send(ret);
+
+						o_status = 'success';
+		            	o_statusCode = '200';
+		            	o_statusMessage = 'ok';
+		            	o_dataSource = data_source;
+		            	o_elevation = elevation;
+		            	o_unit = unit;
+
+		            	var ret = [{ 
+							status: o_status,
+		            		statusCode:o_statusCode,
+		            		statusMessage: o_statusMessage,
+		            		latitude: lat,
+		            		longitude: lon, 
+		            		dataSource: o_dataSource, 
+		            		elevation: o_elevation,
+		            		unit: o_unit}];
+
+						res.status(200).send(GeoJSON.parse(ret, {}));
+						return;						
 					});
 				});
 			}
@@ -263,30 +381,43 @@ function getElevation(req, res) {
 			        };
 			        s3.getObject(params, function(err, data) {
 			            if (err) {
-			             var json = { 
-			                    'status': 'error',
-			                    'statusCode':'400',
-			                    'statusMessage': 'elevation data not found',
-			                    'latitude':lat,
-			                    'longitude':lon
-			                };
-							//return common.sendRes(res, json, 'json');
-							res.send(json);
+
+			            	o_statusMessage = 'elevation data not found';
+			            	
+			            	var ret = [{ 
+								status: o_status,
+			            		statusCode:o_statusCode,
+			            		statusMessage: o_statusMessage,
+			            		latitude: lat,
+			            		longitude: lon, 
+			            		dataSource: o_dataSource, 
+			            		elevation: o_elevation,
+			            		unit: o_unit}];
+
+							res.status(400).send(GeoJSON.parse(ret, {}));
+							return;
 			            } 
 			            else {
-							console.log('downloading file...');
+							console.log('downloading file from s3..., time='+new Date().getTime());
 					        var fd = fs.openSync(filepath, 'a+');
 					        fs.writeSync(fd, data.Body, 0, data.Body.length, 0);
 					        fs.closeSync(fd);
 
 					        if (!fs.existsSync(filepath)) {
-								res.send({
-									'status': 'error',
-			                    	'statusCode':'400',
-			                    	'statusMessage': 'unable to process elevation data',
-			                    	'latitude':lat,
-			                    	'longitude':lon
-			                    });
+
+					        	o_statusMessage = 'unable to process elevation data';
+			            	
+				            	var ret = [{ 
+									status: o_status,
+				            		statusCode:o_statusCode,
+				            		statusMessage: o_statusMessage,
+				            		latitude: lat,
+				            		longitude: lon, 
+				            		dataSource: o_dataSource, 
+				            		elevation: o_elevation,
+				            		unit: o_unit}];
+
+								res.status(400).send(GeoJSON.parse(ret, {}));
 								return;
 							}
 
@@ -299,13 +430,19 @@ function getElevation(req, res) {
 
 								fs.read(fd, buffer, 0, length, position, function(err, bytesRead) {
 									if(err) {
-										res.send({
-											'status': 'error',
-					                    	'statusCode':'400',
-					                    	'statusMessage': 'unable to process elevation data',
-					                    	'latitude':lat,
-			                    			'longitude':lon
-					                    });
+										o_statusMessage = 'unable to process elevation data';
+			            	
+						            	var ret = [{ 
+											status: o_status,
+						            		statusCode:o_statusCode,
+						            		statusMessage: o_statusMessage,
+						            		latitude: lat,
+						            		longitude: lon, 
+						            		dataSource: o_dataSource, 
+						            		elevation: o_elevation,
+						            		unit: o_unit}];
+
+										res.status(400).send(GeoJSON.parse(ret, {}));
 										return;
 									}
 									
@@ -314,22 +451,32 @@ function getElevation(req, res) {
 			    					console.log('file transfer complete in :' + (ed_time - st_time)/1000);
 
 									var elevation = Math.round(100*buffer.readFloatLE(0))/100;
-									if( unit == 'miles'){
+									if( unit == 'mi'){
 										elevation = Math.round(1000*elevation*0.000621371)/1000;
 									}
-									else if(unit == 'feet'){
+									else if(unit == 'ft'){
 										elevation = Math.round(1000*elevation*3.28084)/1000;
 									}
-									var ret = {
-										'status': 'success',
-			                    		'statusCode':'200',
-			                    		'statusMessage': 'ok',
-			                    		'latitude':lat,
-			                    		'longitude':lon, 
-			                    		'data source': data_source, 
-			                    		'elevation': elevation,
-			                    		'unit': unit};				
-									res.send(ret);
+
+									o_status = 'success';
+					            	o_statusCode = '200';
+					            	o_statusMessage = 'ok';
+					            	o_dataSource = data_source;
+					            	o_elevation = elevation;
+					            	o_unit = unit;
+
+					            	var ret = [{ 
+										status: o_status,
+					            		statusCode:o_statusCode,
+					            		statusMessage: o_statusMessage,
+					            		latitude: lat,
+					            		longitude: lon, 
+					            		dataSource: o_dataSource, 
+					            		elevation: o_elevation,
+					            		unit: o_unit}];
+
+									res.status(200).send(GeoJSON.parse(ret, {}));
+									return;			
 								});
 							});
 			            }
@@ -341,12 +488,21 @@ function getElevation(req, res) {
 		
 	}
 	catch(err) {
-		res.send({
-			'status': 'error',
-        	'statusCode':'400',
-        	'statusMessage': 'unable to process elevation data'
-        });
-		return;
+		console.error(err);
+		o_statusMessage = 'error while processing elevation data';
+			            	
+    	var ret = [{ 
+			status: o_status,
+    		statusCode:o_statusCode,
+    		statusMessage: o_statusMessage,
+    		latitude: lat,
+    		longitude: lon, 
+    		dataSource: o_dataSource, 
+    		elevation: o_elevation,
+    		unit: o_unit}];
+
+		res.status(400).send(GeoJSON.parse(ret, {}));
+		return;		
 	}
 }
 

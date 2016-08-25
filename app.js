@@ -20,7 +20,8 @@ var package_json = require('./package.json');
 
 var contour = require('./controllers/contour.js');
 var elevation = require('./controllers/elevation.js');
-
+var haat = require('./controllers/haat.js');
+var profile = require('./controllers/profile.js');
 
 // **********************************************************
 // config
@@ -75,7 +76,8 @@ app.use(bodyparser.urlencoded({ extended: false }));
 // route
 
 app.use('/', express.static(__dirname + '/public'));
-app.use('/api-docs', express.static(__dirname + '/public/api-docs.html'));
+app.use('/api-docs', express.static(__dirname + '/public/index.html'));
+app.use('/contour-demo', express.static(__dirname + '/public/contour-demo.html'));
 
 app.param('uuid', function(req, res, next, uuid){
     // check format of uuid
@@ -115,9 +117,22 @@ app.get('/:serviceType/:idType/:id', function(req, res){
 	contour.getContour(req, res);
 });
 
-app.get('/getVersions', function(req, res){
-	contours.getVersions(req, res);
+app.get('/haat.json', function(req, res){
+	haat.getHAAT(req, res);
 });
+
+app.get('/haat.csv', function(req, res){
+	haat.getHAAT(req, res);
+});
+
+app.get('/profile.json', function(req, res){
+	profile.getProfile(req, res);
+});
+
+app.get('/profile.csv', function(req, res){
+	profile.getProfile(req, res);
+});
+
 
 // **********************************************************
 // error

@@ -2,19 +2,19 @@
     "swagger": "2.0",
     "info": {
         "version": "0.9.0",
-        "title": "FCC Elevation API"
+        "title": "FCC HAAT API"
     },
     "basePath": "/",
     "tags": [{
-        "name": "elevation",
-        "description": "FCC Elevation API"
+        "name": "HAAT",
+        "description": "FCC HAAT API"
     }],
     "paths": {
-        "/elevation.{format}": {
+        "/haat.{format}": {
             "get": {
-                "tags": ["elevation"],
-                "summary": "Get elevation",
-                "description": "Get elevation data based on latitude, longitude, data source and unit of measurement. Response returned in JSON format.",
+                "tags": ["HAAT"],
+                "summary": "Get HAAT",
+                "description": "Get HAAT data based on latitude, longitude, data source, number of radials, radiation center and unit of measurement. Response returned in JSON format.",
                 "parameters": [{
                     "name": "lat",
                     "label": "Latitude",
@@ -34,6 +34,24 @@
                     "type": "string",
                     "defaultValue": ""
                 }, {
+                    "name": "nradial",
+                    "label": "Number of Radials",
+                    "display": true,
+                    "in": "query",
+                    "description": "Number of radials",
+                    "required": true,
+                    "type": "string",
+                    "defaultValue": ""
+                }, {
+                    "name": "rcamsl",
+                    "label": "Radiation Center Above Mean Sea Level",
+                    "display": true,
+                    "in": "query",
+                    "description": "Radiation Center Above Mean Sea Level",
+                    "required": true,
+                    "type": "string",
+                    "defaultValue": ""
+                }, {
                     "name": "src",
                     "label": "Source",
                     "display": true,
@@ -43,15 +61,11 @@
                     "type": "string",
                     "defaultValue": "ned",
                     "enum": [
-                        "ned",
-                        "ned_1",
-                        "ned_2",
-                        "ned_13",
-                        "usgs"
+                        "ned_1"                        
                     ]
                 }, {
                     "name": "unit",
-                    "label": "Unit",
+                     "label": "Unit",
                     "display": true,
                     "in": "query",
                     "description": "Unit of measurement: m=meters, mi=miles, ft=feet",
@@ -59,7 +73,7 @@
                     "type": "string",
                     "defaultValue": "meters",
                     "enum": [
-                        "m",
+                    	"m",
                         "mi",
                         "ft"
                     ]

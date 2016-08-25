@@ -21,7 +21,7 @@ var package_json = require('./package.json');
 var contour = require('./controllers/contour.js');
 var elevation = require('./controllers/elevation.js');
 var haat = require('./controllers/haat.js');
-
+var profile = require('./controllers/profile.js');
 
 // **********************************************************
 // config
@@ -123,6 +123,14 @@ app.get('/haat.json', function(req, res){
 
 app.get('/haat.csv', function(req, res){
 	haat.getHAAT(req, res);
+});
+
+app.get('/profile.json', function(req, res){
+	profile.getProfile(req, res);
+});
+
+app.get('/profile.csv', function(req, res){
+	profile.getProfile(req, res);
 });
 
 

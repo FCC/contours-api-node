@@ -40,16 +40,19 @@ else {
 	var data_dir = '/var/data';
 }
 
-var src, lat, lon, rcamsl, nradial, format, unit;
+var src, lat, lon, rcamsl, nradial, azimuth, format, unit;
 var  output_data;
+var dist_arr;
 var azimuths;
 
 
-function getHAAT(req, res) {
+function getProfile(req, res) {
 	try {
 	
 		azimuths = [];
 		output_data = [];
+		
+		console.log(req.url);
 		
 		var url = req.url;
 		
@@ -64,15 +67,11 @@ function getHAAT(req, res) {
 			res.send({'status': 'error', 'msg': 'missing lon value'});
 			return;
 		}
-		if (!url.match(/rcamsl=/i)) {
-			res.send({'status': 'error', 'msg': 'missing rcamsl value'});
+		if (!url.match(/azimuth=/i)) {
+			res.send({'status': 'error', 'msg': 'missing azimuth value'});
 			return;
 		}
-		if (!url.match(/nradial=/i)) {
-			res.send({'status': 'error', 'msg': 'missing nradial value'});
-			return;
-		}
-
+		
 		src = url.replace(/^.*src=/i, '').replace(/&.*$/, '').toLowerCase();
 		src = src.toLowerCase();
 		if (src != "ned_1" && src != "ned_2" && src != "ned_13" && src != "gtopo30" && src != "globe") {
@@ -82,8 +81,7 @@ function getHAAT(req, res) {
 		lat = url.replace(/^.*lat=/i, '').replace(/&.*$/, '');
 		console.log(lat)
 		lon = url.replace(/^.*lon=/i, '').replace(/&.*$/, '');
-		rcamsl = url.replace(/^.*rcamsl=/i, '').replace(/&.*$/, '');
-		nradial = url.replace(/^.*nradial=/i, '').replace(/&.*$/, '');
+		azimuth = url.replace(/^.*azimuth=/i, '').replace(/&.*$/, '');
 		format = url.replace(/\?.*$/i, '').replace(/^.*\./, '');
 		unit = url.replace(/^.*unit=/i, '').replace(/&.*$/, '');
 		unit = unit.toLowerCase();
@@ -91,17 +89,18 @@ function getHAAT(req, res) {
 			unit = "m";
 		}
 		
+		nradial = 1;
+		
+		console.log('ok');
+		console.log(azimuth);
+		
 		var i, j;
 		if ( !lat.match(/^-?\d+\.?\d*$/) || !lon.match(/^-?\d+\.?\d*$/) ) {
 			res.send({'status': 'error', 'msg': 'invalid Lat/Lon value'});
 			return;
 		}
-		if ( !rcamsl.match(/^\d*$/) ) {
-			res.send({'status': 'error', 'msg': 'invalid rcamsl value'});
-			return;
-		}
-		if ( !nradial.match(/^\d*$/) ) {
-			res.send({'status': 'error', 'msg': 'invalid nradial value'});
+		if ( !azimuth.match(/^-?\d+\.?\d*$/) ) {
+			res.send({'status': 'error', 'msg': 'invalid azimuth value'});
 			return;
 		}
 		if ( parseFloat(lat) > 90 || parseFloat(lat) < -90 ) {
@@ -115,11 +114,10 @@ function getHAAT(req, res) {
 
 		lat = parseFloat(lat);
 		lon = parseFloat(lon);
-		rcamsl = parseFloat(rcamsl);
-		nradial = parseInt(nradial);
+		azimuth = parseFloat(azimuth);
 		src = src.toLowerCase();
 		
-		console.log('src=' + src + ' lat=' + lat + ' lon=' + lon + ' rcamsl=' + rcamsl + ' nradial=' + nradial + ' format=' + format + ' unit=' + unit);
+		console.log('src=' + src + ' lat=' + lat + ' lon=' + lon + ' azimuth=' + azimuth + ' nradial=' + nradial + ' format=' + format + ' unit=' + unit);
 		
 		
 		var num_points_per_radial = 51;
@@ -128,14 +126,16 @@ function getHAAT(req, res) {
 		var end_point = 16; //kms
 		var dist_delta = (end_point - start_point) / num_interval_per_radial; //distance between 2 points
 		
-		var dist_arr = [];
+		dist_arr = [];
 		for (i = 0; i < num_points_per_radial; i++) {
-			dist_arr.push(start_point + i*dist_delta);
+			dist_arr.push(  Math.round(100 * (start_point + i*dist_delta))/100);
 		}
 		
 		for (i = 0; i < nradial; i++) {
 			azimuths.push(Math.round(100.0*i*360/nradial)/100);
 		}
+		
+		azimuths[0] = azimuth;
 		
 		var latlon;
 		var latlon0;
@@ -231,11 +231,15 @@ function getHAAT(req, res) {
 			
 			for (i = 0; i < filenames.length; i++) {
 				filepath = data_dir + '/' + src + '/' + filenames[i];
+				console.log('read file ' + filepath);
 				readDataFile(i, filepath, latlon);
 			}
 		
+
 		output_data = output_data.sort(comparator);
+
 		var output_haat = formatHAAT();
+		
 		
 		endTime = new Date().getTime();
 		var elapsed_time = endTime - startTime;
@@ -331,7 +335,10 @@ function readDataFile(n, filepath, latlon) {
 		function formatHAAT() {
 		
 			var haat_av = [];
+			var elev_av = [];
 			var i, j, elevs;
+			
+			console.log('nradial=' + nradial)
 			for (i = 0; i < nradial; i++) {
 				elevs = [];
 				for (j = 0; j < output_data.length; j++) {
@@ -341,30 +348,42 @@ function readDataFile(n, filepath, latlon) {
 						
 					}
 				}
-				haat_av.push(Math.round( 100*(rcamsl - arrMean(elevs)) ) / 100.0);
+				haat_av.push(Math.round( 100*(1000 - arrMean(elevs)) ) / 100.0);
+				elev_av.push(Math.round( 100*(arrMean(elevs)) ) / 100.0);
 				//console.log(i + ' ' + azimuths[i] + ' ' + haat_av[i] + ' elevs=' + elevs);
 			}
 			
 			var haat_total = Math.round(100*arrMean(haat_av))/100;
-			
+		
 			//unit conversion
+			
+			//change distance unit first - in km originally, chnage to meter first
+			for (i = 0; i < elevs.length; i++) {
+				dist_arr[i] = 1000 * dist_arr[i];
+			}
+			
 			
 			var feet_per_meter = 3.28084;
 			var miles_per_meter = 0.000621371;
+			
 			if (unit != "m") {
-				for (i = 0; i < haat_av.length; i++) {
+				for (i = 0; i < elevs.length; i++) {
 					if (unit == "ft") {
-						haat_av[i] = Math.round(100 * haat_av[i] * feet_per_meter) / 100;
+						elevs[i] = Math.round(100 * elevs[i] * feet_per_meter) / 100;
+						dist_arr[i] = Math.round(100 * dist_arr[i] * feet_per_meter) / 100;
 					}
 					else if (unit == "mi") {
-						haat_av[i] = Math.round(100000 * haat_av[i] * miles_per_meter) / 100000;
+						elevs[i] = Math.round(100000 * elevs[i] * miles_per_meter) / 100000;
+						dist_arr[i] = Math.round(100000 * dist_arr[i] * miles_per_meter) / 100000;
 					}
 				}
 				if (unit == "ft") {
 					haat_total = Math.round(100 * haat_total * feet_per_meter) / 100;
+					elev_av = Math.round(100 * elev_av * feet_per_meter) / 100;
 				}
 				else if (unit == "mi") {
 					haat_total = Math.round(100000 * haat_total * miles_per_meter) / 100000;
+					elev_av = Math.round(100000 * elev_av * miles_per_meter) / 100000;
 				}
 				
 			}
@@ -372,9 +391,9 @@ function readDataFile(n, filepath, latlon) {
 			console.log('format=' + format);
 			
 			if (format == 'csv') {
-				var content = 'azimuth,haat\n'
-				for (i = 0; i < nradial; i++) {
-					content += azimuths[i] + ',' + haat_av[i] + '\n';
+				var content = 'distance,elevation\n'
+				for (i = 0; i < dist_arr.length; i++) {
+					content += dist_arr[i] + ',' + elevs[i] + '\n';
 				}
 				return content;
 			}
@@ -385,22 +404,20 @@ function readDataFile(n, filepath, latlon) {
 								"statusMessage": "ok",
 								'about': {
 									'elevation_data_source': 'ned_1, ned_2, ned_13 are 1-, 2- 1/3- arc second NED',
-									'nradial': 'number of radials',
-									'rcamsl': 'radiation center above mean sea level',
-									'azimuth': 'an array containing the azimuth of the radials',
-									'haat_azimuth': 'an array containing the HAAT values corresponding to the radials',
-									'haat_average': 'average of the HAATs of all the radials',
+									'azimuth': 'azimuth along which the  profile is made',
+									'distance': 'distance from  antenna',
+									'elevation': 'elevation at the distance',
+									'average_elevation': 'average elevation along the profile',
 									'elapsed_time': 'time taken by the system to process this request'
 									},
 								'elevation_data_source': src,
 								'lat': lat,
 								'lon': lon,
-								'rcamsl': rcamsl,
-								'nradial': nradial,
 								'format': format,
-								'azimuth': azimuths,
-								'haat_azimuth': haat_av,
-								'haat_average': haat_total,
+								'azimuth': azimuths[0],
+								'distance': dist_arr,
+								'elevation': elevs,
+								'average_elevation': elev_av,
 								'unit': unit
 			
 				};
@@ -545,4 +562,4 @@ function uniqArray(arr) {
 
 
 
-module.exports.getHAAT = getHAAT;
+module.exports.getProfile = getProfile;

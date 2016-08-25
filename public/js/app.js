@@ -339,8 +339,7 @@
             var elevMeta = '';
             var lat = data.features[0].geometry.coordinates[1];
             var lon = data.features[0].geometry.coordinates[0];
-console.log(lat);
-console.log(lon);
+
             Map.clearLayers();
 
             elevMeta += '<dl class="dl-elevation dl-horizontal">';

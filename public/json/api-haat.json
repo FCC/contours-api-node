@@ -61,11 +61,7 @@
                     "type": "string",
                     "defaultValue": "ned",
                     "enum": [
-                        "ned",
-                        "ned_1",
-                        "ned_2",
-                        "ned_13",
-                        "usgs"
+                        "ned_1"                        
                     ]
                 }, {
                     "name": "unit",

@@ -127,13 +127,6 @@ app.get('/haat.csv', function(req, res){
 	haat.getHAAT(req, res);
 });
 
-app.get('/haat_s3.json', function(req, res){
-	haat_s3.getHAAT(req, res);
-});
-
-app.get('/haat_s3.csv', function(req, res){
-	haat_s3.getHAAT(req, res);
-});
 
 // **********************************************************
 // error

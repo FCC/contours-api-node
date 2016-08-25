@@ -9,10 +9,13 @@
     var ElevationMap = require('./modules/elevationMap.js');
     var HAATForm = require('./modules/haatForm.js');
     var HAATMap = require('./modules/haatMap.js');
+    var ProfileForm = require('./modules/profileForm.js');
+    var ProfileMap = require('./modules/profileMap.js');
 
     APIForm.bindEvents();
     Map.init();
     ElevationForm.getParams();    
     ContourForm.getParams();    
     HAATForm.getParams();        
+    ProfileForm.getParams();
 }());

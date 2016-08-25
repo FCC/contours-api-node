@@ -10,15 +10,18 @@
     var ElevationMap = require('./modules/elevationMap.js');
     var HAATForm = require('./modules/haatForm.js');
     var HAATMap = require('./modules/haatMap.js');
+    var ProfileForm = require('./modules/profileForm.js');
+    var ProfileMap = require('./modules/profileMap.js');
 
     APIForm.bindEvents();
     Map.init();
     ElevationForm.getParams();    
     ContourForm.getParams();    
     HAATForm.getParams();        
+    ProfileForm.getParams();
 }());
 
-},{"./modules/apiForm.js":2,"./modules/contourForm.js":3,"./modules/contourMap.js":4,"./modules/elevationForm.js":5,"./modules/elevationMap.js":6,"./modules/haatForm.js":7,"./modules/haatMap.js":8,"./modules/map.js":9}],2:[function(require,module,exports){
+},{"./modules/apiForm.js":2,"./modules/contourForm.js":3,"./modules/contourMap.js":4,"./modules/elevationForm.js":5,"./modules/elevationMap.js":6,"./modules/haatForm.js":7,"./modules/haatMap.js":8,"./modules/map.js":9,"./modules/profileForm.js":10,"./modules/profileMap.js":11}],2:[function(require,module,exports){
 (function() {
     'use strict';
 
@@ -541,4 +544,111 @@
 
 }());
 
-},{}]},{},[1]);
+},{}],10:[function(require,module,exports){
+(function() {
+    'use strict';
+
+    var ProfileMap = require('./profileMap.js');
+
+    var ProfileForm = {
+        bindEvents: function() {
+            $('#form-params').on('click.profileAPI', '[data-api="profile"]', ProfileMap.getData);
+        },
+        getParams: function() {
+        	// get parameters (form fields) from Swagger JSON
+            $.ajax({
+                url: 'json/api-profile.json',
+                async: true,
+                type: "GET",
+                dataType: "json",
+                success: function(data) {
+                    var paramsData = data.paths['/profile.{format}'].get.parameters;
+
+                    ProfileForm.createTemplate(paramsData);
+                }
+            });
+        },
+        createTemplate: function(data) {
+            var fields = {};
+            var source = $('#profile-template').html();
+            var template, fieldsetHTML;
+
+            template = Handlebars.compile(source);
+
+            fields.params = data;
+            fieldsetHTML = template(fields);
+            $('#frm-profile').append(fieldsetHTML);
+            
+            ProfileForm.bindEvents();
+        }        
+    };
+    
+    module.exports = ProfileForm;
+}());
+
+},{"./profileMap.js":11}],11:[function(require,module,exports){
+(function() {
+    'use strict';
+
+    var APIForm = require('./apiForm.js');
+    var Map = require('./map.js');
+
+    var ProfileMap = {
+        init: function() {
+            this.map = undefined;
+            this.contourJSON = undefined;
+            this.stationMarker = undefined;
+        },
+
+        getData: function(event) {
+            var profileAPI = '/profile.json?';
+            var apiURL = [];
+
+            profileAPI += $('.fields-profile').serialize();
+
+            $.ajax({
+                url: profileAPI,
+                async: true,
+                type: "GET",
+                dataType: "json",
+                success: function(data) {
+                    if (data.status === 'error') {                        
+                        APIForm.showError();
+                    } else {
+                        $('.alert').hide('fast');
+                        ProfileMap.createMarker(data);
+                    }
+                },
+                error: APIForm.showError
+            });
+        },
+
+        createMarker: function(data) {
+            var elevMeta = '';
+
+            Map.clearLayers();
+
+            elevMeta += '<dl class="dl-profile dl-horizontal">';
+            elevMeta += '<dt>Average Elevation:</dt>';
+            elevMeta += '<dd>' + data.average_elevation + ' ' + data.unit + '</dd>';
+            elevMeta += '<dt>Latitude:</dt>';
+            elevMeta += '<dd>' + data.lat + '</dd>';
+            elevMeta += '<dt>Longitude:</dt>';
+            elevMeta += '<dd>' + data.lon + '</dd>';
+            elevMeta += '<dt>Data Source:</dt>';
+            elevMeta += '<dd>' + data.elevation_data_source + '</dd>';
+            elevMeta += '</dl>';
+
+            Map.stationMarker = L.marker([data.lat, data.lon])
+                .addTo(Map.map)
+                .bindPopup(elevMeta)
+                .openPopup();
+
+            Map.map.setView([data.lat, data.lon], 7);
+        }
+    };
+
+    module.exports = ProfileMap;
+}());
+
+},{"./apiForm.js":2,"./map.js":9}]},{},[1]);

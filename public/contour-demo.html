@@ -50,6 +50,10 @@
     .dl-haat dd {
         margin-left: 95px;
     }
+
+    .dl-profile dd {
+        margin-left: 120px;
+    }
     </style>
 </head>
 
@@ -124,6 +128,7 @@
                                     <option value="contour">Contour</option>
                                     <option value="elevation">Elevation</option>
                                     <option value="haat">HAAT</option>
+                                    <option value="profile">Profile</option>
                                 </select>
                             </div>
                         </fieldset>
@@ -184,6 +189,31 @@
                         <fieldset id="frm-haat" class="fields fields-haat" style="display: none;">
                             <legend>HAAT API</legend>
                             <script id="haat-template" type="text/x-handlebars-template">
+                                {{#each params}}
+                                    {{#if display}}
+                                        <div class="form-group">
+                                            {{#if required}}
+                                                <label for="{{name}}" required>{{label}}</label>
+                                            {{else}}
+                                                <label for="{{name}}">{{label}}</label>
+                                            {{/if}}
+                                            {{#if enum}}
+                                                <select id="{{name}}" class="form-control" name="{{name}}">
+                                                    {{#enum}}
+                                                        <option value="{{this}}">{{this}}</option>
+                                                    {{/enum}}
+                                                </select>
+                                            {{else}}
+                                                <input id="{{name}}" class="form-control" type="text" name="{{name}}">
+                                            {{/if}}
+                                        </div>
+                                    {{/if}}
+                                {{/each}}
+                            </script>
+                        </fieldset>
+                        <fieldset id="frm-profile" class="fields fields-profile" style="display: none;">
+                            <legend>Profile API</legend>
+                            <script id="profile-template" type="text/x-handlebars-template">
                                 {{#each params}}
                                     {{#if display}}
                                         <div class="form-group">

@@ -13,54 +13,53 @@
     <link href='js/vendor/swagger/css/screen.css' media='screen' rel='stylesheet' type='text/css' />
     <link href='js/vendor/swagger/css/reset.css' media='print' rel='stylesheet' type='text/css' />
     <link href='js/vendor/swagger/css/print.css' media='print' rel='stylesheet' type='text/css' />
-    <link href="css/bootstrap.min.css" rel="stylesheet">
-    <!-- <link href="css/icon-styles.css" rel="stylesheet"> -->
-    <link href="css/app-theme.css" rel="stylesheet">
+    <link href="css/gisp-theme.min.css" rel="stylesheet">
 </head>
 
 <body>
     <div class="page row-offcanvas row-offcanvas-right">
         <header class="site-header">
-            <div class="jumpLinks"> <a href="#skiptarget1" class="sr-only focusable">Skip to main content</a> <a href="#skiptarget3" class="sr-only focusable">Skip to footer and contact information</a> </div>
             <nav role="navigation">
                 <div class="navbar navbar-default navbar-primary">
                     <div class="container">
                         <div class="navbar-header">
                             <h1 class="navbar-brand">
-                          <a title="Home" href="/api-docs" class="navbar-logo">
+                          <a title="Home" href="http://fcc.gov" class="navbar-logo">
                             <span class="sr-only">Federal Communications Commission</span>
                           </a>
                         </h1>
                         </div>
-                        <!--ul aria-hidden="true" id="menu-primary" class="nav navbar-nav nav-offcanvas-right">
+                        <ul aria-hidden="true" id="menu-primary" class="nav navbar-nav nav-offcanvas-right">
                             <li class="active">
-                                <a aria-controls="browse-by-category" data-toggle="tab" href="#browse-by-category">
-                                    <div class="text-prefix">Licensing &amp; Databases</div>
-                                    <strong class="title-emphasis">Public Inspection File</strong>
+                                <a aria-controls="browse-by-category" href="#browseCategory">
+                                    <div class="text-prefix">Contours</div>
+                                    <strong class="title-emphasis">API</strong>
                                 </a>
                             </li>
-                        </ul-->
+                        </ul>
+                        <div class="navbar-controls">
+                            <button class="btn hamburger navbar-btn btn-toggle-menu" type="button" data-toggle-direction="right" data-toggle="offcanvas">
+                                <span class="btn-inner btn-inner-menu"><span class="sr-only">Menu</span></span>
+                            </button>
+                        </div>
                     </div>
                 </div>
                 <div aria-hidden="true" class="navbar-secondary navbar-default yamm nav-offcanvas nav-offcanvas-right">
                     <div id="menu-secondary" class="tab-content">
                         <div class="container tab-pane active" id="browse-by-category">
-                            <ul class="nav nav-tabs menu-secondary">
-                                <li class="dropdown dropdown-left yamm-fw" role="presentation">
-                                    <a class="active" href="/api-docs">
-                                        <span class="link-title dropdown-link-title">Documentation</span>
-                                    </a>
+                            <ul id="browseCategory" class="nav nav-tabs menu-secondary js-browseBy" role="navigation">
+                                <li>
+                                    <a class="active" href="/api-docs"><span class="link-title">Documentation</span></a>
                                 </li>
-                                <li class="dropdown dropdown-left yamm-fw" role="presentation">
-                                    <a href="/contour-demo">
-                                        <span class="link-title dropdown-link-title">Demo</span>
-                                    </a>
+                                <li>
+                                    <a href="/contour-demo"><span class="link-title">Demo</span></a>
                                 </li>
                             </ul>
+                            <!--.nav-tabs -->
                         </div>
                     </div>
+                    <!-- .secondary-menu -->
                 </div>
-                <!-- .secondary-menu -->
             </nav>
         </header>
         <div class="clearfix"></div>
@@ -68,7 +67,7 @@
         <main class="container">
             <div class="row">
                 <div class="main-content">
-                    <h2>API Documentation for Developers</h2>
+                    <h1>API Documentation for Developers</h1>
                     <p>This page is for developers. We built this site entirely off the APIs (Application Programming Interfaces) below and we want to share them with you. The APIs below are provided so that you can further drive the data across the public and private sectors through your own applications. Our APIs are free for use by anyone subject to your acceptance of the <a href="http://www.fcc.gov/developer/api-terms-of-service">API usage terms and conditions</a> as well as any relevant sections of the <a href="http://www.fcc.gov/encyclopedia/privacy-policy">FCC.gov Website Policies and Privacy Policy.</a></p>
                     <br>
                     <br>
@@ -89,16 +88,85 @@
                     <!-- End Swagger Container -->
                 </div>
             </div>
+        </main>
+        <footer class="container">
+            <div class="row">
+                <div class="col-sm-12">
+                    <div class="nav-footer">
+                        <div class="footergriditems">
+                            <div class="grid-item">
+                                <address>
+                                    Federal Communications Commission
+                                    <br> 445 12th Street SW, Washington, DC 20554
+                                </address>
+                                <ul class="footermenu footermenu__phone">
+                                    <li><a class="phone-link" href="tel:+18882255322">Phone: 1-888-225-5322</a></li>
+                                    <li><a class="phone-link" href="tel:+18888355322">TTY: 1-888-835-5322</a></li>
+                                    <li><a class="phone-link" href="tel:+18444322275">Videophone: 1-844-432-2275</a></li>
+                                    <li><a class="phone-link" href="tel:+18664180232">Fax: 1-866-418-0232</a></li>
+                                    <li><a class="contactus" href="https://www.fcc.gov/about/contact">Contact Us</a></li>
+                                </ul>
+                                <ul class="socialmediaicons">
+                                    <li><a class="link-ext social-media twitter" href="https://twitter.com/fcc">Twitter</a></li>
+                                    <li><a class="link-ext social-media facebook" href="https://www.facebook.com/FCC">Facebook</a></li>
+                                    <li><a class="link-ext social-media youtube" href="https://www.youtube.com/user/fccdotgovvideo">Youtube</a></li>
+                                    <li><a class="link-ext social-media flickr" href="https://www.flickr.com/photos/fccdotgov">Flickr</a></li>
+                                    <li><a class="link-ext social-media instagram" href="https://www.instagram.com/fcc">Instagram</a></li>
+                                </ul>
+                            </div>
+                            <div class="grid-item">
+                                <ul class="footermenu footermenu__categories">
+                                    <li><a href="https://www.fcc.gov/general/website-notices">Website Policies &amp; Notices</a></li>
+                                    <li><a href="https://www.fcc.gov/general/privacy-policy">Privacy Policy</a></li>
+                                    <li><a href="https://www.fcc.gov/general/foia-0">FOIA</a></li>
+                                    <li><a href="https://www.fcc.gov/general/no-fear-act-data">No Fear Act Data</a></li>
+                                    <li><a href="https://www.fcc.gov/digitalstrategy">FCC Digital Strategy</a></li>
+                                    <li><a href="https://www.fcc.gov/general/open-government-fcc">Open Government Directive</a></li>
+                                    <li><a href="https://www.fcc.gov/general/plain-writing-fcc">Plain Writing Act</a></li>
+                                    <li><a href="https://www.fcc.gov/general/rss-feeds-and-email-updates-fcc">RSS Feeds &amp; Email Updates</a></li>
+                                    <li><a href="https://www.fcc.gov/general/disability-rights-office">Disability Rights</a></li>
+                                </ul>
+                            </div>
+                            <div class="grid-item">
+                                <ul class="footermenu footermenu__categories">
+                                    <li>CATEGORIES</li>
+                                    <li><a href="https://www.fcc.gov/about/overview">About the FCC</a></li>
+                                    <li><a href="https://www.fcc.gov/proceedings-actions">Proceedings &amp; Actions</a></li>
+                                    <li><a href="https://www.fcc.gov/licensing">Licensing &amp; Databases</a></li>
+                                    <li><a href="https://www.fcc.gov/reports-research">Reports &amp; Research</a></li>
+                                    <li><a href="https://www.fcc.gov/news-events">News &amp; Events</a></li>
+                                    <li><a href="https://www.fcc.gov/consumers">For Consumers</a></li>
+                                </ul>
+                            </div>
+                            <div class="grid-item">
+                                <ul class="footermenu footermenu__bureaus">
+                                    <li>BUREAUS &amp; OFFICES</li>
+                                    <li><a href="https://www.fcc.gov/consumer-and-governmental-affairs#block-menu-block-4">Consumer</a></li>
+                                    <li><a href="https://www.fcc.gov/enforcement#block-menu-block-4">Enforcement</a></li>
+                                    <li><a href="https://www.fcc.gov/inspector-general">Inspector General</a></li>
+                                    <li><a href="https://www.fcc.gov/international#block-menu-block-4">International</a></li>
+                                    <li><a href="https://www.fcc.gov/media#block-menu-block-4">Media</a></li>
+                                    <li><a href="https://www.fcc.gov/public-safety-and-homeland-security#block-menu-block-4">Public Safety</a></li>
+                                    <li><a href="https://www.fcc.gov/wireless-telecommunications#block-menu-block-4">Wireless</a></li>
+                                    <li><a href="https://www.fcc.gov/wireline-competition#block-menu-block-4">Wireline</a></li>
+                                    <li><a href="https://www.fcc.gov/offices-bureaus#block-menu-block-4">Offices</a></li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="fcc-seal">
+                            Federal Communications Commission
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </footer>
     </div>
-    </main>
     </div>
     <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
     <script>
     window.jQuery || document.write('<script src="js/vendor/jquery.min.js"><\/script>')
     </script>
-    
     <script src="js/vendor/bootstrap.min.js"></script>
-    
     <!-- Swagger Script -->
     <!-- fix for unsupported jquery.ba-bbq.min.js (https://github.com/cowboy/jquery-bbq/issues/52) -->
     <script type="text/javascript">
@@ -130,7 +198,7 @@
 
         $('.swagger-ui-wrap').each(function() {
             initSwagger(baseULR + $(this).data('jsonurl'), $(this).attr('id'));
-        });        
+        });
 
         function initSwagger(jsonURL, container) {
             var url = window.location.search.match(/url=([^&]+)/);

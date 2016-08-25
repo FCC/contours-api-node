@@ -8,8 +8,8 @@
     <title>Contour Demo - FCC Contour API</title>
     <link href="https://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,700italic,400,300,700|Lato:500" rel="stylesheet" type="text/css">
     <link href="https://api.tiles.mapbox.com/mapbox.js/v2.2.1/mapbox.css" rel="stylesheet">
-    <link href="css/bootstrap.min.css" rel="stylesheet">
-    <link href="css/app-theme.css" rel="stylesheet">
+    <link href="css/gisp-theme.min.css" rel="stylesheet">
+    <!-- <link href="css/app-theme.css" rel="stylesheet"> -->
     <style>
     #map {
         height: 800px;
@@ -53,38 +53,49 @@
 <body>
     <div class="page row-offcanvas row-offcanvas-right">
         <header class="site-header">
-            <div class="jumpLinks"> <a href="#skiptarget1" class="sr-only focusable">Skip to main content</a> <a href="#skiptarget3" class="sr-only focusable">Skip to footer and contact information</a> </div>
             <nav role="navigation">
                 <div class="navbar navbar-default navbar-primary">
                     <div class="container">
                         <div class="navbar-header">
                             <h1 class="navbar-brand">
-                              <a title="Home" href="/api-docs" class="navbar-logo">
-                                <span class="sr-only">Federal Communications Commission</span>
-                              </a>
-                            </h1>
+                          <a title="Home" href="http://fcc.gov" class="navbar-logo">
+                            <span class="sr-only">Federal Communications Commission</span>
+                          </a>
+                        </h1>
+                        </div>
+                        <ul aria-hidden="true" id="menu-primary" class="nav navbar-nav nav-offcanvas-right">
+                            <li class="active">
+                                <a aria-controls="browse-by-category" href="#browseCategory">
+                                    <div class="text-prefix">Contours</div>
+                                    <strong class="title-emphasis">API</strong>
+                                </a>
+                            </li>
+                            
+                        </ul>
+                        <div class="navbar-controls">
+                            <button class="btn hamburger navbar-btn btn-toggle-menu" type="button" data-toggle-direction="right" data-toggle="offcanvas">
+                                <span class="btn-inner btn-inner-menu"><span class="sr-only">Menu</span></span>
+                            </button>
                         </div>
                     </div>
                 </div>
                 <div aria-hidden="true" class="navbar-secondary navbar-default yamm nav-offcanvas nav-offcanvas-right">
                     <div id="menu-secondary" class="tab-content">
                         <div class="container tab-pane active" id="browse-by-category">
-                            <ul class="nav nav-tabs menu-secondary">
-                                <li class="dropdown dropdown-left yamm-fw" role="presentation">
-                                    <a href="/api-docs">
-                                        <span class="link-title dropdown-link-title">Documentation</span>
-                                    </a>
+                            <ul id="browseCategory" class="nav nav-tabs menu-secondary js-browseBy" role="navigation">
+                                <li>
+                                    <a href="/api-docs"><span class="link-title">Documentation</span></a>
                                 </li>
-                                <li class="dropdown dropdown-left yamm-fw" role="presentation">
-                                    <a class="active" href="/contour-demo">
-                                        <span class="link-title dropdown-link-title">Demo</span>
-                                    </a>
+                                <li>
+                                    <a class="active" href="/contour-demo"><span class="link-title">Demo</span></a>
                                 </li>
-                            </ul>
+                                
+                            </ul>                            
+                            <!--.nav-tabs -->
                         </div>
                     </div>
+                    <!-- .secondary-menu -->
                 </div>
-                <!-- .secondary-menu -->
             </nav>
         </header>
         <div class="clearfix"></div>
@@ -92,8 +103,8 @@
         <main class="container">
             <div class="row">
                 <div class="col-sm-12">
-                    <h2>Contour Demo</h2>
-                    <p>Use the contour demo to view the output of the contour related API's on a map.</p>
+                    <h1>API Demo</h1>
+                    <p>Use the API demo to view the output of the contour related API's on a map.</p>
                     <br>
                     <br>
                     <div class="alert alert-danger" style="display: none;">
@@ -204,6 +215,77 @@
                     </div>
                 </div>
         </main>
+        <footer class="container">
+            <div class="row">
+                <div class="col-sm-12">
+                    <div class="nav-footer">
+                        <div class="footergriditems">
+                            <div class="grid-item">
+                                <address>
+                                    Federal Communications Commission
+                                    <br> 445 12th Street SW, Washington, DC 20554
+                                </address>
+                                <ul class="footermenu footermenu__phone">
+                                    <li><a class="phone-link" href="tel:+18882255322">Phone: 1-888-225-5322</a></li>
+                                    <li><a class="phone-link" href="tel:+18888355322">TTY: 1-888-835-5322</a></li>
+                                    <li><a class="phone-link" href="tel:+18444322275">Videophone: 1-844-432-2275</a></li>
+                                    <li><a class="phone-link" href="tel:+18664180232">Fax: 1-866-418-0232</a></li>
+                                    <li><a class="contactus" href="https://www.fcc.gov/about/contact">Contact Us</a></li>
+                                </ul>
+                                <ul class="socialmediaicons">
+                                    <li><a class="link-ext social-media twitter" href="https://twitter.com/fcc">Twitter</a></li>
+                                    <li><a class="link-ext social-media facebook" href="https://www.facebook.com/FCC">Facebook</a></li>
+                                    <li><a class="link-ext social-media youtube" href="https://www.youtube.com/user/fccdotgovvideo">Youtube</a></li>
+                                    <li><a class="link-ext social-media flickr" href="https://www.flickr.com/photos/fccdotgov">Flickr</a></li>
+                                    <li><a class="link-ext social-media instagram" href="https://www.instagram.com/fcc">Instagram</a></li>
+                                </ul>
+                            </div>
+                            <div class="grid-item">
+                                <ul class="footermenu footermenu__categories">
+                                    <li><a href="https://www.fcc.gov/general/website-notices">Website Policies &amp; Notices</a></li>
+                                    <li><a href="https://www.fcc.gov/general/privacy-policy">Privacy Policy</a></li>
+                                    <li><a href="https://www.fcc.gov/general/foia-0">FOIA</a></li>
+                                    <li><a href="https://www.fcc.gov/general/no-fear-act-data">No Fear Act Data</a></li>
+                                    <li><a href="https://www.fcc.gov/digitalstrategy">FCC Digital Strategy</a></li>
+                                    <li><a href="https://www.fcc.gov/general/open-government-fcc">Open Government Directive</a></li>
+                                    <li><a href="https://www.fcc.gov/general/plain-writing-fcc">Plain Writing Act</a></li>
+                                    <li><a href="https://www.fcc.gov/general/rss-feeds-and-email-updates-fcc">RSS Feeds &amp; Email Updates</a></li>
+                                    <li><a href="https://www.fcc.gov/general/disability-rights-office">Disability Rights</a></li>
+                                </ul>
+                            </div>
+                            <div class="grid-item">
+                                <ul class="footermenu footermenu__categories">
+                                    <li>CATEGORIES</li>
+                                    <li><a href="https://www.fcc.gov/about/overview">About the FCC</a></li>
+                                    <li><a href="https://www.fcc.gov/proceedings-actions">Proceedings &amp; Actions</a></li>
+                                    <li><a href="https://www.fcc.gov/licensing">Licensing &amp; Databases</a></li>
+                                    <li><a href="https://www.fcc.gov/reports-research">Reports &amp; Research</a></li>
+                                    <li><a href="https://www.fcc.gov/news-events">News &amp; Events</a></li>
+                                    <li><a href="https://www.fcc.gov/consumers">For Consumers</a></li>
+                                </ul>
+                            </div>
+                            <div class="grid-item">
+                                <ul class="footermenu footermenu__bureaus">
+                                    <li>BUREAUS &amp; OFFICES</li>
+                                    <li><a href="https://www.fcc.gov/consumer-and-governmental-affairs#block-menu-block-4">Consumer</a></li>
+                                    <li><a href="https://www.fcc.gov/enforcement#block-menu-block-4">Enforcement</a></li>
+                                    <li><a href="https://www.fcc.gov/inspector-general">Inspector General</a></li>
+                                    <li><a href="https://www.fcc.gov/international#block-menu-block-4">International</a></li>
+                                    <li><a href="https://www.fcc.gov/media#block-menu-block-4">Media</a></li>
+                                    <li><a href="https://www.fcc.gov/public-safety-and-homeland-security#block-menu-block-4">Public Safety</a></li>
+                                    <li><a href="https://www.fcc.gov/wireless-telecommunications#block-menu-block-4">Wireless</a></li>
+                                    <li><a href="https://www.fcc.gov/wireline-competition#block-menu-block-4">Wireline</a></li>
+                                    <li><a href="https://www.fcc.gov/offices-bureaus#block-menu-block-4">Offices</a></li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="fcc-seal">
+                            Federal Communications Commission
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </footer>
         </div>
     </div>
     <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>

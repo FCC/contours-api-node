@@ -31,6 +31,12 @@ build/Release
 # https://www.npmjs.org/doc/misc/npm-faq.html#should-i-check-my-node_modules-folder-into-git
 node_modules
 
+# Bower components
+bower_components
+
+# data folder
+data
+
 # DevOps
 .ebextensions
 app.zip

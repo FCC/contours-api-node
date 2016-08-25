@@ -13,12 +13,9 @@
 
     APIForm.bindEvents();
     Map.init();
-    ElevationForm.getParams();
-    ElevationMap.init();    
+    ElevationForm.getParams();    
     ContourForm.getParams();    
-    ContourMap.init();
-    HAATForm.getParams();    
-    HAATMap.init();
+    HAATForm.getParams();        
 }());
 
 },{"./modules/apiForm.js":2,"./modules/contourForm.js":3,"./modules/contourMap.js":4,"./modules/elevationForm.js":5,"./modules/elevationMap.js":6,"./modules/haatForm.js":7,"./modules/haatMap.js":8,"./modules/map.js":9}],2:[function(require,module,exports){
@@ -188,7 +185,7 @@
                 contourAPI += amParams;
             }
 
-           $.ajax({
+            $.ajax({
                 url: contourAPI,
                 async: true,
                 type: "GET",
@@ -196,13 +193,62 @@
                 success: function(data) {
                     if (data.features.length > 0) {
                         $('.alert').hide('fast');
-                        Map.createContour(data);
+                        ContourMap.createContour(data);
                     } else {
                         APIForm.showError();
                     }
                 },
                 error: APIForm.showError
             });
+        },
+        createContour: function(data) {
+            var contour_style = {
+                color: "#13428B",
+                fillColor: "#13428B",
+                opacity: 1.0,
+                fillOpacity: 0.3,
+                weight: 4
+            };
+
+            var p = data.features[0].properties;
+            var station_lat = p.station_lat;
+            var station_lon = p.station_lon;
+
+            Map.clearLayers();
+            
+            Map.contourJSON = L.geoJson(data, {
+                style: contour_style
+            }).addTo(Map.map);
+            
+            Map.map.fitBounds(Map.contourJSON.getBounds());
+            ContourMap.createMarker(data);
+
+        },
+        createMarker: function(data) {
+            var contourMeta = '';          
+
+            Map.featureLayer = L.mapbox.featureLayer().addTo(Map.map);
+            Map.featureLayer.clearLayers();
+
+            for (var i = 0; i < data.features.length; i++) {                
+                contourMeta = '';
+                contourMeta += '<dl class="dl-contour dl-horizontal">';
+                contourMeta += '<dt>Call Sign:</dt>';
+                contourMeta += '<dd>' + data.features[i].properties.callsign + '</dd>';                
+                contourMeta += '<dt>Facility ID:</dt>';
+                contourMeta += '<dd>' + data.features[i].properties.facility_id + '</dd>';
+                contourMeta += '<dt>File Number:</dt>';
+                contourMeta += '<dd>' + data.features[i].properties.filenumber + '</dd>';
+                contourMeta += '<dt>Latitude:</dt>';
+                contourMeta += '<dd>' + data.features[i].properties.station_lat + '</dd>';
+                contourMeta += '<dt>Longitude:</dt>';
+                contourMeta += '<dd>' + data.features[i].properties.station_lon + '</dd>';                
+                contourMeta += '</dl>';
+                
+                Map.stationMarker = L.marker([data.features[i].properties.station_lat, data.features[i].properties.station_lon])
+                .addTo(Map.featureLayer)
+                .bindPopup(contourMeta);
+            }            
         }
     };
 
@@ -464,30 +510,7 @@
                 position: 'topleft'
             }).addTo(Map.map);
         },
-        createContour: function(data) {
-            var contour_style = {
-                color: "#13428B",
-                fillColor: "#13428B",
-                opacity: 1.0,
-                fillOpacity: 0.3,
-                weight: 4
-            };
-
-            var p = data.features[0].properties;
-            var station_lat = p.station_lat;
-            var station_lon = p.station_lon;
-
-            Map.clearLayers();
-
-            Map.contourJSON = L.geoJson(data, {
-                style: contour_style
-            }).addTo(Map.map);
-
-            Map.createMarker(station_lat, station_lon);
-
-            Map.map.fitBounds(Map.contourJSON.getBounds());
-
-        },
+        
         createMarker: function(lat, lon) {
             Map.stationMarker = L.marker([lat, lon]).addTo(Map.map);            
         },
@@ -498,10 +521,14 @@
                 Map.map.removeLayer(Map.contourJSON);
                 
             }
+
             if (Map.map.hasLayer(Map.stationMarker)) {
                 Map.map.removeLayer(Map.stationMarker);                
             }
-            
+
+            if (Map.map.hasLayer(Map.featureLayer)) {
+                Map.featureLayer.clearLayers();
+            }                     
         },
         resetView: function() { 
             Map.map.setView([41.05, -95], 4);            

@@ -37,30 +37,7 @@
                 position: 'topleft'
             }).addTo(Map.map);
         },
-        createContour: function(data) {
-            var contour_style = {
-                color: "#13428B",
-                fillColor: "#13428B",
-                opacity: 1.0,
-                fillOpacity: 0.3,
-                weight: 4
-            };
-
-            var p = data.features[0].properties;
-            var station_lat = p.station_lat;
-            var station_lon = p.station_lon;
-
-            Map.clearLayers();
-
-            Map.contourJSON = L.geoJson(data, {
-                style: contour_style
-            }).addTo(Map.map);
-
-            Map.createMarker(station_lat, station_lon);
-
-            Map.map.fitBounds(Map.contourJSON.getBounds());
-
-        },
+        
         createMarker: function(lat, lon) {
             Map.stationMarker = L.marker([lat, lon]).addTo(Map.map);            
         },
@@ -71,10 +48,14 @@
                 Map.map.removeLayer(Map.contourJSON);
                 
             }
+
             if (Map.map.hasLayer(Map.stationMarker)) {
                 Map.map.removeLayer(Map.stationMarker);                
             }
-            
+
+            if (Map.map.hasLayer(Map.featureLayer)) {
+                Map.featureLayer.clearLayers();
+            }                     
         },
         resetView: function() { 
             Map.map.setView([41.05, -95], 4);            

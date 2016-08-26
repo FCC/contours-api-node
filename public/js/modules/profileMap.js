@@ -12,7 +12,7 @@
         },
 
         getData: function(event) {
-            var profileAPI = '/profile.json?';
+            var profileAPI = './profile.json?';
             var apiURL = [];
 
             profileAPI += $('.fields-profile').serialize();

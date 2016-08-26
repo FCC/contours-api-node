@@ -316,7 +316,7 @@
         },
 
         getData: function(event) {
-            var elevationAPI = '/elevation.json?';
+            var elevationAPI = './elevation.json?';
             var apiURL = [];
 
             elevationAPI += $('.fields-elevation').serialize();
@@ -436,7 +436,7 @@
         },
 
         getData: function(event) {
-            var haatAPI = '/haat.json?';
+            var haatAPI = './haat.json?';
             var apiURL = [];
 
             haatAPI += $('.fields-haat').serialize();
@@ -612,7 +612,7 @@
         },
 
         getData: function(event) {
-            var profileAPI = '/profile.json?';
+            var profileAPI = './profile.json?';
             var apiURL = [];
 
             profileAPI += $('.fields-profile').serialize();

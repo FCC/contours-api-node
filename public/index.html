@@ -49,10 +49,10 @@
                         <div class="container tab-pane active" id="browse-by-category">
                             <ul id="browseCategory" class="nav nav-tabs menu-secondary js-browseBy" role="navigation">
                                 <li>
-                                    <a class="active" href="/api-docs"><span class="link-title">Documentation</span></a>
+                                    <a class="active" href="./"><span class="link-title">Documentation</span></a>
                                 </li>
                                 <li>
-                                    <a href="/contour-demo"><span class="link-title">Demo</span></a>
+                                    <a href="contour-demo"><span class="link-title">Demo</span></a>
                                 </li>
                             </ul>
                             <!--.nav-tabs -->
@@ -199,7 +199,7 @@
     <script type="text/javascript">
     $(function() {
 
-        var baseULR = '/';
+        var baseULR = './';
 
         $('.swagger-ui-wrap').each(function() {
             initSwagger(baseULR + $(this).data('jsonurl'), $(this).attr('id'));
@@ -228,19 +228,6 @@
                 },
                 docExpansion: "list",
                 sorter: "alpha"
-            });
-
-            function addApiKeyAuthorization() {
-                var key = $('#input_apiKey')[0].value;
-                log("key: " + key);
-                if (key && key.trim() != "") {
-                    log("added key " + key);
-                    window.authorizations.add("api_key", new ApiKeyAuthorization("api_key", key, "query"));
-                }
-            }
-
-            $('#input_apiKey').change(function() {
-                addApiKeyAuthorization();
             });
 
             window.swaggerUi.load();

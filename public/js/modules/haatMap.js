@@ -12,7 +12,7 @@
         },
 
         getData: function(event) {
-            var haatAPI = '/haat.json?';
+            var haatAPI = './haat.json?';
             var apiURL = [];
 
             haatAPI += $('.fields-haat').serialize();

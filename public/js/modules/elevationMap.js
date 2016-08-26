@@ -12,7 +12,7 @@
         },
 
         getData: function(event) {
-            var elevationAPI = '/elevation.json?';
+            var elevationAPI = './elevation.json?';
             var apiURL = [];
 
             elevationAPI += $('.fields-elevation').serialize();

@@ -1,6 +1,7 @@
 'use strict';
 
 var request = require('supertest');
+var should = require('should');
 var server = require('../app.js');
 
 describe('TV Service', function() {
@@ -45,7 +46,7 @@ describe('TV Service', function() {
             it('should return contour data based on filenumber', function(done) {
 
                 request(server)
-                    .get('/tv/filenumber/BLCDT-20110706ABC.json')
+                    .get('/tv/filenumber/BDRTEDT-20090811ACE.json')
                     .expect('Content-Type', /json/)
                     .expect(200)
                     .end(function(err, res) {

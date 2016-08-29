@@ -37,14 +37,6 @@
         createMarker: function(data) {
             var elevMeta = '';
 
-            var contour_style = {
-                color: "#13428B",
-                fillColor: "#13428B",
-                opacity: 1.0,
-                fillOpacity: 0.3,
-                weight: 4
-            };
-
             var lat = data.features[0].geometry.coordinates[1];
             var lon = data.features[0].geometry.coordinates[0];
 
@@ -61,9 +53,7 @@
             elevMeta += '<dd>' + data.features[0].properties.dataSource + '</dd>';
             elevMeta += '</dl>';
 
-            Map.contourJSON = L.geoJson(data, {
-                    style: contour_style
-                })
+            Map.contourJSON = L.geoJson(data)
                 .addTo(Map.map)
                 .bindPopup(elevMeta)
                 .openPopup();

@@ -110,14 +110,12 @@ blockquote {
         right: 0;
         top: 0;
         -webkit-transition: all .25s ease-out;
-        -o-transition: all .25s ease-out;
         transition: all .25s ease-out;
       }
       /* line 39, ../scss/ui-components/_header.scss */
       .row-offcanvas.active-right {
         right: 80%;
         /* 6 columns */
-        -webkit-box-shadow: 0 40px 80px rgba(0, 0, 0, 0.3);
         box-shadow: 0 40px 80px rgba(0, 0, 0, 0.3);
       }
       /* line 43, ../scss/ui-components/_header.scss */
@@ -129,7 +127,6 @@ blockquote {
       /* line 50, ../scss/ui-components/_header.scss */
       .row-offcanvas .navbar-fixed-top {
         -webkit-transition: left .25s ease-out, right .25s ease-out;
-        -o-transition: left .25s ease-out, right .25s ease-out;
         transition: left .25s ease-out, right .25s ease-out;
       }
 
@@ -166,7 +163,6 @@ blockquote {
     .navbar-primary {
       height: 59px;
       background: #13428b url(../img/bg-pattern-header.png);
-      -webkit-box-shadow: inset 0px -11px 30px 0px rgba(0, 0, 0, 0.3);
       box-shadow: inset 0px -11px 30px 0px rgba(0, 0, 0, 0.3);
     }
     @media screen and (min-width: 768px) {
@@ -226,13 +222,10 @@ blockquote {
       font-size: 1em;
       display: block;
     }
-    @media (-webkit-min-device-pixel-ratio: 1.5), (min--moz-device-pixel-ratio: 1.5), (-o-min-device-pixel-ratio: 3 / 2), (min-device-pixel-ratio: 1.5), (min-resolution: 2dppx) {
+    @media (-webkit-min-device-pixel-ratio: 1.5), (min--moz-device-pixel-ratio: 1.5), (min-device-pixel-ratio: 1.5), (-webkit-min-device-pixel-ratio: 2), (min-resolution: 2dppx) {
       /* line 112, ../scss/ui-components/_header.scss */
       .navbar-logo {
         background-image: url('../img/icons-2x-s4a93a70c85.png');
-        -moz-background-size: 185px 2138px;
-        -o-background-size: 185px 2138px;
-        -webkit-background-size: 185px 2138px;
         background-size: 185px 2138px;
         background-position: 0 -830px;
         height: 30px;
@@ -259,7 +252,6 @@ blockquote {
         margin: 0;
         padding: 0 15px;
         background: #13428b url(../img/bg-pattern-header.png);
-        -webkit-box-shadow: inset 10px -40px 80px rgba(0, 0, 0, 0.3);
         box-shadow: inset 10px -40px 80px rgba(0, 0, 0, 0.3);
       }
     }
@@ -471,13 +463,10 @@ blockquote {
       font-size: 1em;
       display: none;
     }
-    @media (-webkit-min-device-pixel-ratio: 1.5), (min--moz-device-pixel-ratio: 1.5), (-o-min-device-pixel-ratio: 3 / 2), (min-device-pixel-ratio: 1.5), (min-resolution: 2dppx) {
+    @media (-webkit-min-device-pixel-ratio: 1.5), (min--moz-device-pixel-ratio: 1.5), (min-device-pixel-ratio: 1.5), (-webkit-min-device-pixel-ratio: 2), (min-resolution: 2dppx) {
       /* line 274, ../scss/ui-components/_header.scss */
       #search-form-header .btn-search-alt-inner {
         background-image: url('../img/icons-2x-s4a93a70c85.png');
-        -moz-background-size: 185px 2138px;
-        -o-background-size: 185px 2138px;
-        -webkit-background-size: 185px 2138px;
         background-size: 185px 2138px;
         background-position: 0 -206px;
         height: 24px;
@@ -537,13 +526,10 @@ blockquote {
       width: 24px;
       font-size: 1em;
     }
-    @media (-webkit-min-device-pixel-ratio: 1.5), (min--moz-device-pixel-ratio: 1.5), (-o-min-device-pixel-ratio: 3 / 2), (min-device-pixel-ratio: 1.5), (min-resolution: 2dppx) {
+    @media (-webkit-min-device-pixel-ratio: 1.5), (min--moz-device-pixel-ratio: 1.5), (min-device-pixel-ratio: 1.5), (-webkit-min-device-pixel-ratio: 2), (min-resolution: 2dppx) {
       /* line 313, ../scss/ui-components/_header.scss */
       .navbar-btn .btn-inner-search {
         background-image: url('../img/icons-2x-s4a93a70c85.png');
-        -moz-background-size: 185px 2138px;
-        -o-background-size: 185px 2138px;
-        -webkit-background-size: 185px 2138px;
         background-size: 185px 2138px;
         background-position: 0 -1632px;
         height: 25px;
@@ -562,13 +548,10 @@ blockquote {
       width: 24px;
       font-size: 1em;
     }
-    @media (-webkit-min-device-pixel-ratio: 1.5), (min--moz-device-pixel-ratio: 1.5), (-o-min-device-pixel-ratio: 3 / 2), (min-device-pixel-ratio: 1.5), (min-resolution: 2dppx) {
+    @media (-webkit-min-device-pixel-ratio: 1.5), (min--moz-device-pixel-ratio: 1.5), (min-device-pixel-ratio: 1.5), (-webkit-min-device-pixel-ratio: 2), (min-resolution: 2dppx) {
       /* line 315, ../scss/ui-components/_header.scss */
       .active-top .navbar-btn .btn-inner-search {
         background-image: url('../img/icons-2x-s4a93a70c85.png');
-        -moz-background-size: 185px 2138px;
-        -o-background-size: 185px 2138px;
-        -webkit-background-size: 185px 2138px;
         background-size: 185px 2138px;
         background-position: 0 -1677px;
         height: 25px;
@@ -587,13 +570,10 @@ blockquote {
       width: 27px;
       font-size: 1em;
     }
-    @media (-webkit-min-device-pixel-ratio: 1.5), (min--moz-device-pixel-ratio: 1.5), (-o-min-device-pixel-ratio: 3 / 2), (min-device-pixel-ratio: 1.5), (min-resolution: 2dppx) {
+    @media (-webkit-min-device-pixel-ratio: 1.5), (min--moz-device-pixel-ratio: 1.5), (min-device-pixel-ratio: 1.5), (-webkit-min-device-pixel-ratio: 2), (min-resolution: 2dppx) {
       /* line 319, ../scss/ui-components/_header.scss */
       .navbar-btn .btn-inner-menu {
         background-image: url('../img/icons-2x-s4a93a70c85.png');
-        -moz-background-size: 185px 2138px;
-        -o-background-size: 185px 2138px;
-        -webkit-background-size: 185px 2138px;
         background-size: 185px 2138px;
         background-position: 0 -1156px;
         height: 23px;
@@ -645,7 +625,8 @@ blockquote {
       border-radius: 3px 0 0 3px;
       box-shadow: none;
       -webkit-box-shadow: none;
-      transition: none;
+      -webkit-transition: none;
+              transition: none;
       -webkit-transitiion: none;
     }
     @media screen and (max-width: 767px) {
@@ -682,13 +663,10 @@ blockquote {
       width: 20px;
       font-size: 1em;
     }
-    @media (-webkit-min-device-pixel-ratio: 1.5), (min--moz-device-pixel-ratio: 1.5), (-o-min-device-pixel-ratio: 3 / 2), (min-device-pixel-ratio: 1.5), (min-resolution: 2dppx) {
+    @media (-webkit-min-device-pixel-ratio: 1.5), (min--moz-device-pixel-ratio: 1.5), (min-device-pixel-ratio: 1.5), (-webkit-min-device-pixel-ratio: 2), (min-resolution: 2dppx) {
       /* line 115, ../scss/ui-components/_forms.scss */
       .form-search .btn-search-inner {
         background-image: url('../img/icons-2x-s4a93a70c85.png');
-        -moz-background-size: 185px 2138px;
-        -o-background-size: 185px 2138px;
-        -webkit-background-size: 185px 2138px;
         background-size: 185px 2138px;
         background-position: 0 -1553px;
         height: 20px;
@@ -872,13 +850,10 @@ blockquote {
         font-size: 1em;
       }
     }
-    @media screen and (max-width: 991px) and (-webkit-min-device-pixel-ratio: 1.5), screen and (max-width: 991px) and (min--moz-device-pixel-ratio: 1.5), screen and (max-width: 991px) and (-o-min-device-pixel-ratio: 3 / 2), screen and (max-width: 991px) and (min-device-pixel-ratio: 1.5), screen and (max-width: 991px) and (min-resolution: 2dppx) {
+    @media screen and (max-width: 991px) and (-webkit-min-device-pixel-ratio: 1.5), screen and (max-width: 991px) and (min--moz-device-pixel-ratio: 1.5), screen and (max-width: 991px) and (min-device-pixel-ratio: 1.5), screen and (max-width: 991px) and (-webkit-min-device-pixel-ratio: 2), screen and (max-width: 991px) and (min-resolution: 2dppx) {
       /* line 457, ../scss/ui-components/_header.scss */
       .menu-secondary > li > a:before {
         background-image: url('../img/icons-2x-s4a93a70c85.png');
-        -moz-background-size: 185px 2138px;
-        -o-background-size: 185px 2138px;
-        -webkit-background-size: 185px 2138px;
         background-size: 185px 2138px;
         background-position: 0 -362px;
         height: 22px;
@@ -900,13 +875,10 @@ blockquote {
         font-size: 1em;
       }
     }
-    @media screen and (max-width: 767px) and (-webkit-min-device-pixel-ratio: 1.5), screen and (max-width: 767px) and (min--moz-device-pixel-ratio: 1.5), screen and (max-width: 767px) and (-o-min-device-pixel-ratio: 3 / 2), screen and (max-width: 767px) and (min-device-pixel-ratio: 1.5), screen and (max-width: 767px) and (min-resolution: 2dppx) {
+    @media screen and (max-width: 767px) and (-webkit-min-device-pixel-ratio: 1.5), screen and (max-width: 767px) and (min--moz-device-pixel-ratio: 1.5), screen and (max-width: 767px) and (min-device-pixel-ratio: 1.5), screen and (max-width: 767px) and (-webkit-min-device-pixel-ratio: 2), screen and (max-width: 767px) and (min-resolution: 2dppx) {
       /* line 457, ../scss/ui-components/_header.scss */
       .menu-secondary > li > a:before {
         background-image: url('../img/icons-2x-s4a93a70c85.png');
-        -moz-background-size: 185px 2138px;
-        -o-background-size: 185px 2138px;
-        -webkit-background-size: 185px 2138px;
         background-size: 185px 2138px;
         background-position: 0 -404px;
         height: 11px;
@@ -944,7 +916,6 @@ blockquote {
       /* line 480, ../scss/ui-components/_header.scss */
       .menu-secondary > li.open > a {
         color: #2c75d6;
-        -webkit-box-shadow: inset 40px 0 80px -40px rgba(0, 0, 0, 0.3);
         box-shadow: inset 40px 0 80px -40px rgba(0, 0, 0, 0.3);
       }
     }
@@ -969,13 +940,10 @@ blockquote {
         margin: 1px 0 0 -42px;
       }
     }
-    @media screen and (max-width: 991px) and (-webkit-min-device-pixel-ratio: 1.5), screen and (max-width: 991px) and (min--moz-device-pixel-ratio: 1.5), screen and (max-width: 991px) and (-o-min-device-pixel-ratio: 3 / 2), screen and (max-width: 991px) and (min-device-pixel-ratio: 1.5), screen and (max-width: 991px) and (min-resolution: 2dppx) {
+    @media screen and (max-width: 991px) and (-webkit-min-device-pixel-ratio: 1.5), screen and (max-width: 991px) and (min--moz-device-pixel-ratio: 1.5), screen and (max-width: 991px) and (min-device-pixel-ratio: 1.5), screen and (max-width: 991px) and (-webkit-min-device-pixel-ratio: 2), screen and (max-width: 991px) and (min-resolution: 2dppx) {
       /* line 500, ../scss/ui-components/_header.scss */
       .menu-secondary > li.open > a:before {
         background-image: url('../img/icons-2x-s4a93a70c85.png');
-        -moz-background-size: 185px 2138px;
-        -o-background-size: 185px 2138px;
-        -webkit-background-size: 185px 2138px;
         background-size: 185px 2138px;
         background-position: 0 0;
         height: 22px;
@@ -998,13 +966,10 @@ blockquote {
         margin: 1px 0 0 -21px;
       }
     }
-    @media screen and (max-width: 767px) and (-webkit-min-device-pixel-ratio: 1.5), screen and (max-width: 767px) and (min--moz-device-pixel-ratio: 1.5), screen and (max-width: 767px) and (-o-min-device-pixel-ratio: 3 / 2), screen and (max-width: 767px) and (min-device-pixel-ratio: 1.5), screen and (max-width: 767px) and (min-resolution: 2dppx) {
+    @media screen and (max-width: 767px) and (-webkit-min-device-pixel-ratio: 1.5), screen and (max-width: 767px) and (min--moz-device-pixel-ratio: 1.5), screen and (max-width: 767px) and (min-device-pixel-ratio: 1.5), screen and (max-width: 767px) and (-webkit-min-device-pixel-ratio: 2), screen and (max-width: 767px) and (min-resolution: 2dppx) {
       /* line 500, ../scss/ui-components/_header.scss */
       .menu-secondary > li.open > a:before {
         background-image: url('../img/icons-2x-s4a93a70c85.png');
-        -moz-background-size: 185px 2138px;
-        -o-background-size: 185px 2138px;
-        -webkit-background-size: 185px 2138px;
         background-size: 185px 2138px;
         background-position: 0 -42px;
         height: 11px;
@@ -1031,7 +996,6 @@ blockquote {
     @media screen and (max-width: 991px) {
       /* line 524, ../scss/ui-components/_header.scss */
       .menu-secondary > li.open .dropdown-menu {
-        -webkit-box-shadow: inset 40px 0 80px -40px rgba(0, 0, 0, 0.3);
         box-shadow: inset 40px 0 80px -40px rgba(0, 0, 0, 0.3);
       }
     }
@@ -1081,7 +1045,6 @@ blockquote {
       width: 100%;
       border-radius: 0;
       border: 0;
-      -webkit-box-shadow: 0 6px 12px -6px rgba(0, 0, 0, 0.175);
       box-shadow: 0 6px 12px -6px rgba(0, 0, 0, 0.175);
     }
     @media screen and (min-width: 992px) {
@@ -1362,8 +1325,6 @@ blockquote {
       #menu-secondary .tab-pane {
         opacity: 0;
         -webkit-transition: opacity .5s ease, -webkit-transform .25s ease;
-        -moz-transition: opacity .5s ease, -moz-transform .25s ease;
-        -o-transition: opacity .5s ease, -o-transform .25s ease;
         transition: opacity .5s ease, transform .25s ease;
         display: block !important;
         position: fixed;
@@ -1540,13 +1501,10 @@ blockquote {
       width: 17px;
       height: 17px;
     }
-    @media (-webkit-min-device-pixel-ratio: 1.5), (min--moz-device-pixel-ratio: 1.5), (-o-min-device-pixel-ratio: 3 / 2), (min-device-pixel-ratio: 1.5), (min-resolution: 2dppx) {
+    @media (-webkit-min-device-pixel-ratio: 1.5), (min--moz-device-pixel-ratio: 1.5), (min-device-pixel-ratio: 1.5), (-webkit-min-device-pixel-ratio: 2), (min-resolution: 2dppx) {
       /* line 81, ../scss/ui-components/_footer.scss */
       .page-footer .contact-phone .phone-link:after {
         background-image: url('../img/icons-2x-s4a93a70c85.png');
-        -moz-background-size: 185px 2138px;
-        -o-background-size: 185px 2138px;
-        -webkit-background-size: 185px 2138px;
         background-size: 185px 2138px;
         background-position: 0 -284px;
         height: 15px;
@@ -1592,13 +1550,10 @@ blockquote {
       width: 51px;
       font-size: 1em;
     }
-    @media (-webkit-min-device-pixel-ratio: 1.5), (min--moz-device-pixel-ratio: 1.5), (-o-min-device-pixel-ratio: 3 / 2), (min-device-pixel-ratio: 1.5), (min-resolution: 2dppx) {
+    @media (-webkit-min-device-pixel-ratio: 1.5), (min--moz-device-pixel-ratio: 1.5), (min-device-pixel-ratio: 1.5), (-webkit-min-device-pixel-ratio: 2), (min-resolution: 2dppx) {
       /* line 113, ../scss/ui-components/_footer.scss */
       .page-footer .social-media-links .twitter {
         background-image: url('../img/icons-2x-s4a93a70c85.png');
-        -moz-background-size: 185px 2138px;
-        -o-background-size: 185px 2138px;
-        -webkit-background-size: 185px 2138px;
         background-size: 185px 2138px;
         background-position: 0 -1935px;
         height: 52px;
@@ -1617,13 +1572,10 @@ blockquote {
       width: 51px;
       font-size: 1em;
     }
-    @media (-webkit-min-device-pixel-ratio: 1.5), (min--moz-device-pixel-ratio: 1.5), (-o-min-device-pixel-ratio: 3 / 2), (min-device-pixel-ratio: 1.5), (min-resolution: 2dppx) {
+    @media (-webkit-min-device-pixel-ratio: 1.5), (min--moz-device-pixel-ratio: 1.5), (min-device-pixel-ratio: 1.5), (-webkit-min-device-pixel-ratio: 2), (min-resolution: 2dppx) {
       /* line 116, ../scss/ui-components/_footer.scss */
       .page-footer .social-media-links .facebook {
         background-image: url('../img/icons-2x-s4a93a70c85.png');
-        -moz-background-size: 185px 2138px;
-        -o-background-size: 185px 2138px;
-        -webkit-background-size: 185px 2138px;
         background-size: 185px 2138px;
         background-position: 0 -758px;
         height: 52px;
@@ -1642,13 +1594,10 @@ blockquote {
       width: 51px;
       font-size: 1em;
     }
-    @media (-webkit-min-device-pixel-ratio: 1.5), (min--moz-device-pixel-ratio: 1.5), (-o-min-device-pixel-ratio: 3 / 2), (min-device-pixel-ratio: 1.5), (min-resolution: 2dppx) {
+    @media (-webkit-min-device-pixel-ratio: 1.5), (min--moz-device-pixel-ratio: 1.5), (min-device-pixel-ratio: 1.5), (-webkit-min-device-pixel-ratio: 2), (min-resolution: 2dppx) {
       /* line 119, ../scss/ui-components/_footer.scss */
       .page-footer .social-media-links .youtube {
         background-image: url('../img/icons-2x-s4a93a70c85.png');
-        -moz-background-size: 185px 2138px;
-        -o-background-size: 185px 2138px;
-        -webkit-background-size: 185px 2138px;
         background-size: 185px 2138px;
         background-position: 0 -2086px;
         height: 52px;
@@ -1667,13 +1616,10 @@ blockquote {
       width: 51px;
       font-size: 1em;
     }
-    @media (-webkit-min-device-pixel-ratio: 1.5), (min--moz-device-pixel-ratio: 1.5), (-o-min-device-pixel-ratio: 3 / 2), (min-device-pixel-ratio: 1.5), (min-resolution: 2dppx) {
+    @media (-webkit-min-device-pixel-ratio: 1.5), (min--moz-device-pixel-ratio: 1.5), (min-device-pixel-ratio: 1.5), (-webkit-min-device-pixel-ratio: 2), (min-resolution: 2dppx) {
       /* line 122, ../scss/ui-components/_footer.scss */
       .page-footer .social-media-links .flickr {
         background-image: url('../img/icons-2x-s4a93a70c85.png');
-        -moz-background-size: 185px 2138px;
-        -o-background-size: 185px 2138px;
-        -webkit-background-size: 185px 2138px;
         background-size: 185px 2138px;
         background-position: 0 -1084px;
         height: 52px;
@@ -1694,13 +1640,10 @@ blockquote {
       display: inline-block;
       margin-top: 25px;
     }
-    @media (-webkit-min-device-pixel-ratio: 1.5), (min--moz-device-pixel-ratio: 1.5), (-o-min-device-pixel-ratio: 3 / 2), (min-device-pixel-ratio: 1.5), (min-resolution: 2dppx) {
+    @media (-webkit-min-device-pixel-ratio: 1.5), (min--moz-device-pixel-ratio: 1.5), (min-device-pixel-ratio: 1.5), (-webkit-min-device-pixel-ratio: 2), (min-resolution: 2dppx) {
       /* line 126, ../scss/ui-components/_footer.scss */
       .page-footer .fcc-seal {
         background-image: url('../img/icons-2x-s4a93a70c85.png');
-        -moz-background-size: 185px 2138px;
-        -o-background-size: 185px 2138px;
-        -webkit-background-size: 185px 2138px;
         background-size: 185px 2138px;
         background-position: 0 -880px;
         height: 185px;

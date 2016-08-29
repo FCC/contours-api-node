@@ -8,53 +8,7 @@
     <title>Contour Demo - FCC Contour API</title>
     <link href="https://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,700italic,400,300,700|Lato:500" rel="stylesheet" type="text/css">
     <link href="https://api.tiles.mapbox.com/mapbox.js/v2.2.1/mapbox.css" rel="stylesheet">
-    <link href="css/gisp-theme.min.css" rel="stylesheet">
-    <!-- <link href="css/app-theme.css" rel="stylesheet"> -->
-    <style>
-    #map {
-        height: 800px;
-        width: 100%;
-    }
-    
-    label[required]::after {
-        position: relative;
-        content: "*";
-        left: 4px;
-        font-size: 13px;
-    }
-    
-    fieldset {
-        margin-bottom: 15px;
-    }
-    
-    legend {
-        font-size: 16px;
-    }
-    
-    .dl-horizontal {
-        margin-bottom: 0;
-    }
-    
-    .leaflet-popup-content .dl-horizontal dt {
-        width: auto;
-    }
-    
-    .dl-contour dd {
-        margin-left: 85px;
-    }
-    
-    .dl-elevation dd {
-        margin-left: 80px;
-    }
-    
-    .dl-haat dd {
-        margin-left: 95px;
-    }
-
-    .dl-profile dd {
-        margin-left: 120px;
-    }
-    </style>
+    <link href="css/gisp-theme.min.css" rel="stylesheet">    
 </head>
 
 <body>
@@ -113,7 +67,7 @@
                     <br>
                     <br>
                     <div class="alert alert-danger" style="display: none;">
-                        <p>Unable to retrieve data based on the provided parameter values. Please revise the parameters and try again.</p>
+                        <p><span class="icon icon-remove "></span> Unable to retrieve data based on the provided parameter values. Please revise the parameters and try again.</p>
                     </div>
                 </div>
             </div>
@@ -326,7 +280,7 @@
     <script src="https://api.tiles.mapbox.com/mapbox.js/v2.2.1/mapbox.js"></script>
     <script src="//api.tiles.mapbox.com/mapbox.js/plugins/leaflet-pip/v0.1.0/leaflet-pip.min.js"></script>
     <script src="js/vendor/handlebars.min.js"></script>
-    <script src="js/vendor/bootstrap.min.js"></script>
+    <!-- <script src="js/vendor/bootstrap.min.js"></script> -->
     <script src="js/app.js"></script>
 </body>
 

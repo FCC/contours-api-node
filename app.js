@@ -78,6 +78,15 @@ app.use(bodyparser.urlencoded({ extended: false }));
 app.use('/', express.static(__dirname + '/public'));
 app.use('/contour-demo', express.static(__dirname + '/public/contour-demo.html'));
 
+app.use('/api/contours', function(req, res, next) {
+    if (NODE_ENV === 'LOCAL' || NODE_ENV === 'DEV') {
+        var redURL = req.originalUrl.split('api/contours')[1];
+        res.redirect(301, redURL);
+    }
+
+    next();
+});
+
 app.param('uuid', function(req, res, next, uuid){
     // check format of uuid
     if(!serverCheck.checkUUID(uuid)){

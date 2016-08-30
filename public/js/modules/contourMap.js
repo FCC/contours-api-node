@@ -76,9 +76,15 @@
                 contourMeta = '';
                 contourMeta += '<dl class="dl-contour dl-horizontal">';
                 contourMeta += '<dt>Call Sign:</dt>';
-                contourMeta += '<dd>' + data.features[i].properties.callsign + '</dd>';                
+                contourMeta += '<dd>' + data.features[i].properties.callsign + '</dd>';   
+                
+                if (data.features[i].properties.service !== undefined) {
+                    contourMeta += '<dt>Service:</dt>';
+                    contourMeta += '<dd>' + data.features[i].properties.service + '</dd>';
+                }                
+                
                 contourMeta += '<dt>Facility ID:</dt>';
-                contourMeta += '<dd>' + data.features[i].properties.facility_id + '</dd>';
+                contourMeta += '<dd>' + data.features[i].properties.facility_id + '</dd>';                
                 contourMeta += '<dt>File Number:</dt>';
                 contourMeta += '<dd>' + data.features[i].properties.filenumber + '</dd>';
                 contourMeta += '<dt>Latitude:</dt>';

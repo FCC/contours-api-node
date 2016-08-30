@@ -12,7 +12,12 @@
    ```
    npm test
    ```
-
+   
+4. Build the docs (HTML, LESS/CSS, JS).  
+   ```
+   grunt
+   ```
+   
 4. Run the app.  
    ```
    npm start

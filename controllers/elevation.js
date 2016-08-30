@@ -16,12 +16,13 @@ var geo_space = configEnv[NODE_ENV].GEO_SPACE;
 var AWS = require('aws-sdk');
 var AWS_ACCESS_KEY =  configEnv[NODE_ENV].AWS_ACCESS_KEY;
 var AWS_SECRET_KEY = configEnv[NODE_ENV].AWS_SECRET_KEY;
+var AWS_REGION = configEnv[NODE_ENV].AWS_REGION;
 
- AWS.config.update({
+AWS.config.update({
      accessKeyId: AWS_ACCESS_KEY,
-     secretAccessKey: AWS_SECRET_KEY
+     secretAccessKey: AWS_SECRET_KEY,
+     region: AWS_REGION,
     });
-    AWS.config.update({endpoint: 's3-us-west-2.amazonaws.com'});
 var S3_BUCKET = configEnv[NODE_ENV].S3_BUCKET;
 var S3_NED_LOCATION;
 var S3_ELEV_LOCATION = configEnv[NODE_ENV].S3_ELEV_LOCATION;
@@ -47,7 +48,8 @@ else {
 
 
 function getElevation(req, res) {
-	console.log('--- beginning elevation ---');
+	var now_dt = new Date();
+	console.log('--- beginning elevation ---' + now_dt.toUTCString());
 
 	var lat;
 	var lon;
@@ -314,13 +316,16 @@ function getElevation(req, res) {
 				console.log('file exist in file system');
 				fs.open(filepath, 'r', function(err, fd) {
 					if(err) {
-						throw console.error(err);
+						console.error('elevation file err='+err);
+						throw err;
 					}	
 
 					var buffer = new Buffer(length);
 
 					fs.read(fd, buffer, 0, length, position, function(err, bytesRead) {
 						if(err) {
+
+							console.error('elevation file err='+err);
 
 			            	o_statusMessage = 'unable to process elevation data';
 			            	
@@ -382,6 +387,8 @@ function getElevation(req, res) {
 			        s3.getObject(params, function(err, data) {
 			            if (err) {
 
+			            	console.error('s3 err='+err);
+			            	
 			            	o_statusMessage = 'elevation data not found';
 			            	
 			            	var ret = [{ 
@@ -423,6 +430,7 @@ function getElevation(req, res) {
 
 							fs.open(filepath, 'r', function(err, fd) {
 								if(err) {
+									console.error('s3 file read err='+err);
 									throw err;
 								}	
 
@@ -430,6 +438,8 @@ function getElevation(req, res) {
 
 								fs.read(fd, buffer, 0, length, position, function(err, bytesRead) {
 									if(err) {
+										console.error('s3 file read err='+err);
+
 										o_statusMessage = 'unable to process elevation data';
 			            	
 						            	var ret = [{ 
@@ -488,7 +498,7 @@ function getElevation(req, res) {
 		
 	}
 	catch(err) {
-		console.error(err);
+		console.error('elevation err='+err);
 		o_statusMessage = 'error while processing elevation data';
 			            	
     	var ret = [{ 

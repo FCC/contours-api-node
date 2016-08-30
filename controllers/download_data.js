@@ -14,6 +14,7 @@ var data_dir = configEnv[NODE_ENV].DATA_DIR;
 var bucket = configEnv[NODE_ENV].BUCKET_NAME;
 var access_key = configEnv[NODE_ENV].ACCESS_KEY;
 var secret_key = configEnv[NODE_ENV].SECRET_KEY;
+var AWS_REGION = configEnv[NODE_ENV].AWS_REGION;
 
 var request = require('request');
 var fs = require('fs');
@@ -22,7 +23,7 @@ var AWS = require('aws-sdk');
 AWS.config.update({
 	accessKeyId: access_key,
 	secretAccessKey: secret_key,
-	region: 'us-west-2',
+	region: AWS_REGION,
 	apiVersions: {
 		s3: '2006-03-01',
 		// other service API versions

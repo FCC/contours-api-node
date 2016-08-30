@@ -13,6 +13,7 @@ var geo_host =  configEnv[NODE_ENV].GEO_HOST;
 var geo_space = configEnv[NODE_ENV].GEO_SPACE;
 var AWS_ACCESS_KEY =  configEnv[NODE_ENV].AWS_ACCESS_KEY;
 var AWS_SECRET_KEY = configEnv[NODE_ENV].AWS_SECRET_KEY;
+var AWS_REGION = configEnv[NODE_ENV].AWS_REGION;
 var S3_BUCKET = configEnv[NODE_ENV].S3_BUCKET;
 var S3_NED_LOCATION;
 var S3_ELEV_LOCATION = configEnv[NODE_ENV].S3_ELEV_LOCATION;
@@ -24,7 +25,7 @@ var AWS = require('aws-sdk');
 AWS.config.update({
         accessKeyId: AWS_ACCESS_KEY,
         secretAccessKey: AWS_SECRET_KEY,
-        region: 'us-west-2',
+        region: AWS_REGION,
         apiVersions: {
                 s3: '2006-03-01',
                 // other service API versions

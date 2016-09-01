@@ -1,0 +1,20 @@
+{
+"files": [
+{"filename": "a10g", "ullat": 90, "ullon": -180, "lrlat": 50, "lrlon": -90},
+{"filename": "b10g", "ullat": 90, "ullon": -90, "lrlat": 50, "lrlon": 0},
+{"filename": "c10g", "ullat": 90, "ullon": 0, "lrlat": 50, "lrlon": 90},
+{"filename": "d10g", "ullat": 90, "ullon": 90, "lrlat": 50, "lrlon": 180},
+{"filename": "e10g", "ullat": 50, "ullon": -180, "lrlat": 0, "lrlon": -90},
+{"filename": "f10g", "ullat": 50, "ullon": -90, "lrlat": 0, "lrlon": 0},
+{"filename": "g10g", "ullat": 50, "ullon": 0, "lrlat": 0, "lrlon": 90},
+{"filename": "h10g", "ullat": 50, "ullon": 90, "lrlat": 0, "lrlon": 180},
+{"filename": "i10g", "ullat": 0, "ullon": -180, "lrlat": -50, "lrlon": -90},
+{"filename": "j10g", "ullat": 0, "ullon": -90, "lrlat": -50, "lrlon": 0},
+{"filename": "k10g", "ullat": 0, "ullon": 0, "lrlat": -50, "lrlon": 90},
+{"filename": "l10g", "ullat": 0, "ullon": 90, "lrlat": -50, "lrlon": 180},
+{"filename": "m10g", "ullat": -50, "ullon": -180, "lrlat": -90, "lrlon": -90},
+{"filename": "n10g", "ullat": -50, "ullon": -90, "lrlat": -90, "lrlon": 0},
+{"filename": "o10g", "ullat": -50, "ullon": 0, "lrlat": -90, "lrlon": 90},
+{"filename": "p10g", "ullat": -50, "ullon": 90, "lrlat": -90, "lrlon": 180}
+]
+}

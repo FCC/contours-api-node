@@ -684,7 +684,10 @@ function useGlobeData(res, filenames_globe) {
 			output_haat['elapsed_time'] = elapsed_time + ' ms';
 		}
 		
+		console.log(output_haat);
+		
 		res.send(output_haat);
+		console.log('done');
 			
 		});
 			

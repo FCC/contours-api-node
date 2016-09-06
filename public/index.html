@@ -7,7 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>FCC Contour API</title>
     <link href="https://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,700italic,400,300,700|Lato:500" rel="stylesheet" type="text/css">
-    <!--#include file="inc/swagger-css.shtm" -->
+    
     <link href='js/vendor/swagger/css/typography.css' media='screen' rel='stylesheet' type='text/css' />
     <link href='js/vendor/swagger/css/reset.css' media='screen' rel='stylesheet' type='text/css' />
     <link href='js/vendor/swagger/css/screen.css' media='screen' rel='stylesheet' type='text/css' />
@@ -218,9 +218,9 @@
                 dom_id: container,
                 supportedSubmitMethods: ['get', 'post', 'put', 'delete'],
                 onComplete: function(swaggerApi, swaggerUi) {
-                    if (typeof initOAuth == "function") {}
+                    
                     $('pre code').each(function(i, e) {
-                        hljs.highlightBlock(e)
+                        hljs.highlightBlock(e);
                     });
                 },
                 onFailure: function(data) {

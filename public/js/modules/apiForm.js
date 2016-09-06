@@ -2,6 +2,7 @@
     'use strict';
 
     var Map = require('./map.js');
+    var APIResponse = require('./apiResponse.js');
 
     var APIForm = {
         bindEvents: function() {
@@ -23,14 +24,17 @@
 
             $('label[for="idValue"]').text('Facility ID');
 
-            $('#apiType').val(selectedAPI);
+            $('#apiType').val(selectedAPI);           
 
+            APIResponse.clear();
             Map.clearLayers();
             Map.resetView();
         },
         showError: function() {
             $('.alert').hide('fast');
             $('.alert').slideDown();
+
+            APIResponse.clear();
 
             Map.clearLayers();
             Map.resetView();

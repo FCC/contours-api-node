@@ -8,6 +8,7 @@
             $('#form-params').on('click.haatAPI', '[data-api="haat"]', HAATMap.getData);
         },
         getParams: function() {
+
         	// get parameters (form fields) from Swagger JSON
             $.ajax({
                 url: 'json/api-haat.json',
@@ -37,4 +38,5 @@
     };
     
     module.exports = HAATForm;
+    
 }());

@@ -3,13 +3,9 @@
 
     var APIForm = require('./apiForm.js');
     var Map = require('./map.js');
+    var APIResponse = require('./apiResponse.js');
 
-    var ContourMap = {
-        init: function() {
-            this.map = undefined;
-            this.contourJSON = undefined;
-            this.stationMarker = undefined;
-        },
+    var ContourMap = {        
         getContour: function() {
             var contourAPI = '';
             var apiURL = [];
@@ -27,6 +23,8 @@
                 contourAPI += amParams;
             }
 
+            Map.url = contourAPI;
+
             $.ajax({
                 url: contourAPI,
                 async: true,
@@ -36,6 +34,7 @@
                     if (data.features.length > 0) {
                         $('.alert').hide('fast');
                         ContourMap.createContour(data);
+                        APIResponse.display(data);
                     } else {
                         APIForm.showError();
                     }
@@ -57,46 +56,46 @@
             var station_lon = p.station_lon;
 
             Map.clearLayers();
-            
+
             Map.contourJSON = L.geoJson(data, {
                 style: contour_style
             }).addTo(Map.map);
-            
+
             Map.map.fitBounds(Map.contourJSON.getBounds());
             ContourMap.createMarker(data);
 
         },
         createMarker: function(data) {
-            var contourMeta = '';          
+            var contourMeta = '';
 
             Map.featureLayer = L.mapbox.featureLayer().addTo(Map.map);
             Map.featureLayer.clearLayers();
 
-            for (var i = 0; i < data.features.length; i++) {                
+            for (var i = 0; i < data.features.length; i++) {
                 contourMeta = '';
                 contourMeta += '<dl class="dl-contour dl-horizontal">';
                 contourMeta += '<dt>Call Sign:</dt>';
-                contourMeta += '<dd>' + data.features[i].properties.callsign + '</dd>';   
-                
+                contourMeta += '<dd>' + data.features[i].properties.callsign + '</dd>';
+
                 if (data.features[i].properties.service !== undefined) {
                     contourMeta += '<dt>Service:</dt>';
                     contourMeta += '<dd>' + data.features[i].properties.service + '</dd>';
-                }                
-                
+                }
+
                 contourMeta += '<dt>Facility ID:</dt>';
-                contourMeta += '<dd>' + data.features[i].properties.facility_id + '</dd>';                
+                contourMeta += '<dd>' + data.features[i].properties.facility_id + '</dd>';
                 contourMeta += '<dt>File Number:</dt>';
                 contourMeta += '<dd>' + data.features[i].properties.filenumber + '</dd>';
                 contourMeta += '<dt>Latitude:</dt>';
                 contourMeta += '<dd>' + data.features[i].properties.station_lat + '</dd>';
                 contourMeta += '<dt>Longitude:</dt>';
-                contourMeta += '<dd>' + data.features[i].properties.station_lon + '</dd>';                
+                contourMeta += '<dd>' + data.features[i].properties.station_lon + '</dd>';
                 contourMeta += '</dl>';
-                
+
                 Map.stationMarker = L.marker([data.features[i].properties.station_lat, data.features[i].properties.station_lon])
-                .addTo(Map.featureLayer)
-                .bindPopup(contourMeta);
-            }            
+                    .addTo(Map.featureLayer)
+                    .bindPopup(contourMeta);
+            }
         }
     };
 

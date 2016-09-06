@@ -2,65 +2,47 @@
     'use strict';
 
     var APIForm = require('./apiForm.js');
+    var APIMap = require('./apiMap.js');
     var Map = require('./map.js');
+    var APIResponse = require('./apiResponse.js');
 
     var ElevationMap = {
-        init: function() {
-            this.map = undefined;
-            this.contourJSON = undefined;
-            this.stationMarker = undefined;
-        },
 
-        getData: function(event) {
+        getData: function() {
             var elevationAPI = './elevation.json?';
-            var apiURL = [];
+
+            var apiSuccess = function(data) {
+                if (data.features[0].properties.status === 'success') {
+                    $('.alert').hide('fast');
+                    APIMap.createMarker(data);
+                    APIResponse.display(data);
+                } else {
+                    APIForm.showError();
+                }
+            };
 
             elevationAPI += $('.fields-elevation').serialize();
 
-            $.ajax({
-                url: elevationAPI,
-                async: true,
-                type: "GET",
-                dataType: "json",
-                success: function(data) {
-                    if (data.features[0].properties.status === 'success') {
-                        $('.alert').hide('fast');
-                        ElevationMap.createMarker(data);
-                    } else {
-                        APIForm.showError();
-                    }
-                },
-                error: APIForm.showError
-            });
+            APIMap.getTooltipMeta = ElevationMap.getTooltipMeta;
+
+            APIMap.getData(elevationAPI, apiSuccess);
         },
-
-        createMarker: function(data) {
-            var elevMeta = '';
-
-            var lat = data.features[0].geometry.coordinates[1];
-            var lon = data.features[0].geometry.coordinates[0];
-
-            Map.clearLayers();
-
-            elevMeta += '<dl class="dl-elevation dl-horizontal">';
+        getTooltipMeta: function(data) {
+            var elevMeta = '<dl class="dl-elevation dl-horizontal">';
             elevMeta += '<dt>Elevation:</dt>';
             elevMeta += '<dd>' + data.features[0].properties.elevation + ' ' + data.features[0].properties.unit + '</dd>';
             elevMeta += '<dt>Latitude:</dt>';
-            elevMeta += '<dd>' + lat + '</dd>';
+            elevMeta += '<dd>' + data.features[0].geometry.coordinates[1] + '</dd>';
             elevMeta += '<dt>Longitude:</dt>';
-            elevMeta += '<dd>' + lon + '</dd>';
+            elevMeta += '<dd>' + data.features[0].geometry.coordinates[0] + '</dd>';
             elevMeta += '<dt>Data Source:</dt>';
             elevMeta += '<dd>' + data.features[0].properties.dataSource + '</dd>';
             elevMeta += '</dl>';
 
-            Map.contourJSON = L.geoJson(data)
-                .addTo(Map.map)
-                .bindPopup(elevMeta)
-                .openPopup();
-
-            Map.map.setView([lat, lon], 7);
+            return elevMeta;
         }
     };
 
     module.exports = ElevationMap;
+
 }());

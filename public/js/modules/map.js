@@ -1,7 +1,7 @@
 (function() {
     'use strict';
 
-   var Map = {
+    var Map = {
         init: function() {
             this.map = undefined;
             this.contourJSON = undefined;
@@ -37,31 +37,29 @@
                 position: 'topleft'
             }).addTo(Map.map);
         },
-        
         createMarker: function(lat, lon) {
-            Map.stationMarker = L.marker([lat, lon]).addTo(Map.map);            
+            Map.stationMarker = L.marker([lat, lon]).addTo(Map.map);
         },
-
-        clearLayers: function() {           
+        clearLayers: function() {
 
             if (Map.map.hasLayer(Map.contourJSON)) {
                 Map.map.removeLayer(Map.contourJSON);
-                
+
             }
 
             if (Map.map.hasLayer(Map.stationMarker)) {
-                Map.map.removeLayer(Map.stationMarker);                
+                Map.map.removeLayer(Map.stationMarker);
             }
 
             if (Map.map.hasLayer(Map.featureLayer)) {
                 Map.featureLayer.clearLayers();
-            }                     
+            }
         },
-        resetView: function() { 
-            Map.map.setView([41.05, -95], 4);            
+        resetView: function() {
+            Map.map.setView([41.05, -95], 4);
         }
     };
 
-     module.exports =  Map;
+    module.exports = Map;
 
 }());

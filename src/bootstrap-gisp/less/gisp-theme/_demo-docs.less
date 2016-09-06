@@ -1,6 +1,28 @@
-#map {
-    height: 800px;
-    width: 100%;
+@mapHeight: 600px;
+
+.apiResponse {
+    background-color: #F0F0F0;
+    &__hd {
+        padding: 5px 10px;
+    }
+    &__dwnld {
+        float: right;
+    }
+    &__out {
+        height: @mapHeight - 10px;
+        overflow: auto;
+        .hljs,
+        code {
+            overflow-x: visible;
+        }
+        pre {
+            margin: 0;
+            overflow: visible;
+        }
+        code {
+            font-size: 13px;
+        }
+    }
 }
 
 label[required]::after {
@@ -16,6 +38,11 @@ fieldset {
 
 legend {
     font-size: 16px;
+}
+
+#map {
+    height: @mapHeight;
+    width: 100%;
 }
 
 .dl-horizontal {

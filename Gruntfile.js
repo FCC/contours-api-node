@@ -22,7 +22,7 @@ module.exports = function(grunt) {
         watch: {
             less: {
                 files: ['./src/bootstrap-gisp/less/**/*.less'],
-                tasks: ['less', 'usebanner', 'autoprefixer', 'copy']
+                tasks: ['less', 'usebanner', 'postcss', 'copy']
             },
             scripts: {
                 files: ['<%= paths.assets %>/js/main.js', '<%= paths.assets %>/js/modules/**/*.js'],
@@ -62,8 +62,8 @@ module.exports = function(grunt) {
         less: {
             options: {
                 paths: ['bootstrap-gisp/less', 'bower_components'],
-                compress: true,
-                sourceMap: true
+                compress: false,
+                sourceMap: false
             },
             dist: {
                 files: [{
@@ -77,9 +77,14 @@ module.exports = function(grunt) {
         },
 
         // Add vendor prefixed styles to CSS
-        autoprefixer: {
+        postcss: {
             options: {
-                browsers: ['> 4%', 'last 4 versions']
+                map: {
+                    inline: false                    
+                },
+                processors: [
+                    require('autoprefixer')({ browsers: ['last 4 version'] })
+                ]
             },
             dist: {
                 files: [{
@@ -147,8 +152,8 @@ module.exports = function(grunt) {
         'jshint',
         'less',
         'usebanner',
-        'autoprefixer',
-        'browserify:dev'        
+        'postcss',
+        'browserify:dev'
     ]);
 
     grunt.registerTask('default', [

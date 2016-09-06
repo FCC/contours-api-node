@@ -24,7 +24,6 @@ AWS.config.update({
      region: AWS_REGION,
     });
 var S3_BUCKET = configEnv[NODE_ENV].S3_BUCKET;
-var S3_NED_LOCATION;
 var S3_ELEV_LOCATION = configEnv[NODE_ENV].S3_ELEV_LOCATION;
 
 var fs = require('fs');
@@ -38,6 +37,16 @@ var data_src = 'ned';
 var param_unit = 'm';
 var file_ext = '_1';
 var GeoJSON = require('geojson');
+var utility = require('./utility.js');
+
+var o_status = 'error',
+		o_statusCode = '400',
+		o_statusMessage = '',
+		o_dataSource = '',
+		o_elevation = 0,
+		o_unit = '';
+
+var lat, lon;
 
 if (NODE_ENV == 'LOCAL') {
 	data_dir = 'data/';	
@@ -50,16 +59,6 @@ else {
 function getElevation(req, res) {
 	var now_dt = new Date();
 	console.log('--- beginning elevation ---' + now_dt.toUTCString());
-
-	var lat;
-	var lon;
-
-	var o_status = 'error',
-		o_statusCode = '400',
-		o_statusMessage = '',
-		o_dataSource = '',
-		o_elevation = 0,
-		o_unit = '';
 
 	try {
 		
@@ -188,27 +187,32 @@ function getElevation(req, res) {
 		var lat_str = padZero(lat_ul, 2);
 		var lon_str = padZero(lon_ul, 3);
 
-		var usgs_filename;
-		var coordname = ns + lat_str + ew + lon_str;
+		var s3_filepath;
+		var s3_filename;
+
+		var coordName = ns + lat_str + ew + lon_str;
 		
-		console.log('coordname='+coordname);
+		console.log('coordName='+coordName);
 
-		if(datatype == 'ned') {
-			if(ned_1_files[coordname]){
-				datatype = 'ned_1';
-				usgs_filename = ned_1_files[coordname].file;
-				console.log('ned_1 coordname file='+usgs_filename);	
-			}
-			else if(ned_2_files[coordname]){
-				datatype = 'ned_2';
-				usgs_filename = ned_2_files[coordname].file;
-				console.log('ned_2 coordname file='+usgs_filename);	
-			}
-			else {
-				throw 'ned file not found';
-			}	
+		if(datatype.startsWith('ned')) {
+			
+			utility.getElvFileInfo(datatype, coordName, function(err, result){
+				if(err){
+					console.error('getElvFileInfo call error');
+					o_statusMessage = 'elevation data not found';
+					returnError(res, function(ret){
+	 					res.status(400).send(GeoJSON.parse(ret, {}));						
+	 					return;
+					});
+				}
+				else {
+					console.log('result from getElvFileInfo: '+result);
+					datatype = result[0];
+					s3_filename = result[1];
+					s3_filepath = result[2];
+				}
+			})
 		}
-
 		if (datatype == 'usgs') {
 			console.log('calling USGS API to get data..');
 			// /epqs/pqs.php?x=-77&y=38&units=Meters&output=json
@@ -280,21 +284,25 @@ function getElevation(req, res) {
 		}
 		
 		
-		if (datatype != 'usgs') {
+		if (datatype != 'usgs' && s3_filepath && s3_filename) {
 
-			if(datatype != 'ned'){
-				usgs_filename = 'float' + coordname + file_ext +'.flt';
-			}
-			//var usgs_filename = 'float' + ns + lat_str + ew + lon_str + file_ext +'.flt';
+			//if(datatype != 'ned'){ // for ned_13
+				//s3_filename = 'float' + coordName + file_ext +'.flt';
+			//}
+			//var s3_filename = 'float' + ns + lat_str + ew + lon_str + file_ext +'.flt';
 			// sample file floatn15w093_1.flt		
+			console.log('non usgs flow');
+			console.log('s3_filepath:'+s3_filepath);
+			console.log('s3_filename:'+s3_filename);
 
-			console.log('usgs_filename:'+usgs_filename);
+			if(!s3_filepath || !s3_filename) {
+				throw 's3 file error';
+			}
 
 			var row = (lat_ul - lat) * nrow0 + 6 + 1;
 			var col = (lon_ul - Math.abs(lon)) * ncol0 + 6;
 
-			var filepath = data_dir + datatype + '/' + usgs_filename;
-			S3_NED_LOCATION =  S3_ELEV_LOCATION + datatype + '/';
+			var filepath = data_dir + datatype + '/' + s3_filename;
 			
 			row = Math.floor(row);
 			col = Math.floor(col);
@@ -305,7 +313,6 @@ function getElevation(req, res) {
 			console.log('row=' + row + ' col=' + col + ' pos=' + position);
 
 			console.log('S3_BUCKET='+S3_BUCKET);
-			console.log('S3_NED_LOCATION='+S3_NED_LOCATION);
 			console.log('filepath='+ filepath);
 
 			var st_time = new Date().getTime();	
@@ -382,7 +389,7 @@ function getElevation(req, res) {
 				var s3 = new AWS.S3();
 				var params = {
 			            Bucket: S3_BUCKET, // bucket name
-			            Key: S3_NED_LOCATION + usgs_filename
+			            Key: s3_filepath + s3_filename
 			        };
 			        s3.getObject(params, function(err, data) {
 			            if (err) {
@@ -563,8 +570,21 @@ function performRequest(host, path, success) {
   }
   catch(err){
   	console.error(err);
-  }
-  
+  }  
+}
+
+function returnError(res, callback) {         	
+	console.log('returnError');
+	var ret = [{ 
+		status: o_status,
+		statusCode:o_statusCode,
+		statusMessage: o_statusMessage,
+		latitude: lat,
+		longitude: lon, 
+		dataSource: o_dataSource, 
+		elevation: o_elevation,
+		unit: o_unit}];
+	return callback(ret);
 }
 
 module.exports.getElevation = getElevation;

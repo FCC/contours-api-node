@@ -35,7 +35,12 @@ node_modules
 bower_components
 
 # data folder
-data
+data/globe30
+data/gtopo30
+data/ned_1
+data/ned_13
+data/ned_2
+
 
 # DevOps
 .ebextensions

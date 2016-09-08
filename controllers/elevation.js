@@ -138,7 +138,7 @@ function getElevation(req, res) {
         	return;
 		}
 
-		if (datatype != 'ned' && datatype != 'ned_1' && datatype != 'ned_2' && datatype != 'ned_13' && datatype != 'usgs') {
+		if (datatype != 'ned' && datatype != 'ned_1' && datatype != 'ned_2' && datatype != 'ned_13' && datatype != 'globe30' && datatype != 'usgs') {
 			
 			o_statusMessage = 'invalid input - source';
         	
@@ -212,6 +212,11 @@ function getElevation(req, res) {
 					s3_filepath = result[2];
 				}
 			})
+		}
+		else if(datatype == 'globe30'){
+			s3_filename = utility.getGlobeFileName(lat, lon);
+			s3_filepath =  S3_ELEV_LOCATION + datatype + '/';
+			console.log('globe: filename= '+s3_filename+', filepath='+s3_filepath);
 		}
 		if (datatype == 'usgs') {
 			console.log('calling USGS API to get data..');
@@ -313,7 +318,7 @@ function getElevation(req, res) {
 			console.log('row=' + row + ' col=' + col + ' pos=' + position);
 
 			console.log('S3_BUCKET='+S3_BUCKET);
-			console.log('filepath='+ filepath);
+			console.log('data filepath='+ filepath);
 
 			var st_time = new Date().getTime();	
 			console.log('st_time='+st_time);
@@ -321,21 +326,78 @@ function getElevation(req, res) {
 			if (fs.existsSync(filepath)) { // file is already exist
 				// readfile to calculate elevation data
 				console.log('file exist in file system');
-				fs.open(filepath, 'r', function(err, fd) {
-					if(err) {
-						console.error('elevation file err='+err);
-						throw err;
-					}	
 
-					var buffer = new Buffer(length);
+				if(datatype == 'globe30'){
+					var elevation = utility.getElevFromFile(datatype, filepath, lat, lon);
+					o_status = 'success';
+	            	o_statusCode = '200';
+	            	o_statusMessage = 'ok';
+	            	o_dataSource = data_source;
+	            	o_elevation = elevation;
+	            	o_unit = unit;
 
-					fs.read(fd, buffer, 0, length, position, function(err, bytesRead) {
+	            	var ret = [{ 
+						status: o_status,
+	            		statusCode:o_statusCode,
+	            		statusMessage: o_statusMessage,
+	            		latitude: lat,
+	            		longitude: lon, 
+	            		dataSource: o_dataSource, 
+	            		elevation: o_elevation,
+	            		unit: o_unit}];
+
+					res.status(200).send(GeoJSON.parse(ret, {}));
+					return;
+				}
+				else { 
+					fs.open(filepath, 'r', function(err, fd) {
 						if(err) {
-
 							console.error('elevation file err='+err);
+							throw err;
+						}	
 
-			            	o_statusMessage = 'unable to process elevation data';
-			            	
+						var buffer = new Buffer(length);
+
+						fs.read(fd, buffer, 0, length, position, function(err, bytesRead) {
+							if(err) {
+
+								console.error('elevation file err='+err);
+
+				            	o_statusMessage = 'unable to process elevation data';
+				            	
+				            	var ret = [{ 
+									status: o_status,
+				            		statusCode:o_statusCode,
+				            		statusMessage: o_statusMessage,
+				            		latitude: lat,
+				            		longitude: lon, 
+				            		dataSource: o_dataSource, 
+				            		elevation: o_elevation,
+				            		unit: o_unit}];
+
+								res.status(400).send(GeoJSON.parse(ret, {}));
+								return;
+							}
+							
+							var ed_time = new Date().getTime();
+						    console.log('ed_time='+ed_time);
+							console.log('file transfer complete in :' + (ed_time - st_time)/1000);
+
+							var elevation = Math.round(100*buffer.readFloatLE(0))/100;
+							if( unit == 'mi'){
+								elevation = Math.round(1000*elevation*0.000621371)/1000;
+							}
+							else if(unit == 'ft'){
+								elevation = Math.round(1000*elevation*3.28084)/1000;
+							}
+
+							o_status = 'success';
+			            	o_statusCode = '200';
+			            	o_statusMessage = 'ok';
+			            	o_dataSource = data_source;
+			            	o_elevation = elevation;
+			            	o_unit = unit;
+
 			            	var ret = [{ 
 								status: o_status,
 			            		statusCode:o_statusCode,
@@ -346,48 +408,54 @@ function getElevation(req, res) {
 			            		elevation: o_elevation,
 			            		unit: o_unit}];
 
-							res.status(400).send(GeoJSON.parse(ret, {}));
-							return;
-						}
-						
-						var ed_time = new Date().getTime();
-					    console.log('ed_time='+ed_time);
-						console.log('file transfer complete in :' + (ed_time - st_time)/1000);
-
-						var elevation = Math.round(100*buffer.readFloatLE(0))/100;
-						if( unit == 'mi'){
-							elevation = Math.round(1000*elevation*0.000621371)/1000;
-						}
-						else if(unit == 'ft'){
-							elevation = Math.round(1000*elevation*3.28084)/1000;
-						}
-
-						o_status = 'success';
-		            	o_statusCode = '200';
-		            	o_statusMessage = 'ok';
-		            	o_dataSource = data_source;
-		            	o_elevation = elevation;
-		            	o_unit = unit;
-
-		            	var ret = [{ 
-							status: o_status,
-		            		statusCode:o_statusCode,
-		            		statusMessage: o_statusMessage,
-		            		latitude: lat,
-		            		longitude: lon, 
-		            		dataSource: o_dataSource, 
-		            		elevation: o_elevation,
-		            		unit: o_unit}];
-
-						res.status(200).send(GeoJSON.parse(ret, {}));
-						return;						
+							res.status(200).send(GeoJSON.parse(ret, {}));
+							return;						
+						});
 					});
-				});
+				}
 			}
 			else { // if file already not downloaded from s3
 
-				var s3 = new AWS.S3();
-				var params = {
+				if(datatype == 'globe30'){
+					console.log('globe30 flow ');
+					utility.getFileFromS3(datatype, filepath, s3_filepath, s3_filename, function(err, result){
+						if(err){
+							console.error('getElvFileInfo call error');
+							o_statusMessage = 'elevation data not found';
+							returnError(res, function(ret){
+			 					res.status(400).send(GeoJSON.parse(ret, {}));						
+			 					return;
+							});
+						}
+						else {
+							console.log('file copy success');
+							var elevation = utility.getElevFromFile(datatype, filepath, lat, lon);
+							o_status = 'success';
+			            	o_statusCode = '200';
+			            	o_statusMessage = 'ok';
+			            	o_dataSource = data_source;
+			            	o_elevation = elevation;
+			            	o_unit = unit;
+
+			            	var ret = [{ 
+								status: o_status,
+			            		statusCode:o_statusCode,
+			            		statusMessage: o_statusMessage,
+			            		latitude: lat,
+			            		longitude: lon, 
+			            		dataSource: o_dataSource, 
+			            		elevation: o_elevation,
+			            		unit: o_unit}];
+
+							res.status(200).send(GeoJSON.parse(ret, {}));
+							return;		
+						}
+					});
+					
+				}
+				else {
+					var s3 = new AWS.S3();
+					var params = {
 			            Bucket: S3_BUCKET, // bucket name
 			            Key: s3_filepath + s3_filename
 			        };
@@ -498,7 +566,7 @@ function getElevation(req, res) {
 							});
 			            }
 			        });
-
+				}
 			}
 
 		}

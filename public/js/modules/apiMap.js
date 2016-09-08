@@ -19,7 +19,7 @@
                 }
             };
 
-            Map.url = apiURL;
+            APIResponse.url = apiURL;
 
             $.ajax({
                 url: apiURL,

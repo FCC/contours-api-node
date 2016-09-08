@@ -1,12 +1,12 @@
 (function() {
     'use strict';
 
-    var Map = require('./map.js');
-
     var APIResponse = {
 
         display: function(data) {
             // display JSON next to map
+
+            $('#modal-loading').modal('hide');
 
             $('.apiResponse__out code').text(JSON.stringify(data, null, 2));
             $('pre code').each(function(i, block) {
@@ -14,7 +14,7 @@
             });
 
             $('.apiResponse__dwnld')
-                .attr('href', Map.url)
+                .attr('href', APIResponse.url)
                 .removeClass('hide');
         },
 

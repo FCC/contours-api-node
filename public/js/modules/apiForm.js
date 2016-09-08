@@ -5,10 +5,21 @@
     var APIResponse = require('./apiResponse.js');
 
     var APIForm = {
-        bindEvents: function() {
-            var apiType = $('#btn-getAPI').attr('data-api');
+        bindEvents: function() {            
+            $('#apiType').on('change', APIForm.switchForm);
 
-            $('#apiType').on('change', this.switchForm);
+            $(window).keydown(function(event) {
+                if (event.keyCode === 13) {
+                    event.preventDefault();
+                    $('#btn-getAPI').click();
+                }
+            });
+
+            $('#modal-loading').modal({
+                backdrop: 'static',
+                keyboard: false,
+                show: false
+            });
         },
         switchForm: function() {
             var selectedAPI = this.value;
@@ -31,6 +42,8 @@
             Map.resetView();
         },
         showError: function() {
+            $('#modal-loading').modal('hide');
+
             $('.alert').hide('fast');
             $('.alert').slideDown();
 

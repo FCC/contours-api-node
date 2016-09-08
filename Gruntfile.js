@@ -26,7 +26,7 @@ module.exports = function(grunt) {
             },
             scripts: {
                 files: ['<%= paths.assets %>/js/main.js', '<%= paths.assets %>/js/modules/**/*.js'],
-                tasks: ['jshint', 'browserify:dev']
+                tasks: ['jshint', 'concat', 'browserify:dev']
             }
         },
 
@@ -96,6 +96,27 @@ module.exports = function(grunt) {
             }
         },
 
+        // Bundle Bootstrap plugins
+        concat: {
+            pluginsjs: {
+                src: [
+                    // 'bower_components/bootstrap/js/affix.js',
+                    // 'bower_components/bootstrap/js/alert.js',
+                    //'bower_components/bootstrap/js/dropdown.js',
+                    //'bower_components/bootstrap/js/tooltip.js',
+                    'bower_components/bootstrap/js/modal.js'
+                    //'bower_components/bootstrap/js/transition.js'
+                    // 'bower_components/bootstrap/js/button.js',
+                    // 'bower_components/bootstrap/js/popover.js',
+                    // 'bower_components/bootstrap/js/carousel.js',
+                    // 'bower_components/bootstrap/js/scrollspy.js',
+                    // 'bower_components/bootstrap/js/collapse.js'
+                    // 'bower_components/bootstrap/js/tab.js',
+                ],
+                dest: './public/js/vendor/bootstrap.min.js'
+            }         
+        },
+
         // Add a banner to the top of the generated LESS file.
         usebanner: {
             taskName: {
@@ -153,6 +174,7 @@ module.exports = function(grunt) {
         'less',
         'usebanner',
         'postcss',
+        'concat',
         'browserify:dev'
     ]);
 

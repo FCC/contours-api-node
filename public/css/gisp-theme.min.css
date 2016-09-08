@@ -5609,7 +5609,7 @@ footer {
   float: right;
 }
 .apiResponse__out {
-  height: 590px;
+  height: 570px;
   overflow: auto;
 }
 .apiResponse__out .hljs,

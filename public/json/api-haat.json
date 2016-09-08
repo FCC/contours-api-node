@@ -61,7 +61,8 @@
                     "type": "string",
                     "defaultValue": "ned",
                     "enum": [
-                        "ned_1"                        
+                        "ned_1",
+                        "globe30"
                     ]
                 }, {
                     "name": "unit",

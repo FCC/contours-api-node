@@ -39,15 +39,6 @@ var file_ext = '_1';
 var GeoJSON = require('geojson');
 var utility = require('./utility.js');
 
-var o_status = 'error',
-		o_statusCode = '400',
-		o_statusMessage = '',
-		o_dataSource = '',
-		o_elevation = 0,
-		o_unit = '';
-
-var lat, lon;
-
 if (NODE_ENV == 'LOCAL') {
 	data_dir = 'data/';	
 }
@@ -59,6 +50,15 @@ else {
 function getElevation(req, res) {
 	var now_dt = new Date();
 	console.log('--- beginning elevation ---' + now_dt.toUTCString());
+
+	var o_status = 'error',
+		o_statusCode = '400',
+		o_statusMessage = '',
+		o_dataSource = '',
+		o_elevation = 0,
+		o_unit = '';
+
+	var lat, lon;
 
 	try {
 		
@@ -73,6 +73,7 @@ function getElevation(req, res) {
 		GeoJSON.defaults = {Point: ['latitude', 'longitude'], include: ['status','statusCode','statusMessage','dataSource','elevation','unit']};
 
 		console.log('params: lat='+latitude+',lon='+longitude+', src='+datatype+', unit='+unit);
+		//console.log('o_status='+o_status+', o_statusCode='+o_statusCode+', o_statusMessage='+o_statusMessage+', o_dataSource='+o_dataSource+', o_elevation='+o_elevation+', o_unit='+o_unit);
 
 		if(!datatype){
 			datatype = data_src;
@@ -200,10 +201,18 @@ function getElevation(req, res) {
 				if(err){
 					console.error('getElvFileInfo call error');
 					o_statusMessage = 'elevation data not found';
-					returnError(res, function(ret){
-	 					res.status(400).send(GeoJSON.parse(ret, {}));						
-	 					return;
-					});
+
+					var ret = [{ 
+						status: o_status,
+						statusCode:o_statusCode,
+						statusMessage: o_statusMessage,
+						latitude: lat,
+						longitude: lon, 
+						dataSource: o_dataSource, 
+						elevation: o_elevation,
+						unit: o_unit}];
+					res.status(400).send(GeoJSON.parse(ret, {}));						
+	 				return;					
 				}
 				else {
 					console.log('result from getElvFileInfo: '+result);
@@ -332,7 +341,7 @@ function getElevation(req, res) {
 					o_status = 'success';
 	            	o_statusCode = '200';
 	            	o_statusMessage = 'ok';
-	            	o_dataSource = data_source;
+	            	o_dataSource = 'globe30';
 	            	o_elevation = elevation;
 	            	o_unit = unit;
 
@@ -422,10 +431,18 @@ function getElevation(req, res) {
 						if(err){
 							console.error('getElvFileInfo call error');
 							o_statusMessage = 'elevation data not found';
-							returnError(res, function(ret){
-			 					res.status(400).send(GeoJSON.parse(ret, {}));						
-			 					return;
-							});
+							var ret = [{ 
+								status: o_status,
+								statusCode:o_statusCode,
+								statusMessage: o_statusMessage,
+								latitude: lat,
+								longitude: lon, 
+								dataSource: o_dataSource, 
+								elevation: o_elevation,
+								unit: o_unit}];
+							
+			 				res.status(400).send(GeoJSON.parse(ret, {}));						
+			 				return;							
 						}
 						else {
 							console.log('file copy success');
@@ -433,7 +450,7 @@ function getElevation(req, res) {
 							o_status = 'success';
 			            	o_statusCode = '200';
 			            	o_statusMessage = 'ok';
-			            	o_dataSource = data_source;
+			            	o_dataSource = 'globe30';
 			            	o_elevation = elevation;
 			            	o_unit = unit;
 
@@ -639,20 +656,6 @@ function performRequest(host, path, success) {
   catch(err){
   	console.error(err);
   }  
-}
-
-function returnError(res, callback) {         	
-	console.log('returnError');
-	var ret = [{ 
-		status: o_status,
-		statusCode:o_statusCode,
-		statusMessage: o_statusMessage,
-		latitude: lat,
-		longitude: lon, 
-		dataSource: o_dataSource, 
-		elevation: o_elevation,
-		unit: o_unit}];
-	return callback(ret);
 }
 
 module.exports.getElevation = getElevation;

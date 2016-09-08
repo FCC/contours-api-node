@@ -41,21 +41,29 @@ else {
 	var data_dir = '/var/data';
 }
 
+var ned_1_files = require('../data/ned_1_files.json');
+var ned_2_files = require('../data/ned_2_files.json');
+var globe_files = require('../data/globe_files.json');
+
 var src, lat, lon, rcamsl, nradial, format, unit;
 var  output_data;
-var azimuths;
+var azimuths, filenames, latlon, startTime, endTime;
+var filename_ned_1, filename_ned_2, filename_globe;
+var filenames_ned_1, filenames_ned_2, filenames_globe;
 
 
 function getHAAT(req, res) {
 	try {
 	
+		console.log('\n================== start HAAT process ==============');
+		console.log(new Date());
+		
 		azimuths = [];
 		output_data = [];
 		
 		var url = req.url;
 		
-		var startTime = new Date().getTime();
-		var endTime;
+		startTime = new Date().getTime();
 
 		if (!url.match(/lat=/i)) {
 			res.send({'status': 'error', 'msg': 'missing lat value'});
@@ -76,12 +84,11 @@ function getHAAT(req, res) {
 
 		src = url.replace(/^.*src=/i, '').replace(/&.*$/, '').toLowerCase();
 		src = src.toLowerCase();
-		if (src != "ned_1" && src != "ned_2" && src != "ned_13" && src != "gtopo30" && src != "globe") {
+		if (src != "ned_1" && src != "ned_2" && src != "ned_13" && src != "gtopo30" && src != "globe30") {
 			src = "ned_1";
 		}
 		
 		lat = url.replace(/^.*lat=/i, '').replace(/&.*$/, '');
-		console.log(lat)
 		lon = url.replace(/^.*lon=/i, '').replace(/&.*$/, '');
 		rcamsl = url.replace(/^.*rcamsl=/i, '').replace(/&.*$/, '');
 		nradial = url.replace(/^.*nradial=/i, '').replace(/&.*$/, '');
@@ -113,6 +120,10 @@ function getHAAT(req, res) {
 			res.send({'status': 'error', 'msg': 'Lon value out of range'});
 			return;
 		}
+		if ( parseFloat(nradial) <1 || parseFloat(nradial) > 360 ) {
+			res.send({'status': 'error', 'msg': 'nradial value out of range'});
+			return;
+		}
 
 		lat = parseFloat(lat);
 		lon = parseFloat(lon);
@@ -121,8 +132,7 @@ function getHAAT(req, res) {
 		src = src.toLowerCase();
 		
 		console.log('src=' + src + ' lat=' + lat + ' lon=' + lon + ' rcamsl=' + rcamsl + ' nradial=' + nradial + ' format=' + format + ' unit=' + unit);
-		
-		
+
 		var num_points_per_radial = 51;
 		var num_interval_per_radial = num_points_per_radial - 1;
 		var start_point = 3; //kms
@@ -137,99 +147,157 @@ function getHAAT(req, res) {
 		for (i = 0; i < nradial; i++) {
 			azimuths.push(Math.round(100.0*i*360/nradial)/100);
 		}
-		
-		var latlon;
+
 		var latlon0;
 		var lat1 = lat;
 		var lon1 = lon;
-		var latlon = [];
 		var lat_all = [], lon_all = [];
-		var filename;
+		var filename_ned_1, filename_ned_2, filename_globe;
+		latlon = [];
 		for (i = 0; i < nradial; i++) {
 			for (j = 0; j < num_points_per_radial; j++) {
 				var d = dist_arr[j];
 				latlon0 = getLatLonFromDist(lat1, lon1, azimuths[i], d);
 				lat_all.push(latlon0[0]);
 				lon_all.push(latlon0[1]);
-				filename = makeFileName(latlon0[0], latlon0[1], src);
-				latlon.push([i, j, latlon0[0], latlon0[1], filename]);
+				filename_ned_1 = makeFileName(latlon0[0], latlon0[1], 'ned_1', res);
+				filename_ned_2 = makeFileName(latlon0[0], latlon0[1], 'ned_2', res);
+				filename_globe = getGlobeFileName(latlon0[0], latlon0[1]);
+				latlon.push([i, j, latlon0[0], latlon0[1], filename_ned_1, filename_ned_2, filename_globe]);
 			}
 		
 		}
-		
-		//console.log(latlon);
-		
-		var filenames = [];
+	
+		filenames_ned_1 = [];
+		filenames_ned_2 = [];
+		filenames_globe = [];
 		var filepath;
 		for (i = 0; i < latlon.length; i++) {
-		filenames.push(latlon[i][4])
+		filenames_ned_1.push(latlon[i][4]);
+		filenames_ned_2.push(latlon[i][5]);
+		filenames_globe.push(latlon[i][6]);
 		}
-		filenames = uniqArray(filenames);
+		filenames_ned_1 = uniqArray(filenames_ned_1);
+		filenames_ned_2 = uniqArray(filenames_ned_2);
+		filenames_globe = uniqArray(filenames_globe);
 		
-		console.log(filenames);
-		//check if file exists
-		var filenames_no = [];
-		for (i = 0; i < filenames.length; i++) {
-			filepath = data_dir + '/' + src + '/' + filenames[i]
-			if (!fs.existsSync(filepath)) {
-				filenames_no.push(filenames[i]);
+		if (src == 'globe30') {
+			console.log('use globe data');	
+			useGlobeData(res,filenames_globe);
+		}
+		
+		//check if file exists locally and on S3
+		var filenames_no_ned_1 = getNonExistingFiles(filenames_ned_1); //ned_1 files not exist locally
+		var filenames_no_ned_2 = getNonExistingFiles(filenames_ned_2); //ned_2 files not exist locally
+		var filenames_ned_1_s3 = checkS3(filenames_no_ned_1, 'ned_1'); //ned_1 files that exist on S3
+		var filenames_ned_2_s3 = checkS3(filenames_no_ned_2, 'ned_2'); //ned_2 files that exist on S3
+		
+		if (filenames_ned_1_s3.sort().join() == filenames_no_ned_1.sort().join()) {
+			//use ned_1
+			src = 'ned_1';
+			console.log('use ned_1')
+			if (filenames_ned_1_s3.length > 0) {
+				//get files from S3
+				var asyncTasks = [];
+				for (i = 0; i < filenames_ned_1_s3.length; i++) {
+					asyncTasks.push(getFileFromS3(filenames_ned_1_s3[i]));
+				}
+				async.parallel(asyncTasks, function() {
+					console.log("all done getting ned_1 from S3");
+					processDataFiles(res, filenames_ned_1);
+					});	
+			}
+			else {
+				processDataFiles(res, filenames_ned_1);
+			}
+			
+		}
+		else if (filenames_ned_2_s3.sort().join() == filenames_no_ned_2.sort().join()) {
+			//use ned_2
+			src = 'ned_2';
+			console.log('use ned_2')
+			if (filenames_ned_2_s3.length > 0) {
+				//get files from S3
+				var asyncTasks = [];
+				for (i = 0; i < filenames_ned_2_s3.length; i++) {
+					asyncTasks.push(getFileFromS3(filenames_ned_2_s3[i]));
+				}
+				async.parallel(asyncTasks, function() {
+					console.log("all done getting ned_2");
+					processDataFiles(res, filenames_ned_2);
+					});	
+			}
+			else {
+				processDataFiles(res, filenames_ned_2);
 			}
 		}
-		
-		console.log(filenames_no);
-		
-		//fetch data from S3
+		else {
+			src = 'globe30';
+			console.log('use globe30');
+			useGlobeData(res,filenames_globe);
+		}
+	}
+	catch(err) {
+		console.log(err);
+		res.status(400).send({
+			'status': 'error',
+        	'statusCode':'400',
+        	'statusMessage': 'Error occured',
+			'error': err.stack
+        });
+	}
+	
+	console.log('Done');
+	
+	
+}
 
-		var getFileFromS3 = function(filename) { return function(callback) {
-			console.log('getting ' + filename);
+var getFileFromS3 = function(filename) { return function(callback) {
+	console.log('getting ' + filename + ' src=' + src);
+		
+	var params = {
+		Bucket: S3_BUCKET,
+		Key : S3_ELEV_LOCATION + src + '/' + filename
+	};
+	
+	s3.getObject(params, function(err, data) {
+		if (err) {
+				//console.log(err, err.stack);
+				console.log('S3 error - no file');
+				callback();
+		}
+		else {
+				//write to disk
+			var filepath = data_dir + '/' + src + '/' + filename;
+			console.log('writing filepath=' + filepath);
+			//res.send({'msg': 's3 writeting ' + filepath});
+			
+			fs.writeFile(filepath, data.Body, 'binary', function(err) {
+				if(err) {
+				console.log('write error');
+						callback();
+						//return console.log(err);
+				}
+
+				var endTime = new Date().getTime();
+				var dt = endTime - startTime;
+				console.log(filename + ', time to get file from S3: ' + dt);
+
+				callback();
 				
-			var params = {
-				Bucket: S3_BUCKET,
-				Key : S3_ELEV_LOCATION + src + '/' + filename
-			};
-			
-			s3.getObject(params, function(err, data) {
-				if (err) {
-						console.log(err, err.stack);
-						//res.send({'msg': 's3 error', 'error': err.stack, 'file': filename});
-						callback();
-				}
-				else {
-						//write to disk
-					var filepath = data_dir + '/' + src + '/' + filename;
-					console.log('filepath=' + filepath);
-					//res.send({'msg': 's3 writeting ' + filepath});
-					
-					fs.writeFile(filepath, data.Body, 'binary', function(err) {
-						if(err) {
-								callback();
-								return console.log(err);
-						}
-
-						var endTime = new Date().getTime();
-						var dt = endTime - startTime;
-						console.log(filename + ' ok, dt=' + dt);
-
-						callback();
-						
-					});
-
-				}
 			});
-			
 
 		}
-		}
-		
-		var asyncTasks = [];
-		
-		for (i = 0; i < filenames_no.length; i++) {
-		asyncTasks.push(getFileFromS3(filenames_no[i]));
-		}
-		async.parallel(asyncTasks, function() {
-			console.log("all done");
-			//res.send({'msg': 'get S3 all done', 'filenames_no': filenames_no});
-			
+	});
+	
+
+}
+}
+
+
+function processDataFiles(res, filenames) {
+
+	var i, filepath;
 			for (i = 0; i < filenames.length; i++) {
 				filepath = data_dir + '/' + src + '/' + filenames[i];
 				readDataFile(i, filepath, latlon);
@@ -246,23 +314,7 @@ function getHAAT(req, res) {
 		}
 		
 		res.send(output_haat);
-		});
-		
-
-	}
-	catch(err) {
-		console.log(err);
-		res.status(400).send({
-			'status': 'error',
-        	'statusCode':'400',
-        	'statusMessage': 'unable to process elevation data'
-        });
-		return;
-	}
-	
-	
 }
-
 
 
 function readDataFile(n, filepath, latlon) {
@@ -272,31 +324,51 @@ function readDataFile(n, filepath, latlon) {
 			var data = fs.readFileSync(filepath);
 
 			var filename = filepath.replace(/^.*\//, '');
-			console.log(filename);
 			
-			var latlon_ul = getLatLonFromFileName(filename);
-			var lat_ul = latlon_ul[0];
-			var lon_ul = latlon_ul[1];
+			console.log('reading file: ' + filepath)
+			
+			var lat_ul, lon_ul, lat_lr, lon_lr;
+			if (src.match(/ned_/)) {
+				var latlon_ul = getLatLonFromFileName(filename);
+				lat_ul = latlon_ul[0];
+				lon_ul = latlon_ul[1];
+			}
+			else if (src == 'globe30') {
+				var latlon_ul = getLatLonFromFileNameGlobe(filename);
+				lat_ul = latlon_ul[0];
+				lon_ul = latlon_ul[1];
+				lat_lr = latlon_ul[2];
+				lon_lr = latlon_ul[3];
+			}
+			
 			var elev;
-
+	
 			for (i = 0; i < latlon.length; i++) {
-				if (latlon[i][4] == filename) {
+				if (latlon[i][4] == filename || latlon[i][5] == filename || latlon[i][6] == filename) {
 					az = latlon[i][0];
 					npoint = latlon[i][1];
 					lat = latlon[i][2];
 					lon = latlon[i][3];
 
-				//console.log('lat_ul=' + lat_ul + ' lon_ul=' + lon_ul + ' lat=' + lat + ' lon=' + lon);
-
-					if (src == 'ned_1') {
-						var data_source = '3DEP 1 arc-second';
-					
-						var nrow = 3612;
-						var ncol = 3612;
+					if (src.match(/ned_/)) {
+				
+						if (src == 'ned_1') {
+							var data_source = '3DEP 1 arc-second';
 						
-						var nrow0 = 3600;
-						var ncol0 = 3600;
-						
+							var nrow = 3612;
+							var ncol = 3612;
+							
+							var nrow0 = 3600;
+							var ncol0 = 3600;
+						}
+						else {
+							var nrow = 1812;
+							var ncol = 1812;
+							
+							var nrow0 = 1800;
+							var ncol0 = 1800;
+						}
+							
 						var row = (lat_ul - lat) * nrow0 + 6 + 1;
 						var col = (lon - lon_ul) * ncol0 + 6;
 						
@@ -308,126 +380,148 @@ function readDataFile(n, filepath, latlon) {
 						elev = Math.round(100*data.slice(position, position+4).readFloatLE(0))/100;
 						
 						//console.log('row=' + row + ' col=' + col + ' pos=' + position + ' elev=' + elev);
-						output_data.push([latlon[i][0], latlon[i][1], latlon[i][2], latlon[i][3], elev])
+						output_data.push([latlon[i][0], latlon[i][1], latlon[i][2], latlon[i][3], elev]);
+					
 					}
-				}
-			}
-			
-			console.log('total row=' + output_data.length);
+					else if (src == 'globe30') {
+						var nrow0 = Math.round((lat_ul - lat_lr) * 120);
+						var ncol0 = Math.round((lon_lr - lon_ul) * 120);
 
-		}
-
-		
-		function comparator(a, b) {
-			if (a[0] < b[0]) {return -1;}
-			else if (a[0] > b[0]) {return 1;}
-			else {
-				//a[0] == b[0]
-				if (a[1] < b[1]) {return -1;}
-				else if (a[1] > b[1]) {return 1;}
-				else {
-					return 0;
-				}
-			
-			}
-			}
-			
-		function formatHAAT() {
-		
-			var haat_av = [];
-			var i, j, elevs;
-			for (i = 0; i < nradial; i++) {
-				elevs = [];
-				for (j = 0; j < output_data.length; j++) {
-				
-					if (output_data[j][0] == i) {
-						elevs.push(output_data[j][4]);
+						var row = (lat_ul - lat) * nrow0 / (lat_ul - lat_lr);
+						var col = (lon - lon_ul) * ncol0 / (lon_lr - lon_ul);
 						
+						row = Math.floor(row);
+						col = Math.floor(col);
+
+						var length = 2;
+						var position = row * ncol0 * length + col * length ;
+						//console.log(lat + ' ' + lon + ' ' + row + ' ' + col + ' ' + position)
+						elev = Math.round(100*data.slice(position, position+length).readInt16LE(0))/100;
+						output_data.push([latlon[i][0], latlon[i][1], latlon[i][2], latlon[i][3], elev]);
 					}
 				}
-				haat_av.push(Math.round( 100*(rcamsl - arrMean(elevs)) ) / 100.0);
-				//console.log(i + ' ' + azimuths[i] + ' ' + haat_av[i] + ' elevs=' + elevs);
 			}
 			
-			var haat_total = Math.round(100*arrMean(haat_av))/100;
-			
-			//unit conversion
-			
-			var feet_per_meter = 3.28084;
-			var miles_per_meter = 0.000621371;
-			if (unit != "m") {
-				for (i = 0; i < haat_av.length; i++) {
-					if (unit == "ft") {
-						haat_av[i] = Math.round(100 * haat_av[i] * feet_per_meter) / 100;
-					}
-					else if (unit == "mi") {
-						haat_av[i] = Math.round(100000 * haat_av[i] * miles_per_meter) / 100000;
-					}
-				}
-				if (unit == "ft") {
-					haat_total = Math.round(100 * haat_total * feet_per_meter) / 100;
-				}
-				else if (unit == "mi") {
-					haat_total = Math.round(100000 * haat_total * miles_per_meter) / 100000;
-				}
+			//console.log('total row=' + output_data.length);
+}
+
+		
+function comparator(a, b) {
+	if (a[0] < b[0]) {return -1;}
+	else if (a[0] > b[0]) {return 1;}
+	else {
+		//a[0] == b[0]
+		if (a[1] < b[1]) {return -1;}
+		else if (a[1] > b[1]) {return 1;}
+		else {
+			return 0;
+		}
+	}
+	}
+	
+function formatHAAT() {
+
+	var haat_av = [];
+	var i, j, elevs;
+	for (i = 0; i < nradial; i++) {
+		elevs = [];
+		for (j = 0; j < output_data.length; j++) {
+		
+			if (output_data[j][0] == i) {
+				elevs.push(output_data[j][4]);
 				
 			}
-			
-			console.log('format=' + format);
-			
-			if (format == 'csv') {
-				var content = 'azimuth,haat\n'
-				for (i = 0; i < nradial; i++) {
-					content += azimuths[i] + ',' + haat_av[i] + '\n';
-				}
-				return content;
-			}
-			else if (format == 'json') {
-				var content = {
-								"status": "success", 
-								"statusCode": "200", 
-								"statusMessage": "ok",
-								'about': {
-									'elevation_data_source': 'ned_1, ned_2, ned_13 are 1-, 2- 1/3- arc second NED',
-									'nradial': 'number of radials',
-									'rcamsl': 'radiation center above mean sea level',
-									'azimuth': 'an array containing the azimuth of the radials',
-									'haat_azimuth': 'an array containing the HAAT values corresponding to the radials',
-									'haat_average': 'average of the HAATs of all the radials',
-									'elapsed_time': 'time taken by the system to process this request'
-									},
-								'elevation_data_source': src,
-								'lat': lat,
-								'lon': lon,
-								'rcamsl': rcamsl,
-								'nradial': nradial,
-								'format': format,
-								'azimuth': azimuths,
-								'haat_azimuth': haat_av,
-								'haat_average': haat_total,
-								'unit': unit
-			
-				};
-				return content;	
-			}
-			else {
-				var content = {"status": "error", "msg": "unknown format"};
-				return content;
-			}
-		
 		}
+		haat_av.push(Math.round( 100*(rcamsl - arrMean(elevs)) ) / 100.0);
+		//console.log(i + ' ' + azimuths[i] + ' ' + haat_av[i] + ' elevs=' + elevs);
+	}
+	
+	var haat_total = Math.round(100*arrMean(haat_av))/100;
+	
+	//unit conversion
+	
+	var feet_per_meter = 3.28084;
+	var miles_per_meter = 0.000621371;
+	if (unit != "m") {
+		for (i = 0; i < haat_av.length; i++) {
+			if (unit == "ft") {
+				haat_av[i] = Math.round(100 * haat_av[i] * feet_per_meter) / 100;
+			}
+			else if (unit == "mi") {
+				haat_av[i] = Math.round(100000 * haat_av[i] * miles_per_meter) / 100000;
+			}
+		}
+		if (unit == "ft") {
+			haat_total = Math.round(100 * haat_total * feet_per_meter) / 100;
+		}
+		else if (unit == "mi") {
+			haat_total = Math.round(100000 * haat_total * miles_per_meter) / 100000;
+		}
+		
+	}
+	
+	//console.log('format=' + format);
+	
+	if (format == 'csv') {
+		var content = 'azimuth,haat\n'
+		for (i = 0; i < nradial; i++) {
+			content += azimuths[i] + ',' + haat_av[i] + '\n';
+		}
+		return content;
+	}
+	else if (format == 'json') {
+		var content = {
+						"status": "success", 
+						"statusCode": "200", 
+						"statusMessage": "ok",
+						'about': {
+							'elevation_data_source': 'ned_1, ned_2 are 1-, 2- arc second NED, globe30 is GLOBE 1km data',
+							'nradial': 'number of radials',
+							'rcamsl': 'radiation center above mean sea level',
+							'azimuth': 'an array containing the azimuth of the radials',
+							'haat_azimuth': 'an array containing the HAAT values corresponding to the radials',
+							'haat_average': 'average of the HAATs of all the radials',
+							'elapsed_time': 'time taken by the system to process this request'
+							},
+						'elevation_data_source': src,
+						'lat': lat,
+						'lon': lon,
+						'rcamsl': rcamsl,
+						'nradial': nradial,
+						'format': format,
+						'azimuth': azimuths,
+						'haat_azimuth': haat_av,
+						'haat_average': haat_total,
+						'unit': unit
+	
+		};
+		return content;	
+	}
+	else {
+		var content = {"status": "error", "msg": "unknown format"};
+		return content;
+	}
+
+}
 
 
+function getNonExistingFiles(filenames)  {
+	
+	var i, filename, filepath, src;
 
-
-
-
-
-
-
-
-
-
+	var filenames_no = [];
+	for (i = 0; i < filenames.length; i++) {
+		src = 'globe30';
+		if (filenames[i].match(/flt/)) {
+			src = 'ned_' + filenames[i].replace(/^.*_/, '').replace(/\..*$/, '');
+		}
+		filepath = data_dir + '/' + src + '/' + filenames[i];
+		if (!fs.existsSync(filepath)) {
+			filenames_no.push(filenames[i]);
+		}
+	}
+	return filenames_no;
+}
 
 
 function arrMean(arr) {
@@ -459,15 +553,27 @@ function getLatLonFromFileName(filename) {
 	return [lat, lon];
 }
 
-function makeFileName(lat, lon, src) {
-
+function getLatLonFromFileNameGlobe(filename) {
+	var i;
+	for (i = 0; i < globe_files.files.length; i++) {
+		if (globe_files.files[i].filename == filename) {
+			return [globe_files.files[i].ullat, globe_files.files[i].ullon, globe_files.files[i].lrlat, globe_files.files[i].lrlon];
+		}
+	}
 	
+	return [None, None, None, None];
+}
+
+
+function makeFileName(lat, lon, src, res) {
+
+
 	if (lat <= -90 || lat > 90 || lon < -180 || lon > 180) {
 		res.send({'status': 'error', 'msg': 'Lat/Lon value out of range'});
 		return;
 	}
 	
-	if (src != 'ned_1' && src != 'ned_13') {
+	if (src != 'ned_1' && src != 'ned_2' && src != 'ned_13') {
 		res.send({'status': 'error', 'msg': 'Wrong data type'});
 		return;
 	}
@@ -537,16 +643,83 @@ function uniqArray(arr) {
 	return uniq;
 }
 
+function getGlobeFileName(lat, lon) {
+	var i;
 
+	for (i = 0; i < globe_files.files.length; i++) {
+		if (lat <= globe_files.files[i].ullat && lat > globe_files.files[i].lrlat && lon >= globe_files.files[i].ullon && lon < globe_files.files[i].lrlon) {
+			return globe_files.files[i].filename;
+		} 
+	}
+}
 
+function useGlobeData(res, filenames_globe) {
 
+	var filenames_no = getNonExistingFiles(filenames_globe);
+	var i, filepath;
+	
+	//if (filenames_no.length > 0) {
+			//fetch data from S3
 
+		var asyncTasks = [];
+		
+		for (i = 0; i < filenames_no.length; i++) {
+		asyncTasks.push(getFileFromS3(filenames_no[i]));
+		}
+		async.parallel(asyncTasks, function() {
+			console.log("all done getting globe");
+			filenames_no = getNonExistingFiles(filenames_globe);
+			for (i = 0; i < filenames_globe.length; i++) {
+				filepath = data_dir + '/globe30/' + filenames_globe[i];
+				readDataFile(i, filepath, latlon);
+			}
+			
+		output_data = output_data.sort(comparator);
+		var output_haat = formatHAAT();
+		
+		endTime = new Date().getTime();
+		var elapsed_time = endTime - startTime;
+		
+		if (format == 'json') {
+			output_haat['elapsed_time'] = elapsed_time + ' ms';
+		}
+		
+		console.log(output_haat);
+		
+		res.send(output_haat);
+		console.log('done');
+			
+		});
+			
+	//res.send({"status": "globe"});
 
+}
 
+function checkS3(filenames, src) {
 
-
-
-
+	var files = [];
+	for (var i = 0; i < filenames.length; i++) {
+		if (src == 'ned_1') {
+			for (var key in ned_1_files) {
+				if (ned_1_files[key].file == filenames[i]) {
+					files.push(filenames[i]);
+					break;
+				}
+			}
+		}
+		else {
+			for (var key in ned_2_files) {
+				if (ned_2_files[key].file == filenames[i]) {
+					files.push(filenames[i]);
+					break;
+				}
+			}
+		
+		}
+	}
+	
+	return files;
+}
 
 
 module.exports.getHAAT = getHAAT;

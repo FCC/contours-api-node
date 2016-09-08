@@ -6,9 +6,10 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Contour Demo - FCC Contour API</title>
-    <link href="https://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,700italic,400,300,700|Lato:500" rel="stylesheet" type="text/css">
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,700italic,400,300,700|Lato:500" rel="stylesheet">
     <link href="https://api.tiles.mapbox.com/mapbox.js/v2.2.1/mapbox.css" rel="stylesheet">
-    <link href="css/gisp-theme.min.css" rel="stylesheet">    
+    <link href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.6.0/styles/default.min.css" rel="stylesheet">
+    <link href="css/gisp-theme.min.css" rel="stylesheet">
 </head>
 
 <body>
@@ -72,7 +73,7 @@
                 </div>
             </div>
             <div class="row">
-                <div class="col-sm-3">
+                <div class="col-sm-2">
                     <form id="form-params" action="/">
                         <fieldset>
                             <legend>Select API</legend>
@@ -195,8 +196,23 @@
                     <br>
                     <br>
                     </div>
-                    <div class=col-sm-9>
+                    <div class="col-sm-7">
                         <div id="map"></div>
+                    </div>
+                    <div class="col-sm-3">
+                        <div class="apiResponse">
+                            <div class="apiResponse__hd row">
+                                <div class="col-sm-8">
+                                    <b>API Response Body</b>
+                                </div>
+                                <div class="col-sm-4">
+                                    <a class="apiResponse__dwnld hide" href="#" download>Download</a>
+                                </div>
+                            </div>
+                            <div class="apiResponse__out">
+                                <pre><code></code></pre>
+                            </div>
+                        </div>
                     </div>
                 </div>
         </main>
@@ -280,7 +296,7 @@
     <script src="https://api.tiles.mapbox.com/mapbox.js/v2.2.1/mapbox.js"></script>
     <script src="//api.tiles.mapbox.com/mapbox.js/plugins/leaflet-pip/v0.1.0/leaflet-pip.min.js"></script>
     <script src="js/vendor/handlebars.min.js"></script>
-    <!-- <script src="js/vendor/bootstrap.min.js"></script> -->
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.6.0/highlight.min.js"></script>    
     <script src="js/app.js"></script>
 </body>
 

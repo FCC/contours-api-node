@@ -11,8 +11,24 @@ var NODE_PORT =  process.env.PORT || configEnv[NODE_ENV].NODE_PORT;
 var host =  configEnv[NODE_ENV].HOST;
 var geo_host =  configEnv[NODE_ENV].GEO_HOST;
 var geo_space = configEnv[NODE_ENV].GEO_SPACE;
+var AWS_ACCESS_KEY =  configEnv[NODE_ENV].AWS_ACCESS_KEY;
+var AWS_SECRET_KEY = configEnv[NODE_ENV].AWS_SECRET_KEY;
+var AWS_REGION = configEnv[NODE_ENV].AWS_REGION;
+var S3_BUCKET = configEnv[NODE_ENV].S3_BUCKET;
+var S3_NED_LOCATION;
+var S3_ELEV_LOCATION = configEnv[NODE_ENV].S3_ELEV_LOCATION;
+var CDBS_HOST = configEnv[NODE_ENV].CDBS_HOST;
+var CDBS_PORT = configEnv[NODE_ENV].CDBS_PORT;
+var CDBS_DBNAME = configEnv[NODE_ENV].CDBS_DBNAME;
+var CDBS_USER = configEnv[NODE_ENV].CDBS_USER;
+var CDBS_PASSWD = configEnv[NODE_ENV].CDBS_PASSWD;
 
 var fs = require('fs');
+var async = require('async');
+//var Sybase = require('sybase');
+var request = require('request');
+
+var distance = require('./distance.js');
 
 if (NODE_ENV == 'LOCAL') {
 	var data_dir = 'data';
@@ -20,6 +36,10 @@ if (NODE_ENV == 'LOCAL') {
 else {
 	var data_dir = '/var/data';
 }
+
+var startTime;
+
+
 
 function elevation(req, res) {
 
@@ -155,5 +175,155 @@ function getVersions(req, res) {
 
 }
 
+function getContours(req, res) {
+	try {
+		console.log('\n================== start contours process ==============');
+		console.log(new Date());
+		
+		startTime = new Date().getTime();
+		var station_type = req.query.station_type;
+		
+		var channel = req.query.channel;
+		var rcamsl = req.query.rcamsl;
+		var nradial = req.query.nradial;
+		var erp = req.query.erp;
+		var lat = req.query.lat;
+		var lon = req.query.lon;
+		var src = req.query.src;
+		var unit = req.query.unit;
+		var station_type = req.query.station_type;
+		var channel = req.query.channel;
+		var dbu = req.query.dbu;
+		
+		
+		var delta_dbu = 10*Math.log(erp)/Math.log(10);
+		
+		var dbu_curve = dbu - delta_dbu;
+		
+		var curveType = 'F55LV';
+		
+		
+		if (station_type.toLowerCase() == 'fm') {
+			curveType = 'F55LV';
+		}
+		else if (station_type.toLowerCase() == 'tv') {
+			if (channel >= 2 && channel <= 6) {
+				curveType = 'F55LV';
+			}
+			else if (channel >= 7 && channel <= 13) {
+				curveType = 'F55HV';
+			}
+			else if (channel >= 14 && channel <=69) {
+				curveType = 'F55U';
+			}
+		
+		}
+		
+		
+		
+		var hostname = req.hostname;
+		if (hostname == "localhost") {
+			hostname = hostname + ":" + NODE_PORT;
+		}
+		console.log(req.protocol);
+		
+		var root_url = req.protocol + "://" + hostname;
+		
+		//get haat
+		var url = root_url + "/haat.json?lat=" + lat + "&lon=" + lon + "&rcamsl=" + rcamsl + "&nradial=" + nradial + "&src=" + src + "&unit=" + unit;
+		
+		console.log(url);
+		
+		request(url, function (error, response, body) {
+			if(error){
+				return console.log('Error:', error);
+			}
+			if (response.statusCode !== 200){
+				return console.log('Invalid Status Code Returned:', response.statusCode);
+			}
+			
+			var haat = JSON.parse(body);
+			
+			//console.log(haat);
+			
+			var dist_arr = [];
+			var dist;
+			var latlon;
+			var latlon_1st;
+			var coordinates = [];
+			for (var i = 0; i < haat.haat_azimuth.length; i++) {
+				dist = distance.calTvFmDist(haat.haat_azimuth[i], dbu, curveType);
+				console.log(dist);
+				latlon = getLatLonFromDist(lat, lon, haat.azimuth[i], dist);
+				if (i == 0) {
+					latlon_1st = latlon;
+				}
+				coordinates.push([latlon[1], latlon[0]]);
+			}
+			coordinates.push([latlon_1st[1], latlon_1st[0]]);
+			
+			coordinates = [[coordinates]];
+			
+			//console.log(coordinates.toString())
+			
+			var output = {"type": "FeatureCollection",
+							"features": [
+								{
+									"geometry": {
+									"type": "MultiPolygon",
+									"coordinates": coordinates
+									},
+									"properties": {
+										"antenna_lat": lat,
+										"antenna_lon": lon,
+										"station_type": station_type,
+										"rcamsl": rcamsl,
+										"nradial": nradial
+									}
+								}
+							
+							]
+						};
+			
+			
+			res.send(output);
+
+		});
+	}
+	catch(err) {
+		console.log(err);
+		res.status(400).send({
+			'status': 'error',
+        	'statusCode':'400',
+        	'statusMessage': 'Error occurred',
+			'error': err.stack
+        });
+	
+	}
+
+}
+
+function getLatLonFromDist(lat1, lon1, az, d) {
+//az: azimuth in degrees
+//d: distance in km
+
+    lat1 = lat1 * Math.PI / 180.0;
+    lon1 = lon1 * Math.PI / 180.0;
+    az = az * Math.PI / 180.0;
+
+    var R = 6371; //earth radius in kms
+    var lat2 = Math.asin(Math.sin(lat1) * Math.cos(d / R) + Math.cos(lat1) * Math.sin(d / R) * Math.cos(az));
+    var lon2 = lon1 + Math.atan2(Math.sin(az) * Math.sin(d / R) * Math.cos(lat1), Math.cos(d / R) - Math.sin(lat1) * Math.sin(lat2));
+
+    lat2 = lat2 * 180 / Math.PI;
+    lon2 = lon2 * 180 / Math.PI;
+
+    return [lat2, lon2]
+}
+
+
+
 module.exports.elevation = elevation;
-module.exports.getVersions = getVersions;
+module.exports.getContours = getContours;
+
+

@@ -66,19 +66,35 @@ function getHAAT(req, res) {
 		startTime = new Date().getTime();
 
 		if (!url.match(/lat=/i)) {
-			res.send({'status': 'error', 'msg': 'missing lat value'});
+			res.status(400).send({
+				'status': 'error',
+				'statusCode':'400',
+				'statusMessage': 'missing lat value'
+			});
 			return;
 		}
 		if (!url.match(/lon=/i)) {
-			res.send({'status': 'error', 'msg': 'missing lon value'});
+			res.status(400).send({
+				'status': 'error',
+				'statusCode':'400',
+				'statusMessage': 'missing lon value'
+			});
 			return;
 		}
 		if (!url.match(/rcamsl=/i)) {
-			res.send({'status': 'error', 'msg': 'missing rcamsl value'});
+			res.status(400).send({
+				'status': 'error',
+				'statusCode':'400',
+				'statusMessage': 'missing rcamsl value'
+			});
 			return;
 		}
 		if (!url.match(/nradial=/i)) {
-			res.send({'status': 'error', 'msg': 'missing nradial value'});
+			res.status(400).send({
+				'status': 'error',
+				'statusCode':'400',
+				'statusMessage': 'missing nradial value'
+			});
 			return;
 		}
 
@@ -101,27 +117,51 @@ function getHAAT(req, res) {
 		
 		var i, j;
 		if ( !lat.match(/^-?\d+\.?\d*$/) || !lon.match(/^-?\d+\.?\d*$/) ) {
-			res.send({'status': 'error', 'msg': 'invalid Lat/Lon value'});
+			res.status(400).send({
+				'status': 'error',
+				'statusCode':'400',
+				'statusMessage': 'invalid lat/lon value'
+			});
 			return;
 		}
 		if ( !rcamsl.match(/^\d*$/) ) {
-			res.send({'status': 'error', 'msg': 'invalid rcamsl value'});
+			res.status(400).send({
+				'status': 'error',
+				'statusCode':'400',
+				'statusMessage': 'invalid rcamsl value'
+			});
 			return;
 		}
 		if ( !nradial.match(/^\d*$/) ) {
-			res.send({'status': 'error', 'msg': 'invalid nradial value'});
+			res.status(400).send({
+				'status': 'error',
+				'statusCode':'400',
+				'statusMessage': 'invalid nradial value'
+			});
 			return;
 		}
 		if ( parseFloat(lat) > 90 || parseFloat(lat) < -90 ) {
-			res.send({'status': 'error', 'msg': 'Lat value out of range'});
+			res.status(400).send({
+				'status': 'error',
+				'statusCode':'400',
+				'statusMessage': 'lat value out of range'
+			});
 			return;
 		}
 		if ( parseFloat(lon) > 180 || parseFloat(lon) < -180 ) {
-			res.send({'status': 'error', 'msg': 'Lon value out of range'});
+			res.status(400).send({
+				'status': 'error',
+				'statusCode':'400',
+				'statusMessage': 'lon value out of range'
+			});
 			return;
 		}
 		if ( parseFloat(nradial) <1 || parseFloat(nradial) > 360 ) {
-			res.send({'status': 'error', 'msg': 'nradial value out of range'});
+			res.status(400).send({
+				'status': 'error',
+				'statusCode':'400',
+				'statusMessage': 'nradial value out of range'
+			});
 			return;
 		}
 

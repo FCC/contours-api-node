@@ -8,7 +8,7 @@ describe('Profile API test', function() {
             this.timeout(10000);
 
             request(server)
-                .get('/profile.json?lat=38.5&lon=-90.5&azimuth=45.5&src=ned_1&unit=m')
+                .get('/profile.json?lat=38.5&lon=-77.5&azimuth=45.5&src=ned_1&unit=m')
                 .expect('Content-Type', /json/)
                 .expect(200)
                 .end(function(err, res) {
@@ -16,7 +16,7 @@ describe('Profile API test', function() {
                         throw err;
                     }
 
-                    res.body.should.have.property('elevation');
+                    res.body.features[0].properties.should.have.property('elevation');
                     done();
                 });
         });
@@ -25,7 +25,7 @@ describe('Profile API test', function() {
             this.timeout(10000);
 
             request(server)
-                .get('/profile.json?lon=-90.5&azimuth=45.5&src=ned_1&unit=m')
+                .get('/profile.json?lon=-77.5&azimuth=45.5&src=ned_1&unit=m')
                 .expect('Content-Type', /json/)
                 .expect(400)
                 .end(function(err, res) {
@@ -33,8 +33,8 @@ describe('Profile API test', function() {
                         throw err;
                     }
 
-                    res.body.should.have.property('statusCode').be.equal('400');
-                    res.body.should.have.property('statusMessage').be.equal('missing lat value');
+                    res.body.features[0].properties.should.have.property('statusCode').be.equal('400');
+                    res.body.features[0].properties.should.have.property('statusMessage').be.equal('missing lat value');
                     done();
                 });
         });
@@ -51,8 +51,8 @@ describe('Profile API test', function() {
                         throw err;
                     }
 
-                    res.body.should.have.property('statusCode').be.equal('400');
-                    res.body.should.have.property('statusMessage').be.equal('missing lon value');
+                    res.body.features[0].properties.should.have.property('statusCode').be.equal('400');
+                    res.body.features[0].properties.should.have.property('statusMessage').be.equal('missing lon value');
                     done();
                 });
         });
@@ -61,7 +61,7 @@ describe('Profile API test', function() {
             this.timeout(10000);
 
             request(server)
-                .get('/profile.json?lat=38.5&lon=-90.5&src=ned_1&unit=m')
+                .get('/profile.json?lat=38.5&lon=-77.5&src=ned_1&unit=m')
                 .expect('Content-Type', /json/)
                 .expect(400)
                 .end(function(err, res) {
@@ -69,8 +69,8 @@ describe('Profile API test', function() {
                         throw err;
                     }
 
-                    res.body.should.have.property('statusCode').be.equal('400');
-                    res.body.should.have.property('statusMessage').be.equal('missing azimuth value');
+                    res.body.features[0].properties.should.have.property('statusCode').be.equal('400');
+                    res.body.features[0].properties.should.have.property('statusMessage').be.equal('missing azimuth value');
                     done();
                 });
         });
@@ -87,8 +87,8 @@ describe('Profile API test', function() {
                         throw err;
                     }
 
-                    res.body.should.have.property('statusCode').be.equal('400');
-                    res.body.should.have.property('statusMessage').be.equal('lat value out of range');
+                    res.body.features[0].properties.should.have.property('statusCode').be.equal('400');
+                    res.body.features[0].properties.should.have.property('statusMessage').be.equal('lat value out of range');
                     done();
                 });
         });
@@ -105,8 +105,8 @@ describe('Profile API test', function() {
                         throw err;
                     }
 
-                    res.body.should.have.property('statusCode').be.equal('400');
-                    res.body.should.have.property('statusMessage').be.equal('lon value out of range');
+                    res.body.features[0].properties.should.have.property('statusCode').be.equal('400');
+                    res.body.features[0].properties.should.have.property('statusMessage').be.equal('lon value out of range');
                     done();
                 });
         });

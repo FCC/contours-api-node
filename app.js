@@ -22,8 +22,8 @@ var contour = require('./controllers/contour.js');
 var elevation = require('./controllers/elevation.js');
 var haat = require('./controllers/haat.js');
 var profile = require('./controllers/profile.js');
-var station = require('./controllers/station.js');
-var contours = require('./controllers/contours.js');
+//var station = require('./controllers/station.js');
+//var contours = require('./controllers/contours.js');
 
 // **********************************************************
 // config
@@ -143,6 +143,7 @@ app.get('/profile.csv', function(req, res){
 	profile.getProfile(req, res);
 });
 
+/*
 app.get('/station.json', function(req, res){
 	station.getStation(req, res);
 });
@@ -150,6 +151,7 @@ app.get('/station.json', function(req, res){
 app.get('/contours.json', function(req, res){
 	contours.getContours(req, res);
 });
+*/
 
 // **********************************************************
 // error

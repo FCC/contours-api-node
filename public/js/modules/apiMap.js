@@ -9,13 +9,13 @@
 
         getData: function(apiURL, apiSuccess) {
 
-            var ajaxSuccess = function(data) {
-                if (data.status === 'error') {
-                    APIForm.showError();
-                } else {
+            var ajaxSuccess = function(data) { 
+                if (data.features[0].properties.status === 'success') {
                     $('.alert').hide('fast');
                     APIMap.createMarker(data);
-                    APIResponse.display(data);
+                    APIResponse.display(data);                    
+                } else {
+                    APIForm.showError();
                 }
             };
 

@@ -1,10 +1,8 @@
 (function() {
     'use strict';
 
-    var APIForm = require('./apiForm.js');
     var APIMap = require('./apiMap.js');
-    var Map = require('./map.js');
-
+    
     var HAATMap = {
 
         getData: function() {
@@ -18,19 +16,20 @@
         },
         getTooltipMeta: function(data) {
             var haatMeta = '<dl class="dl-haat dl-horizontal">';
+            var dataHAAT = data.features[0].properties; 
 
             haatMeta += '<dt>Average HAAT:</dt>';
-            haatMeta += '<dd>' + data.haat_average + ' ' + data.unit + '</dd>';
+            haatMeta += '<dd>' + dataHAAT.haat_average + ' ' + dataHAAT.unit + '</dd>';
             haatMeta += '<dt>Latitude:</dt>';
-            haatMeta += '<dd>' + data.lat + '</dd>';
+            haatMeta += '<dd>' + dataHAAT.lat + '</dd>';
             haatMeta += '<dt>Longitude:</dt>';
-            haatMeta += '<dd>' + data.lon + '</dd>';
+            haatMeta += '<dd>' + dataHAAT.lon + '</dd>';
             haatMeta += '<dt># of radials:</dt>';
-            haatMeta += '<dd>' + data.nradial + '</dd>';
+            haatMeta += '<dd>' + dataHAAT.nradial + '</dd>';
             haatMeta += '<dt>RCAMSL:</dt>';
-            haatMeta += '<dd>' + data.rcamsl + '</dd>';
+            haatMeta += '<dd>' + dataHAAT.rcamsl + '</dd>';
             haatMeta += '<dt>Data Source:</dt>';
-            haatMeta += '<dd>' + data.elevation_data_source + '</dd>';
+            haatMeta += '<dd>' + dataHAAT.elevation_data_source + '</dd>';
             haatMeta += '</dl>';
 
             return haatMeta;

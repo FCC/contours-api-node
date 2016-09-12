@@ -21,6 +21,7 @@ var S3_ELEV_LOCATION = configEnv[NODE_ENV].S3_ELEV_LOCATION;
 var fs = require('fs');
 var async = require('async');
 var AWS = require('aws-sdk');
+var GeoJSON = require('geojson');
 
 AWS.config.update({
         accessKeyId: AWS_ACCESS_KEY,
@@ -62,40 +63,47 @@ function getHAAT(req, res) {
 		output_data = [];
 		
 		var url = req.url;
+
+		var dataObj = new Object;		
+		dataObj['status'] = 'error';
+		dataObj['statusCode'] = '400';
+		dataObj['statusMessage'] = '';
+		dataObj['latitude'] = '';
+		dataObj['longitude'] = '';
+
+		GeoJSON.defaults = {Point: ['latitude', 'longitude'], include: ['status','statusCode','statusMessage']};
 		
 		startTime = new Date().getTime();
 
-		if (!url.match(/lat=/i)) {
-			res.status(400).send({
-				'status': 'error',
-				'statusCode':'400',
-				'statusMessage': 'missing lat value'
-			});
-			return;
+		if (!url.match(/lat=/i)) {	
+			console.error('lat error');
+
+			dataObj.statusMessage = 'missing lat value';
+			returnError(dataObj, function(ret){
+                 res.status(400).send(GeoJSON.parse(ret, {}));                                         
+            });
+            return;
 		}
 		if (!url.match(/lon=/i)) {
-			res.status(400).send({
-				'status': 'error',
-				'statusCode':'400',
-				'statusMessage': 'missing lon value'
-			});
-			return;
+			dataObj.statusMessage = 'missing lon value';
+			returnError(dataObj, function(ret){
+                 res.status(400).send(GeoJSON.parse(ret, {}));                                         
+            });
+            return;			
 		}
 		if (!url.match(/rcamsl=/i)) {
-			res.status(400).send({
-				'status': 'error',
-				'statusCode':'400',
-				'statusMessage': 'missing rcamsl value'
-			});
-			return;
+			dataObj.statusMessage = 'missing rcamsl value';
+			returnError(dataObj, function(ret){
+                 res.status(400).send(GeoJSON.parse(ret, {}));                                         
+            });
+            return;
 		}
 		if (!url.match(/nradial=/i)) {
-			res.status(400).send({
-				'status': 'error',
-				'statusCode':'400',
-				'statusMessage': 'missing nradial value'
-			});
-			return;
+			dataObj.statusMessage = 'missing nradial value';
+			returnError(dataObj, function(ret){
+                 res.status(400).send(GeoJSON.parse(ret, {}));                                         
+            });
+            return;
 		}
 
 		src = url.replace(/^.*src=/i, '').replace(/&.*$/, '').toLowerCase();
@@ -116,53 +124,52 @@ function getHAAT(req, res) {
 		}
 		
 		var i, j;
-		if ( !lat.match(/^-?\d+\.?\d*$/) || !lon.match(/^-?\d+\.?\d*$/) ) {
-			res.status(400).send({
-				'status': 'error',
-				'statusCode':'400',
-				'statusMessage': 'invalid lat/lon value'
-			});
-			return;
-		}
+		dataObj.latitude = lat;
+        dataObj.longitude = lon;
+
+        if ( !lat.match(/^-?\d+\.?\d*$/) || !lon.match(/^-?\d+\.?\d*$/) ) {            
+            
+            dataObj.statusMessage = 'invalid lat/lon value';
+            returnError(dataObj, function(ret){
+                 res.status(400).send(GeoJSON.parse(ret, {}));                                         
+            });
+            return;
+        }
+		
 		if ( !rcamsl.match(/^\d*$/) ) {
-			res.status(400).send({
-				'status': 'error',
-				'statusCode':'400',
-				'statusMessage': 'invalid rcamsl value'
-			});
-			return;
+			dataObj.statusMessage = 'invalid rcamsl value';
+            returnError(dataObj, function(ret){
+                 res.status(400).send(GeoJSON.parse(ret, {}));                                         
+            });
+            return;
 		}
 		if ( !nradial.match(/^\d*$/) ) {
-			res.status(400).send({
-				'status': 'error',
-				'statusCode':'400',
-				'statusMessage': 'invalid nradial value'
-			});
-			return;
+			dataObj.statusMessage = 'invalid nradial value';
+            returnError(dataObj, function(ret){
+                 res.status(400).send(GeoJSON.parse(ret, {}));                                         
+            });
+            return;
 		}
 		if ( parseFloat(lat) > 90 || parseFloat(lat) < -90 ) {
-			res.status(400).send({
-				'status': 'error',
-				'statusCode':'400',
-				'statusMessage': 'lat value out of range'
-			});
-			return;
+			dataObj.statusMessage = 'lat value out of range';
+            returnError(dataObj, function(ret){
+                 res.status(400).send(GeoJSON.parse(ret, {}));                                         
+            });
+            return;			
 		}
 		if ( parseFloat(lon) > 180 || parseFloat(lon) < -180 ) {
-			res.status(400).send({
-				'status': 'error',
-				'statusCode':'400',
-				'statusMessage': 'lon value out of range'
-			});
-			return;
+			dataObj.statusMessage = 'lon value out of range';
+            returnError(dataObj, function(ret){
+                 res.status(400).send(GeoJSON.parse(ret, {}));                                         
+            });
+            return;
 		}
 		if ( parseFloat(nradial) <1 || parseFloat(nradial) > 360 ) {
-			res.status(400).send({
-				'status': 'error',
-				'statusCode':'400',
-				'statusMessage': 'nradial value out of range'
-			});
-			return;
+			dataObj.statusMessage = 'nradial value out of range';
+            returnError(dataObj, function(ret){
+                 res.status(400).send(GeoJSON.parse(ret, {}));                                         
+            });
+            return;			
 		}
 
 		lat = parseFloat(lat);
@@ -220,10 +227,13 @@ function getHAAT(req, res) {
 		filenames_ned_1 = uniqArray(filenames_ned_1);
 		filenames_ned_2 = uniqArray(filenames_ned_2);
 		filenames_globe = uniqArray(filenames_globe);
+
+		dataObj = prepareDataObject(dataObj);        
+
 		
 		if (src == 'globe30') {
 			console.log('use globe data');	
-			useGlobeData(res,filenames_globe);
+            useGlobeData(res, dataObj, filenames_globe);
 		}
 		
 		//check if file exists locally and on S3
@@ -244,11 +254,11 @@ function getHAAT(req, res) {
 				}
 				async.parallel(asyncTasks, function() {
 					console.log("all done getting ned_1 from S3");
-					processDataFiles(res, filenames_ned_1);
+					processDataFiles(res, dataObj, filenames_ned_1);
 					});	
 			}
 			else {
-				processDataFiles(res, filenames_ned_1);
+				processDataFiles(res, dataObj, filenames_ned_1);
 			}
 			
 		}
@@ -264,27 +274,26 @@ function getHAAT(req, res) {
 				}
 				async.parallel(asyncTasks, function() {
 					console.log("all done getting ned_2");
-					processDataFiles(res, filenames_ned_2);
+					processDataFiles(res, dataObj, filenames_ned_2);
 					});	
 			}
 			else {
-				processDataFiles(res, filenames_ned_2);
+				processDataFiles(res, dataObj, filenames_ned_2);
 			}
 		}
 		else {
 			src = 'globe30';
 			console.log('use globe30');
-			useGlobeData(res,filenames_globe);
+			useGlobeData(res, dataObj, filenames_globe);
 		}
 	}
-	catch(err) {
-		console.log(err);
-		res.status(400).send({
-			'status': 'error',
-        	'statusCode':'400',
-        	'statusMessage': 'Error occured',
-			'error': err.stack
+	catch(err) {		
+        console.error('--- HAAT processing error ---'+err);
+        dataObj.statusMessage = 'processing error occured';
+        returnError(dataObj, function(ret){
+             res.status(400).send(GeoJSON.parse(ret, {}));                                         
         });
+        return;
 	}
 	
 	console.log('Done');
@@ -335,7 +344,7 @@ var getFileFromS3 = function(filename) { return function(callback) {
 }
 
 
-function processDataFiles(res, filenames) {
+function processDataFiles(res, dataObj, filenames) {
 
 	var i, filepath;
 			for (i = 0; i < filenames.length; i++) {
@@ -344,7 +353,7 @@ function processDataFiles(res, filenames) {
 			}
 		
 		output_data = output_data.sort(comparator);
-		var output_haat = formatHAAT();
+		var output_haat = formatHAAT(dataObj);
 		
 		endTime = new Date().getTime();
 		var elapsed_time = endTime - startTime;
@@ -353,7 +362,14 @@ function processDataFiles(res, filenames) {
 			output_haat['elapsed_time'] = elapsed_time + ' ms';
 		}
 		
-		res.send(output_haat);
+		//res.send(output_haat);
+		var return_data = [output_haat];
+
+        res.status(200).send(GeoJSON.parse(return_data, {Point: ['lat', 'lon'], include: ['status','statusCode','statusMessage','about',            
+        	'elevation_data_source','lat','lon', 'rcamsl', 'nradial', 'azimuth','haat_azimuth','haat_average','unit', 'elapsed_time']})); 
+
+        console.log('processDataFiles Done');
+
 }
 
 
@@ -459,7 +475,7 @@ function comparator(a, b) {
 	}
 	}
 	
-function formatHAAT() {
+function formatHAAT(dataObj) {
 
 	var haat_av = [];
 	var i, j, elevs;
@@ -510,32 +526,21 @@ function formatHAAT() {
 		return content;
 	}
 	else if (format == 'json') {
-		var content = {
-						"status": "success", 
-						"statusCode": "200", 
-						"statusMessage": "ok",
-						'about': {
-							'elevation_data_source': 'ned_1, ned_2 are 1-, 2- arc second NED, globe30 is GLOBE 1km data',
-							'nradial': 'number of radials',
-							'rcamsl': 'radiation center above mean sea level',
-							'azimuth': 'an array containing the azimuth of the radials',
-							'haat_azimuth': 'an array containing the HAAT values corresponding to the radials',
-							'haat_average': 'average of the HAATs of all the radials',
-							'elapsed_time': 'time taken by the system to process this request'
-							},
-						'elevation_data_source': src,
-						'lat': lat,
-						'lon': lon,
-						'rcamsl': rcamsl,
-						'nradial': nradial,
-						'format': format,
-						'azimuth': azimuths,
-						'haat_azimuth': haat_av,
-						'haat_average': haat_total,
-						'unit': unit
-	
-		};
-		return content;	
+
+        dataObj.status = 'success';
+        dataObj.statusCode = '200';        
+        dataObj.statusMessage = 'ok';
+        dataObj.elevation_data_source = src;
+        dataObj.lat = lat;
+        dataObj.lon = lon; 
+        dataObj.rcamsl = rcamsl;
+        dataObj.nradial = nradial;
+        dataObj.azimuth = azimuths;
+        dataObj.haat_azimuth = haat_av;
+        dataObj.haat_average = haat_total;        
+        dataObj.unit = unit;
+
+        return dataObj;    
 	}
 	else {
 		var content = {"status": "error", "msg": "unknown format"};
@@ -693,7 +698,7 @@ function getGlobeFileName(lat, lon) {
 	}
 }
 
-function useGlobeData(res, filenames_globe) {
+function useGlobeData(res, dataObj, filenames_globe) {
 
 	var filenames_no = getNonExistingFiles(filenames_globe);
 	var i, filepath;
@@ -715,7 +720,7 @@ function useGlobeData(res, filenames_globe) {
 			}
 			
 		output_data = output_data.sort(comparator);
-		var output_haat = formatHAAT();
+		var output_haat = formatHAAT(dataObj);
 		
 		endTime = new Date().getTime();
 		var elapsed_time = endTime - startTime;
@@ -723,11 +728,17 @@ function useGlobeData(res, filenames_globe) {
 		if (format == 'json') {
 			output_haat['elapsed_time'] = elapsed_time + ' ms';
 		}
-		
+			
 		console.log(output_haat);
 		
-		res.send(output_haat);
-		console.log('done');
+		//res.send(output_haat);
+
+		var return_data = [output_haat];
+
+        res.status(200).send(GeoJSON.parse(return_data, {Point: ['lat', 'lon'], include: ['status','statusCode','statusMessage','about',
+            'elevation_data_source','lat','lon', 'rcamsl', 'nradial', 'azimuth','haat_azimuth','haat_average','unit', 'elapsed_time']})); 
+
+        console.log('useGlobeData Done');
 			
 		});
 			
@@ -761,5 +772,39 @@ function checkS3(filenames, src) {
 	return files;
 }
 
+function prepareDataObject(dataObj){
+	dataObj['about'] = {
+							'elevation_data_source': 'ned_1, ned_2 are 1-, 2- arc second NED, globe30 is GLOBE 1km data',
+							'nradial': 'number of radials',
+							'rcamsl': 'radiation center above mean sea level',
+							'azimuth': 'an array containing the azimuth of the radials',
+							'haat_azimuth': 'an array containing the HAAT values corresponding to the radials',
+							'haat_average': 'average of the HAATs of all the radials',
+							'elapsed_time': 'time taken by the system to process this request'
+						};	
+	dataObj['elevation_data_source'] = '';
+	dataObj['lat'] = '';
+	dataObj['lon'] = '';
+	dataObj['rcamsl'] = '';	
+	dataObj['nradial'] = '';		
+	dataObj['azimuth'];
+	dataObj['haat_azimuth'];	
+	dataObj['haat_average'] = '';	
+	dataObj['unit'] = '';
+	dataObj['elapsed_time'] = '';
+	return dataObj;	
+}
+
+function returnError(data, callback) {             
+    console.log('returnError');
+    var ret = [{ 
+        status: 'error',
+        statusCode: '400',
+        statusMessage: data.statusMessage,
+        latitude: data.latitude,
+        longitude: data.longitude
+        }];
+    return callback(ret);
+}
 
 module.exports.getHAAT = getHAAT;

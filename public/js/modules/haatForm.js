@@ -24,7 +24,7 @@
         },
         createTemplate: function(data) {
             var fields = {};
-            var source = $('#haat-template').html();
+            var source = $('#apiForm-template').html();
             var template, fieldsetHTML;
 
             template = Handlebars.compile(source);

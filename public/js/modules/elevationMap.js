@@ -1,31 +1,18 @@
 (function() {
     'use strict';
 
-    var APIForm = require('./apiForm.js');
     var APIMap = require('./apiMap.js');
-    var Map = require('./map.js');
-    var APIResponse = require('./apiResponse.js');
 
     var ElevationMap = {
 
         getData: function() {
             var elevationAPI = './elevation.json?';
 
-            var apiSuccess = function(data) {
-                if (data.features[0].properties.status === 'success') {
-                    $('.alert').hide('fast');
-                    APIMap.createMarker(data);
-                    APIResponse.display(data);
-                } else {
-                    APIForm.showError();
-                }
-            };
-
             elevationAPI += $('.fields-elevation').serialize();
 
             APIMap.getTooltipMeta = ElevationMap.getTooltipMeta;
 
-            APIMap.getData(elevationAPI, apiSuccess);
+            APIMap.getData(elevationAPI);
         },
         getTooltipMeta: function(data) {
             var elevMeta = '<dl class="dl-elevation dl-horizontal">';

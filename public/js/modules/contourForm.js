@@ -47,13 +47,7 @@
             });
 
             $('#form-params').on('click.contourAPI', '[data-api="contour"]', ContourMap.getContour);
-
-            $(window).keydown(function(event) {
-                if (event.keyCode === 13) {
-                    event.preventDefault();
-                    $('#btn-getAPI').click();
-                }
-            });
+            
         },
         getParams: function() {
             // get parameters (form fields) from Swagger JSON
@@ -71,10 +65,8 @@
         },
         createTemplate: function(data) {
             var fields = {};
-            var source = $('#contour-template').html();
+            var source = $('#apiForm-template').html();
             var template, fieldsetHTML;
-
-
 
             template = Handlebars.compile(source);
 

@@ -23,7 +23,7 @@
                 contourAPI += amParams;
             }
 
-            Map.url = contourAPI;
+            APIResponse.url = contourAPI;
 
             $.ajax({
                 url: contourAPI,

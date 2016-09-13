@@ -36,6 +36,16 @@
             }, {}, {
                 position: 'topleft'
             }).addTo(Map.map);
+
+            Map.map.on('click', function(e) {
+
+                $('.fields:visible')
+                    .find('input[name="lat"]')
+                    .val(e.latlng.lat)
+                    .end()
+                    .find('input[name="lon"]')
+                    .val(e.latlng.lng);
+            });
         },
         createMarker: function(lat, lon) {
             Map.stationMarker = L.marker([lat, lon]).addTo(Map.map);
@@ -44,7 +54,6 @@
 
             if (Map.map.hasLayer(Map.contourJSON)) {
                 Map.map.removeLayer(Map.contourJSON);
-
             }
 
             if (Map.map.hasLayer(Map.stationMarker)) {

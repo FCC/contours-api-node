@@ -64,7 +64,8 @@ describe('Elevation API test', function() {
     describe('src', function() {
         var srcVals = {
             'ned_1': '3DEP 1 arc-second',
-            'usgs': '3DEP 1/3 arc-second'
+            'usgs': '3DEP 1/3 arc-second',
+            'globe30': 'globe30'
         };
 
         for (var key in srcVals) {

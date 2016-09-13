@@ -23,7 +23,7 @@
         },
         createTemplate: function(data) {
             var fields = {};
-            var source = $('#profile-template').html();
+            var source = $('#apiForm-template').html();
             var template, fieldsetHTML;
 
             template = Handlebars.compile(source);

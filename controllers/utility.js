@@ -175,6 +175,7 @@ function getElevFromFile(src, filepath, lat, lon) {
 
 		var length = 4;
 		var position = (row-1) * ncol * 4 + (col - 1) * 4 ;
+		console.log('getElevFromFile row=' + row + ' col=' + col + ' pos=' + position);
 		elev = Math.round(100*data.slice(position, position+4).readFloatLE(0))/100;
 		
 	}

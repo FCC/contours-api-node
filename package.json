@@ -45,7 +45,8 @@
     "pg-promise": "^5.3.3",
     "pg-query": "^0.11.0",
     "request": "^2.69.0",
-    "sybase": "^1.0.8"
+    "sybase": "^1.0.8",
+    "memcached": "^2.2.2"
   },
   "devDependencies": {
     "grunt": "^1.0.1",

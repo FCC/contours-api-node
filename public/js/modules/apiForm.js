@@ -49,8 +49,7 @@
 
             APIResponse.clear();
 
-            Map.clearLayers();
-            Map.resetView();
+            Map.clearLayers();            
         }
     };
 

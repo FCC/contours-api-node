@@ -5858,7 +5858,7 @@ legend {
   width: 100%;
 }
 .dl-horizontal {
-  margin-bottom: 0;
+  margin: 10px 0 0;
 }
 .leaflet-popup-content .dl-horizontal dt {
   width: auto;
@@ -5874,6 +5874,12 @@ legend {
 }
 .dl-profile dd {
   margin-left: 120px;
+}
+.dl-coords {
+  margin-bottom: 10px;
+}
+.dl-coords dd {
+  margin-left: 70px;
 }
 .modal-body {
   font-weight: bold;

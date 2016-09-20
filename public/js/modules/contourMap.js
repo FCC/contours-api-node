@@ -92,7 +92,7 @@
                 contourMeta += '<dd>' + data.features[i].properties.station_lon + '</dd>';
                 contourMeta += '</dl>';
 
-                Map.stationMarker = L.marker([data.features[i].properties.station_lat, data.features[i].properties.station_lon])
+                Map.stationMarker = L.marker([data.features[i].properties.station_lat, data.features[i].properties.station_lon], Map.markerIcon)
                     .addTo(Map.featureLayer)
                     .bindPopup(contourMeta);
             }

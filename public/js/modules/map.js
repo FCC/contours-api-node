@@ -101,7 +101,7 @@
                 .openPopup()
                 .on('click', showCoords);
 
-            $('#removeMarker').on('click', removeCoords);
+            $('.leaflet-popup-content').on('click', '#removeMarker', removeCoords);
 
         },
         clearLayers: function() {

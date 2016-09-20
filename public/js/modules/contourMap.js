@@ -86,6 +86,8 @@
                 contourMeta += '<dd>' + data.features[i].properties.facility_id + '</dd>';
                 contourMeta += '<dt>File Number:</dt>';
                 contourMeta += '<dd>' + data.features[i].properties.filenumber + '</dd>';
+                contourMeta += '<dt>Application ID:</dt>';
+                contourMeta += '<dd>' + data.features[i].properties.application_id + '</dd>';
                 contourMeta += '<dt>Latitude:</dt>';
                 contourMeta += '<dd>' + data.features[i].properties.station_lat + '</dd>';
                 contourMeta += '<dt>Longitude:</dt>';

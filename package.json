@@ -39,6 +39,7 @@
     "http": "0.0.0",
     "istanbul": "0.4.0",
     "js2xmlparser": "^0.1.9",
+	"mathjs": "^3.5.0",
     "moment": "^2.10.3",
     "morgan": "^1.6.1",
     "pg": "^4.4.3",

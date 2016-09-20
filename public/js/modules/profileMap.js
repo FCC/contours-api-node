@@ -6,13 +6,13 @@
     var ProfileMap = {
 
         getData: function() {
-            var haatAPI = './profile.json?';
+            var profileAPI = './profile.json?';
             
-            haatAPI += $('.fields-profile').serialize();
+            profileAPI += $('.fields-profile').find('input, select').serialize();
 
             APIMap.getTooltipMeta = ProfileMap.getTooltipMeta;
 
-            APIMap.getData(haatAPI);
+            APIMap.getData(profileAPI);
         },
         getTooltipMeta: function(data) {
             var haatMeta = '<dl class="dl-profile dl-horizontal">';

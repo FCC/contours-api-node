@@ -25,6 +25,7 @@ var elevation = require('./controllers/elevation.js');
 var haat = require('./controllers/haat.js');
 var profile = require('./controllers/profile.js');
 var station = require('./controllers/station.js');
+var distance = require('./controllers/distance.js');
 //var contours = require('./controllers/contours.js');
 
 // **********************************************************
@@ -188,6 +189,11 @@ app.get('/profile.csv', function(req, res){
 app.get('/station.json', function(req, res){
     station.getStation(req, res);
 });
+
+app.get('/distance.json', function(req, res){
+    distance.getDistance(req, res);
+});
+
 
 
 /*

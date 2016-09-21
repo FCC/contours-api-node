@@ -586,15 +586,15 @@ function makeArray(arr, nrow, ncol) {
 function getDistance(req, res) {
 	try {
 	
-	var antenna_height = req.query.antenna_height;
+	var haat = req.query.haat;
 	var dbu = req.query.dbu;
 	var curve_type = req.query.curve_type;
 	
-	if (antenna_height == undefined) {
+	if (haat == undefined) {
 		res.status(400).send({
 		'status': 'error',
 		'statusCode':'400',
-		'statusMessage': 'missing antenna_height'
+		'statusMessage': 'missing haat'
 		});
 		return;
 	}
@@ -629,11 +629,11 @@ function getDistance(req, res) {
 		return;
 	}
 	
-	 if ( !antenna_height.match(/\d+\.?\d*$/)) {
+	 if ( !haat.match(/\d+\.?\d*$/)) {
 	 	res.status(400).send({
 		'status': 'error',
 		'statusCode':'400',
-		'statusMessage': 'invalid antenna_height value'
+		'statusMessage': 'invalid haat value'
 		});
 		return;
 	 }
@@ -650,11 +650,11 @@ function getDistance(req, res) {
 	
 	
 	
-	var distance = calTvFmDist(antenna_height, dbu, curve_type_uc);
+	var distance = calTvFmDist(haat, dbu, curve_type_uc);
 	
 	res.send(
-	{'antenna_height': antenna_height,
-	'antenna_height_unit': 'm',
+	{'haat': haat,
+	'haat_unit': 'm',
 	'dbu': dbu,
 	'curve_type': curve_type,
 	'distance': distance,

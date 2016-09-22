@@ -1,13 +1,13 @@
 {
     "swagger": "2.0",
     "info": {
-        "version": "1.3.0",
-        "title": "FCC Contour API"
+        "version": "1.5.0",
+        "title": "FCC Contours API"
     },
     "basePath": "/api/contours",
     "tags": [{
         "name": "contour",
-        "description": "FCC Contour API"
+        "description": "FCC Contours API"
     }],
     "paths": {
 
@@ -53,7 +53,7 @@
                     "in": "path",
                     "description": "Name or ID of service. <br /><br />Values of facilityid, callsign, filenumber, applicationid, or antennaid. <br /><br />Examples: 1051 (facilityid); WBAL-TV (callsign)",
                     "required": true,
-                    "type": "string",
+                    "type": "integer",
                     "defaultValue": ""
                 }, {
                     "name": "stationClass",

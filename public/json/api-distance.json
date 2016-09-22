@@ -1,0 +1,65 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "version": "1.5.0",
+        "title": "FCC Distance API"
+    },
+    "basePath": "/api/contours",
+    "tags": [{
+        "name": "Distance",
+        "description": "FCC Distance API"
+    }],
+    "paths": {
+        "/distance.{format}": {
+            "get": {
+                "tags": ["Distance"],
+                "summary": "Get Distance",
+                "description": "Get Distance data based on dBu, HAAT, and curve type. Response returned in JSON format.",
+                "parameters": [{
+                    "name": "dbu",
+                    "label": "dBu",
+                    "display": true,
+                    "in": "query",
+                    "description": "Decibel unit",
+                    "required": true,
+                    "type": "number",
+                    "defaultValue": ""
+                }, {
+                    "name": "haat",
+                    "label": "HAAT",
+                    "display": true,
+                    "in": "query",
+                    "description": "Height Above Average Terrain",
+                    "required": true,
+                    "type": "number",
+                    "defaultValue": ""
+                }, {
+                    "name": "curve_type",
+                    "label": "Curve Type",
+                    "display": true,
+                    "in": "query",
+                    "description": "<b>F55LV</b> - use F(50, 50) for FM and NTSC TV channels 2 to 6<br /><br /><b>F51LV</b> - use F(50, 10) for FM and NTSC TV channels 2 to 6<br /><br /><b>F55HV</b> - use F(50, 50) for NTSC TV channels 7 to 13<br /><br /><b>F51HV</b> - use F(50, 10) for NTSC TV channels 7 to 13<br /><br /><b>F55U</b> - use F(50, 50) for NTSC TV channels 14 to 69<br /><br /><b>F51U</b> - use F(50, 10) for NTSC TV channels 14 to 69",
+                    "required": true,
+                    "type": "string",
+                    "defaultValue": "ned",
+                    "enum": [
+                        "F55LV",
+                        "F51LV",
+                        "F55HV",
+                        "F51HV",
+                        "F55U",
+                        "F51U"
+                    ]
+                }],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                },
+                "produces": [
+                    "application/json"
+                ]
+            }
+        }
+    }
+}

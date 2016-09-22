@@ -178,6 +178,13 @@ describe('HAAT API test', function() {
                     done();
                 });
         });
+
+        it('should return data in CSV format', function(done) {
+            request(server)
+                .get('/haat.csv')
+                .expect('Content-Type', /csv/)
+                .expect(200, done);
+        });
 		
 
 	});

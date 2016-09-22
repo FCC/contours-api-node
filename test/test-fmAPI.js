@@ -224,6 +224,14 @@ describe('FM Service', function() {
                 .expect(200, done);
         });
 
+        it('should return JSON format if format not specified', function(done) {
+
+            request(server)
+                .get('/fm/callsign/wamu')
+                .expect('Content-Type', /json/)
+                .expect(200, done);
+        });
+
         //JSONP not supported
         // it('should return JSONP format', function(done) {    
 

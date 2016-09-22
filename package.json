@@ -5,7 +5,7 @@
   "main": "app.js",
   "scripts": {
     "start": "node app.js",
-    "test": "./node_modules/.bin/mocha --require should test/**/test-*.js"
+    "test": "./node_modules/.bin/istanbul cover ./node_modules/mocha/bin/_mocha ./test/**/test-*.js || exit 0"
   },
   "repository": {
     "type": "git",
@@ -39,7 +39,7 @@
     "http": "0.0.0",
     "istanbul": "0.4.0",
     "js2xmlparser": "^0.1.9",
-	"mathjs": "^3.5.0",
+    "mathjs": "^3.5.0",
     "moment": "^2.10.3",
     "morgan": "^1.6.1",
     "pg": "^4.4.3",
@@ -64,7 +64,7 @@
     "load-grunt-tasks": "^3.5.2",
     "mocha": "^3.0.0",
     "nodemon": "^1.10.0",
-    "should": "^10.0.0",
+    "should": "^11.1.0",
     "supertest": "^2.0.0",
     "time-grunt": "^1.4.0"
   }

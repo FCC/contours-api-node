@@ -29,7 +29,7 @@
                     "label": "HAAT",
                     "display": true,
                     "in": "query",
-                    "description": "Height Above Average Terrain",
+                    "description": "Height Above Average Terrain<br /><br />Values must be between 30-1600 meters.",
                     "required": true,
                     "type": "number",
                     "defaultValue": ""
@@ -38,7 +38,7 @@
                     "label": "Curve Type",
                     "display": true,
                     "in": "query",
-                    "description": "<b>F55LV</b> - use F(50, 50) for FM and NTSC TV channels 2 to 6<br /><br /><b>F51LV</b> - use F(50, 10) for FM and NTSC TV channels 2 to 6<br /><br /><b>F55HV</b> - use F(50, 50) for NTSC TV channels 7 to 13<br /><br /><b>F51HV</b> - use F(50, 10) for NTSC TV channels 7 to 13<br /><br /><b>F55U</b> - use F(50, 50) for NTSC TV channels 14 to 69<br /><br /><b>F51U</b> - use F(50, 10) for NTSC TV channels 14 to 69",
+                    "description": "<b>F55LV</b> - use F(50, 50) for FM and NTSC TV channels 2 to 6.<br /><br /><b>F51LV</b> - use F(50, 10) for FM and NTSC TV channels 2 to 6.<br /><br /><b>F55HV</b> - use F(50, 50) for NTSC TV channels 7 to 13.<br /><br /><b>F51HV</b> - use F(50, 10) for NTSC TV channels 7 to 13.<br /><br /><b>F55U</b> - use F(50, 50) for NTSC TV channels 14 to 69.<br /><br /><b>F51U</b> - use F(50, 10) for NTSC TV channels 14 to 69.",
                     "required": true,
                     "type": "string",
                     "defaultValue": "ned",

@@ -652,7 +652,7 @@ function getDistance(req, res) {
 	
 	var distance = calTvFmDist(haat, dbu, curve_type_uc);
 	
-	res.send(
+	res.status(200).send(
 	{'haat': haat,
 	'haat_unit': 'm',
 	'dbu': dbu,

@@ -128,6 +128,74 @@ describe('Disance API test', function() {
                     done();
                 });
         });
+		
+		it('distance should be equal to 56 if haat is equal to 30 for dbu=28 and curve_type=F55LV', function(done) {
+            this.timeout(10000);
+
+            request(server)
+                .get('/distance.json?dbu=28&haat=30&curve_type=F55LV')
+                .expect('Content-Type', /json/)
+                .expect(200)
+                .end(function(err, res) {
+                    if (err) {
+                        throw err;
+                    }
+
+                    res.body.should.have.property('distance').be.equal(56);
+                    done();
+                });
+        });
+		
+		it('distance should be equal to 56 if haat is less than 30 for dbu=28 and curve_type=F55LV', function(done) {
+            this.timeout(10000);
+
+            request(server)
+                .get('/distance.json?dbu=28&haat=10&curve_type=F55LV')
+                .expect('Content-Type', /json/)
+                .expect(200)
+                .end(function(err, res) {
+                    if (err) {
+                        throw err;
+                    }
+
+                    res.body.should.have.property('distance').be.equal(56);
+                    done();
+                });
+        });
+		
+		it('distance should be equal to 153.2 if haat is equal to 1600 for dbu=28 and curve_type=F55LV', function(done) {
+            this.timeout(10000);
+
+            request(server)
+                .get('/distance.json?dbu=28&haat=1600&curve_type=F55LV')
+                .expect('Content-Type', /json/)
+                .expect(200)
+                .end(function(err, res) {
+                    if (err) {
+                        throw err;
+                    }
+
+                    res.body.should.have.property('distance').be.equal(153.2);
+                    done();
+                });
+        });
+		
+		it('distance should be equal to 153.2 if haat is larger than 1600 for dbu=28 and curve_type=F55LV', function(done) {
+            this.timeout(10000);
+
+            request(server)
+                .get('/distance.json?dbu=28&haat=1700&curve_type=F55LV')
+                .expect('Content-Type', /json/)
+                .expect(200)
+                .end(function(err, res) {
+                    if (err) {
+                        throw err;
+                    }
+
+                    res.body.should.have.property('distance').be.equal(153.2);
+                    done();
+                });
+        });
 
 	});
 

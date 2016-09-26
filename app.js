@@ -26,7 +26,7 @@ var haat = require('./controllers/haat.js');
 var profile = require('./controllers/profile.js');
 var station = require('./controllers/station.js');
 var distance = require('./controllers/distance.js');
-var contours = require('./controllers/contours.js');
+//var contours = require('./controllers/contours.js');
 var tvfm_curves = require('./controllers/tvfm_curves.js');
 
 // **********************************************************
@@ -196,9 +196,9 @@ app.get('/distance_nci.json', function(req, res){
 });
 
 
-app.get('/contours.json', function(req, res){
-    contours.getContours(req, res);
-});
+//app.get('/contours.json', function(req, res){
+//    contours.getContours(req, res);
+//});
 
 app.get('/distance.json', function(req, res){
     tvfm_curves.getDistance2(req, res);

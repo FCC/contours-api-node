@@ -31,7 +31,7 @@ var fs = require('fs');
 var ned_1_files = require('../data/ned_1_files.json');
 var ned_2_files = require('../data/ned_2_files.json');
 
-var data_dir;
+var data_dir = configEnv[NODE_ENV].EFS_ELEVATION_DATASET;
 var filepath;
 var data_src = 'ned';
 var param_unit = 'm';
@@ -39,17 +39,11 @@ var file_ext = '_1';
 var GeoJSON = require('geojson');
 var utility = require('./utility.js');
 
-if (NODE_ENV == 'LOCAL') {
-	data_dir = 'data/';	
-}
-else {
-	data_dir = '/var/data/';
-}
-
 
 function getElevation(req, res) {
 	var now_dt = new Date();
 	console.log('--- beginning elevation ---' + now_dt.toUTCString());
+	console.log('data_dir = '+data_dir);
 
 	var dataObj = new Object;		
 		dataObj['status'] = 'error';

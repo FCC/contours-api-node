@@ -216,7 +216,9 @@ app.use(function(req, res) {
     };
 
     res.status(404);
-    res.send(err_res);    
+    // res.sendFile('/public/404.html');
+    res.sendFile('404.html', { root: __dirname + '/public' });
+    // res.send(err_res);    
 });
 
 app.use(function(err, req, res, next) {
@@ -232,7 +234,8 @@ app.use(function(err, req, res, next) {
     };  
     
     res.status(500);
-    res.send(err_res);
+    res.sendFile('500.html', { root: __dirname + '/public' });
+    // res.send(err_res);
 });
 
 process.on('uncaughtException', function (err) {

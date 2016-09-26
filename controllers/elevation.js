@@ -23,8 +23,6 @@ AWS.config.update({
      secretAccessKey: AWS_SECRET_KEY,
      region: AWS_REGION,
     });
-var S3_BUCKET = configEnv[NODE_ENV].S3_BUCKET;
-var S3_ELEV_LOCATION = configEnv[NODE_ENV].S3_ELEV_LOCATION;
 
 var fs = require('fs');
 
@@ -149,8 +147,8 @@ function getElevation(req, res) {
 		var lat_str = padZero(lat_ul, 2);
 		var lon_str = padZero(lon_ul, 3);
 
-		var s3_filepath;
-		var s3_filename;
+		var elev_filename;
+		var elev_filepath;		
 		var data_source = datatype;
 
 		var coordName = ns + lat_str + ew + lon_str;
@@ -171,15 +169,13 @@ function getElevation(req, res) {
 				else {
 					console.log('result from getElvFileInfo: '+result);
 					datatype = result[0];
-					s3_filename = result[1];
-					s3_filepath = result[2];
+					elev_filename = result[1];
 				}
 			})
 		}
 		else if(datatype == 'globe30'){
-			s3_filename = utility.getGlobeFileName(lat, lon);
-			s3_filepath =  S3_ELEV_LOCATION + datatype + '/';
-			console.log('globe: filename= '+s3_filename+', filepath='+s3_filepath);
+			elev_filename = utility.getGlobeFileName(lat, lon);			
+			console.log('globe: filename= '+elev_filename);
 		}
 		if (datatype == 'usgs') {
 			console.log('calling USGS API to get data..');
@@ -221,41 +217,23 @@ function getElevation(req, res) {
 		}
 		
 		
-		if (datatype != 'usgs' && s3_filepath && s3_filename) {
-
-			//if(datatype != 'ned'){ // for ned_13
-				//s3_filename = 'float' + coordName + file_ext +'.flt';
-			//}
-			//var s3_filename = 'float' + ns + lat_str + ew + lon_str + file_ext +'.flt';
-			// sample file floatn15w093_1.flt		
+		if (datatype != 'usgs' && elev_filename) {
+			
 			console.log('non usgs flow');
-			console.log('s3_filepath:'+s3_filepath);
-			console.log('s3_filename:'+s3_filename);
+			console.log('elev_filename:'+elev_filename);			
 
-			if(!s3_filepath || !s3_filename) {
-				throw 's3 file error';
+			if(!elev_filename) {
+				throw 'elevation file error';
 			}
-
-			// var row = (lat_ul - lat) * nrow0 + 6 + 1;
-			// var col = (lon_ul - Math.abs(lon)) * ncol0 + 6;
-
-			var filepath = data_dir + datatype + '/' + s3_filename;
 			
-			// row = Math.floor(row);
-			// col = Math.floor(col);
-
-			// var length = 4;
-			// var position = (row-1) * ncol * 4 + (col - 1) * 4 ;
+			var filepath = data_dir + datatype + '/' + elev_filename;
 			
-			// console.log('row=' + row + ' col=' + col + ' pos=' + position);
-
-			console.log('S3_BUCKET='+S3_BUCKET);
-			console.log('data filepath='+ filepath);
+			console.log('elevation data filepath='+ filepath);
 
 			var st_time = new Date().getTime();	
 			console.log('st_time='+st_time);
 
-			if (fs.existsSync(filepath)) { // file is already exist
+			if (fs.existsSync(filepath)) { // file is available in file system.
 				// readfile to calculate elevation data
 				console.log(datatype+' file exist in file system');
 
@@ -273,34 +251,14 @@ function getElevation(req, res) {
 				return returnJson;
 				
 			}
-			else { // if file already not downloaded from s3
+			else { // file not available in file system
 				console.log(datatype +' file not exist in file system');
 				
-				utility.getFileFromS3(datatype, filepath, s3_filepath, s3_filename, function(err, result){
-					if(err){
-						console.error('getElvFileInfo call error');
-						dataObj.statusMessage = 'elevation data not found';							
-						returnError(dataObj, function(ret){
-			                 returnJson = GeoJSON.parse(ret, {});
-			            });
-			            return returnJson;						
-					}
-					else {
-						console.log('file copy success');
-						var elevation = utility.getElevFromFile(datatype, filepath, lat, lon);
-						
-						dataObj.status = 'success';
-		            	dataObj.statusCode = '200';
-		            	dataObj.statusMessage = 'ok';
-		            	dataObj.dataSource = data_source;
-		            	dataObj.elevation = elevation;
-		            	dataObj.unit = unit;
-
-		            	var ret = [dataObj];
-						returnJson = GeoJSON.parse(ret, {});
-						return returnJson;
-					}
-				});
+				dataObj.statusMessage = 'elevation data not found';		
+				returnError(dataObj, function(ret){
+		             returnJson = GeoJSON.parse(ret, {});
+		        });
+		        return returnJson;	
 				
 			}
 

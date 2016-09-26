@@ -25,8 +25,7 @@ function getElvFileInfo(type, coordName, callback) {
 
 	var result = [];
 	var file_type = type;
-	var file_name = '';
-	var file_path;
+	var file_name = '';	
 	try{
 		if(type == 'ned'){
 			if(ned_1_files[coordName]){	
@@ -57,13 +56,12 @@ function getElvFileInfo(type, coordName, callback) {
 			file_path =  S3_ELEV_LOCATION + file_type + '/';
 			console.log('elevation file found!');
 			result[0] = file_type;
-			result[1] = file_name;
-			result[2] = file_path;
+			result[1] = file_name;			
 		}
 		else {
 			throw 'elevation file error';	
 		}
-		console.log('file_name='+file_name+', file_path='+file_path);
+		console.log('file_name='+file_name+', file_type='+file_type);
 		console.log('result ='+result.length);	
 		callback(null, result);
 	}

@@ -273,11 +273,11 @@ describe('Disance API test', function() {
                 });
         });
 		
-		it('should not return distance if curve is not 0 or 1', function(done) {
+		it('should not return distance if curve value is out of range [0, 2]', function(done) {
             this.timeout(10000);
 
             request(server)
-                .get('/distance.json?haat=150&field=28&erp=1&channel=5&curve=2&tv_or_fm=fm')
+                .get('/distance.json?haat=150&field=28&erp=1&channel=5&curve=3&tv_or_fm=fm')
                 .expect('Content-Type', /json/)
                 .expect(400)
                 .end(function(err, res) {
@@ -286,7 +286,7 @@ describe('Disance API test', function() {
                     }
 
 					res.body.should.have.property('statusCode').be.equal('400');
-                    res.body.should.have.property('statusMessage').be.equal('curve value out of range [0, 1]');
+                    res.body.should.have.property('statusMessage').be.equal('curve value out of range [0, 2]');
                     done();
                 });
         });

@@ -199,6 +199,27 @@ function getContours(req, res) {
 		var tv_or_fm = req.query.tv_or_fm;
 		
 		
+		if (tv_or_fm == undefined) {
+			console.log('missing tv_or_fm');
+			res.status(400).send({
+			'status': 'error',
+			'statusCode':'400',
+			'statusMessage': 'missing tv_or_fm'
+			});
+			return;
+		}
+		
+		var tv_fm_list = ['tv', 'fm'];
+		if (tv_fm_list.indexOf(tv_or_fm) < 0) {
+			console.log('invalid tv_or_fm value');
+			res.status(400).send({
+			'status': 'error',
+			'statusCode':'400',
+			'statusMessage': 'invalid tv_or_fm value'
+			});
+			return;
+		}
+		
 		if (src == undefined) {
 			src = 'ned_1';
 		}
@@ -260,7 +281,8 @@ function getContours(req, res) {
 			return;
 		}
 		
-		if (channel == undefined) {
+		if (tv_or_fm.toLowerCase() == 'fm' && channel == undefined) {
+			console.log('missing channel');
 			res.status(400).send({
 			'status': 'error',
 			'statusCode':'400',
@@ -287,7 +309,7 @@ function getContours(req, res) {
 			return;
 		}
 		
-		if ( !lat.match(/-?\d+\.?\d*$/)) {
+		if ( !lat.match(/^-?\d+\.?\d*$/)) {
 			res.status(400).send({
 			'status': 'error',
 			'statusCode':'400',
@@ -296,7 +318,7 @@ function getContours(req, res) {
 			return;
 		}
 		
-		if ( !lon.match(/-?\d+\.?\d*$/)) {
+		if ( !lon.match(/^-?\d+\.?\d*$/)) {
 			res.status(400).send({
 			'status': 'error',
 			'statusCode':'400',
@@ -305,7 +327,7 @@ function getContours(req, res) {
 			return;
 		}
 		
-		if ( !field.match(/-?\d+\.?\d*$/)) {
+		if ( !field.match(/^-?\d+\.?\d*$/)) {
 			res.status(400).send({
 			'status': 'error',
 			'statusCode':'400',
@@ -314,7 +336,7 @@ function getContours(req, res) {
 			return;
 		}
 			
-		if ( !rcamsl.match(/\d+\.?\d*$/)) {
+		if ( !rcamsl.match(/^\d+\.?\d*$/)) {
 			res.status(400).send({
 			'status': 'error',
 			'statusCode':'400',
@@ -323,7 +345,7 @@ function getContours(req, res) {
 			return;
 		}	
 			
-		if ( !nradial.match(/\d+$/)) {
+		if ( !nradial.match(/^\d+$/)) {
 			res.status(400).send({
 			'status': 'error',
 			'statusCode':'400',
@@ -332,7 +354,7 @@ function getContours(req, res) {
 			return;
 		}
 		
-		if ( !erp.match(/\d+\.?\d*$/)) {
+		if ( !erp.match(/^\d+\.?\d*$/)) {
 			res.status(400).send({
 			'status': 'error',
 			'statusCode':'400',
@@ -340,6 +362,25 @@ function getContours(req, res) {
 			});
 			return;
 		}
+		
+		if (channel && !channel.match(/^\d+$/)) {
+			res.status(400).send({
+			'status': 'error',
+			'statusCode':'400',
+			'statusMessage': 'invalid channel value'
+			});
+			return;
+		}
+		
+		if ( !curve.match(/^\d$/)) {
+			res.status(400).send({
+			'status': 'error',
+			'statusCode':'400',
+			'statusMessage': 'invalid curve value'
+			});
+			return;
+		}
+		
 		
 		if ( parseFloat(lat) > 90 || parseFloat(lat) < -90 ) {
 			res.status(400).send({
@@ -363,9 +404,19 @@ function getContours(req, res) {
 			res.status(400).send({
 			'status': 'error',
 			'statusCode':'400',
-			'statusMessage': 'nradial value out of range'
+			'statusMessage': 'nradial value out of range [3, 360]'
 			});
 			return;		
+		}
+				
+		if ( parseFloat(curve) < 0 || parseFloat(curve) > 2) {
+			console.log('curve value out of range [0, 2]');
+			res.status(400).send({
+			'status': 'error',
+			'statusCode':'400',
+			'statusMessage': 'curve value out of range [0, 2]'
+			});
+			return;
 		}
 		
 		if (getNumDecimal(lat) > 10) {
@@ -418,7 +469,7 @@ function getContours(req, res) {
 				return;
 
 			}
-	
+
 			body = JSON.parse(body);
 			
 			if (body.features[0].properties.statusCode + '' != "200"){
@@ -433,15 +484,38 @@ function getContours(req, res) {
 			
 			var dist_arr = [];
 			var dist;
+			var haat;
 			var latlon;
 			var latlon_1st;
 			var coordinates = [];
 			var distance_tmp = 0;
 			var fs_or_dist = 2;
 			var flag = [];
+			var channel_use = channel;
+			if (tv_or_fm == 'tv') {
+				channel_use = 6;
+			}
 			for (var i = 0; i < body.features[0].properties.haat_azimuth.length; i++) {
+				haat = body.features[0].properties.haat_azimuth[i];
+				if (haat > 1600) {
+					haat = 1600;
+				}
+				if (haat < 30) {
+					haat = 30;
+				}
 				//dist = distance.calTvFmDist(body.features[0].properties.haat_azimuth[i], dbu_curve, curve_type);
-				dist = tvfm_curves.tvfmfs_metric(erp, body.features[0].properties.haat_azimuth[i], channel, field, distance_tmp, fs_or_dist, curve, flag);
+				dist = tvfm_curves.tvfmfs_metric(erp, haat, channel_use, field, distance_tmp, fs_or_dist, curve, flag);
+				if (!isNaN(distance)) {
+					console.log('error in distance calculation');
+					res.status(400).send({
+					'status': 'error',
+					'statusCode':'400',
+					'statusMessage': 'error in distance calculation'
+					});
+					return;
+				
+				}
+				
 				if (dist < 0) {
 					dist = 1;
 				}

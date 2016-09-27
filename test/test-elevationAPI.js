@@ -1,8 +1,10 @@
 'use strict';
 
 var request = require('supertest');
-var should = require('should');
 var server = require('../app.js');
+var chai = require('chai');
+var expect = chai.expect;
+var should = chai.should();
 
 describe('Elevation API test', function() {
 
@@ -57,9 +59,12 @@ describe('Elevation API test', function() {
 
     describe('src', function() {
         var srcVals = {
+            'ned': '3DEP 1 arc-second',
             'ned_1': '3DEP 1 arc-second',
+            'ned_2': '3DEP 2 arc-second',
+            'ned_13': '3DEP 1/3 arc-second',            
+            'globe30': 'globe30',
             'usgs': '3DEP 1/3 arc-second',
-            'globe30': 'globe30'
         };
 
         for (var key in srcVals) {
@@ -68,7 +73,7 @@ describe('Elevation API test', function() {
 
         function chkSrc(key) {
             it('should return elevation data if src = ' + key, function(done) {
-                var url = '/elevation.json?lat=38.22&lon=-78.5&src=' + key;
+                var url = '/elevation.json?lat=38.6&lon=-78.5&src=' + key;
 
                 request(server)
                     .get(url)
@@ -84,6 +89,22 @@ describe('Elevation API test', function() {
                     });
             });
         }
+
+        it('should return dataSource = ned if src is not provided', function(done) {
+            request(server)
+                .get('/elevation.json?lat=39.33&lon=-78.2')
+                .expect('Content-Type', /json/)
+                .expect(200)
+                .end(function(err, res) {
+                    if (err) {
+                        throw err;
+                    }
+
+                    res.body.features[0].properties.should.have.property('statusCode').be.equal('200');
+                    res.body.features[0].properties.should.have.property('dataSource').be.equal('3DEP 1 arc-second');
+                    done();
+                });
+        });
 
         it('should check for invalid src values', function(done) {
             request(server)
@@ -172,6 +193,29 @@ describe('Elevation API test', function() {
         });
 
     });
+
+    describe('all parameters', function() {
+
+        it('should not return elevation data if src, unit, lat, and lon are missing', function(done) {
+
+            request(server)
+                .get('/elevation.json')
+                .expect('Content-Type', /json/)
+                .expect(400)
+                .end(function(err, res) {
+                    if (err) {
+                        throw err;
+                    }
+
+                    res.body.features[0].properties.should.have.property('statusCode').be.equal('400');
+                    res.body.features[0].properties.should.have.property('statusMessage').be.equal('invalid parameters');
+                    done();
+                });
+        });
+
+
+    });
+
 
     describe('format', function() {
         it('should return JSON format', function(done) {

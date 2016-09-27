@@ -1,8 +1,10 @@
 'use strict';
 
 var request = require('supertest');
-var should = require('should');
 var server = require('../app.js');
+var chai = require('chai');
+var expect = chai.expect;
+var should = chai.should();
 
 describe('TV Service', function() {
 

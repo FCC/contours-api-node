@@ -2,6 +2,9 @@
 
 var request = require('supertest');
 var server = require('../app.js');
+var chai = require('chai');
+var expect = chai.expect;
+var should = chai.should();
 
 describe('FM Service', function() {
 

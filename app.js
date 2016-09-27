@@ -59,7 +59,7 @@ app.use(cors());
 
 var memcached = new Memcached(configEnv[NODE_ENV].ELASTICACHE_ENDPOINT);
 var memcached_lifetime = Number(configEnv[NODE_ENV].ELASTICACHE_LIFETIME);
-
+var cached_param = 'outputcache';
 
 // **********************************************************
 // log
@@ -125,10 +125,11 @@ app.param('ext', function(req, res, next, ext) {
 
 app.get('/elevation.json', function(req, res){
     var req_url = req.url;
+    var req_key = removeVariableFromURL(req_url, cached_param);
     console.log('------------ elevation API ------------------')
     console.log('request url:'+req_url);    
    
-    getCachedData(req_url, function(err, data) {
+    getCachedData(req, req_key, function(err, data) {
         if(err){
             console.error('callback getCachedData err: '+err);
             return;            
@@ -146,8 +147,7 @@ app.get('/elevation.json', function(req, res){
                     return;            
                 }                
                 console.log('elevation: '+data);
-
-                memcached.set(req_url, data, memcached_lifetime, function( err, result ){
+                memcached.set(req_key, data, memcached_lifetime, function( err, result ){
                     if( err ) console.error( 'memcached set err='+err );
                     
                     console.log('memcached.set result='+result );
@@ -257,13 +257,21 @@ var server = app.listen(NODE_PORT, function () {
 
 });
 
-function getCachedData(key, success){
-    memcached.get( key, function( err, result ){
-        if( err ) console.error('memcached.get err='+err );        
-        console.log('getCachedData memcached.get='+result);
-        memcached.end(); // as we are 100% certain we are not going to use the connection again, we are going to end it
-        return success(null, result);
-    });    
+function getCachedData(req, req_key, success){
+    var outputcache = req.query.cached_param;
+    console.log('req_key= '+req_key);
+    console.log('outputcache= '+outputcache);
+    if(outputcache && outputcache == 'false'){
+        return success(null, null);
+    }
+    else {
+        memcached.get( req_key, function( err, result ){
+            if( err ) console.error('memcached.get err='+err );        
+            console.log('getCachedData memcached.get='+result);
+            memcached.end(); // as we are 100% certain we are not going to use the connection again, we are going to end it
+            return success(null, result);
+        });   
+    }
 }
 
 function getElevationData(req, res, success) {
@@ -283,6 +291,17 @@ function getElevationData(req, res, success) {
         return success(err, null);
     }  
 };
+
+function removeVariableFromURL(url_string, variable_name) {
+    var URL = String(url_string);
+    var regex = new RegExp( "\\?" + variable_name + "=[^&]*&?", "gi");
+    URL = URL.replace(regex,'?');
+    regex = new RegExp( "\\&" + variable_name + "=[^&]*&?", "gi");
+    URL = URL.replace(regex,'&');
+    URL = URL.replace(/(\?|&)$/,'');
+    regex = null;
+    return URL;
+}
 
 module.exports = app;
 

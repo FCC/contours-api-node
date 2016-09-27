@@ -254,7 +254,7 @@ function getElevation(req, res) {
 			else { // file not available in file system
 				console.log(datatype +' file not exist in file system');
 				
-				dataObj.statusMessage = 'elevation data not found';		
+				dataObj.statusMessage = 'elevation data not found';	
 				returnError(dataObj, function(ret){
 		             returnJson = GeoJSON.parse(ret, {});
 		        });
@@ -267,7 +267,7 @@ function getElevation(req, res) {
 	}
 	catch(err) {
 		console.error('elevation err='+err);
-		dataObj.statusMessage = 'error while processing elevation data';		
+		dataObj.statusMessage = 'error while processing elevation data';
 		returnError(dataObj, function(ret){
              returnJson = GeoJSON.parse(ret, {});
         });
@@ -331,8 +331,8 @@ function returnError(data, callback) {
         status: 'error',
         statusCode: '400',
         statusMessage: data.statusMessage,
-        latitude: data.latitude,
-        longitude: data.longitude,
+        lat: data.lat,
+        lon: data.lon,
         dataSource: data.dataSource, 
         elevation: data.elevation,
         unit: data.unit

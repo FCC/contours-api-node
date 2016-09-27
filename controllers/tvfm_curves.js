@@ -1248,7 +1248,7 @@ function fzq(Q) // for F(50,90) curves prediction
     var k;
     var ZGRID = [];
     
-    ZQ = 0.0; // Initialize
+    var ZQ = 0.0; // Initialize
     
     for(k=0; k <= 57; k++)
       {
@@ -1393,7 +1393,7 @@ function getDistance2(req, res) {
 			return;
 		}
 		
-		if ( !curve.match(/^\d+$/)) {
+		if ( tv_or_fm.toLowerCase() == 'fm' && !curve.match(/^\d+$/)) {
 			console.log('invalid curve value');
 			res.status(400).send({
 			'status': 'error',
@@ -1414,12 +1414,12 @@ function getDistance2(req, res) {
 
 			}
 		
-		if ( parseFloat(curve) != 0 && parseFloat(curve) != 1) {
-			console.log('curve value out of range [0, 1]');
+		if ( parseFloat(curve) < 0 || parseFloat(curve) > 2) {
+			console.log('curve value out of range [0, 2]');
 			res.status(400).send({
 			'status': 'error',
 			'statusCode':'400',
-			'statusMessage': 'curve value out of range [0, 1]'
+			'statusMessage': 'curve value out of range [0, 2]'
 			});
 			return;
 		}

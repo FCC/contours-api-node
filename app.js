@@ -258,7 +258,7 @@ var server = app.listen(NODE_PORT, function () {
 });
 
 function getCachedData(req, req_key, success){
-    var outputcache = req.query.cached_param;
+    var outputcache = req.query.outputcache;
     console.log('req_key= '+req_key);
     console.log('outputcache= '+outputcache);
     if(outputcache && outputcache == 'false'){

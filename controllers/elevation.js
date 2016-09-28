@@ -38,7 +38,7 @@ var GeoJSON = require('geojson');
 var utility = require('./utility.js');
 
 
-function getElevation(req, res) {
+function getElevation(req, res, callback) {
 	var now_dt = new Date();
 	console.log('--- beginning elevation ---' + now_dt.toUTCString());
 	console.log('data_dir = '+data_dir);
@@ -164,7 +164,7 @@ function getElevation(req, res) {
 					returnError(dataObj, function(ret){
 		                 returnJson = GeoJSON.parse(ret, {});
 		            });
-		            return returnJson;
+		            callback(returnJson);
 				}
 				else {
 					console.log('result from getElvFileInfo: '+result);
@@ -199,8 +199,8 @@ function getElevation(req, res) {
             	dataObj.unit = unit;
 
             	var ret = [dataObj];
-				returnJson = GeoJSON.parse(ret, {});
-				return returnJson;
+				returnJson = GeoJSON.parse(ret, {}); //possible cause
+				callback(returnJson);
 			});
 		}	
 
@@ -248,7 +248,7 @@ function getElevation(req, res) {
 
             	var ret = [dataObj];
 				returnJson = GeoJSON.parse(ret, {});
-				return returnJson;
+				callback(returnJson);;
 				
 			}
 			else { // file not available in file system
@@ -258,7 +258,7 @@ function getElevation(req, res) {
 				returnError(dataObj, function(ret){
 		             returnJson = GeoJSON.parse(ret, {});
 		        });
-		        return returnJson;	
+		        callback(returnJson);	
 				
 			}
 
@@ -271,7 +271,7 @@ function getElevation(req, res) {
 		returnError(dataObj, function(ret){
              returnJson = GeoJSON.parse(ret, {});
         });
-        return returnJson;	
+        callback(returnJson);	
 	}
 }
 

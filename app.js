@@ -277,14 +277,15 @@ function getCachedData(req, req_key, success){
 function getElevationData(req, res, success) {
     console.log('app getElevationData');
     try {
-        var data = elevation.getElevation(req, res);
-        console.log('app getElevationData data='+data);
-        if(data){
-            return success(null, data);    
-        }
-        return success(null, null);
-        //req.write(dataString);
-        //req.end();
+        elevation.getElevation(req, res, function(data){
+			console.log('app getElevationData data='+data);
+			if(data){
+				return success(null, data);    
+			}
+			return success(null, null);
+			//req.write(dataString);
+			//req.end();
+		});
     }
     catch(err){
         console.error('\n\n getElevationData err '+err);  

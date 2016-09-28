@@ -170,8 +170,43 @@ app.get('/:serviceType/:idType/:id', function(req, res){
     contour.getContour(req, res);
 });
 
-app.get('/haat.json', function(req, res){
-    haat.getHAAT(req, res);
+app.get('/haat.json', function(req, res){    
+    //haat.getHAAT(req, res);
+    var req_url = req.url;
+    var req_key = removeVariableFromURL(req_url, cached_param);
+    console.log('------------ HAAT API ------------------')
+    console.log('request url:'+req_url);    
+   
+    getCachedData(req, req_key, function(err, data) {
+        if(err){
+            console.error('callback getCachedData err: '+err);
+            return;            
+        }
+        if(data){
+            console.log('response from ElastiCache');
+            console.log('---- API return complete ------');
+            res.status(data.features[0].properties.statusCode).send(data);
+            return;
+        }
+        else {
+            getHaatData(req, res, function(err, data) {
+                if(err){
+                    console.error('getElevationData err: '+err);
+                    return;            
+                }                                
+                memcached.set(req_key, data, memcached_lifetime, function( err, result ){
+                    if( err ) console.error( 'memcached set err='+err );
+                    
+                    console.log('memcached.set result='+result );
+                    memcached.end(); // as we are 100% certain we are not going to use the connection again, we are going to end it
+                });
+                console.log('response processed from code');
+                console.log('---- API return complete ------');
+                res.status(data.features[0].properties.statusCode).send(data);
+                return;     
+            });
+        }        
+    });
 });
 
 app.get('/haat.csv', function(req, res){
@@ -289,6 +324,23 @@ function getElevationData(req, res, success) {
     }
     catch(err){
         console.error('\n\n getElevationData err '+err);  
+        return success(err, null);
+    }  
+};
+
+function getHaatData(req, res, success) {
+    console.log('app getHaatData');
+    try {
+        haat.getHAAT(req, res, function(data){
+            console.log('app getHaatData data='+data);
+            if(data){
+                return success(null, data);    
+            }
+            return success(null, null);           
+        });
+    }
+    catch(err){
+        console.error('\n\n getHaatData err '+err);  
         return success(err, null);
     }  
 };

@@ -53,7 +53,6 @@ function getElvFileInfo(type, coordName, callback) {
 		}	
 
 		if(file_name != ''){
-			file_path =  S3_ELEV_LOCATION + file_type + '/';
 			console.log('elevation file found!');
 			result[0] = file_type;
 			result[1] = file_name;			

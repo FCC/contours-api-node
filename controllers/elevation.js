@@ -90,7 +90,7 @@ function getElevation(req, res, callback) {
                  returnJson = GeoJSON.parse(ret, {});  
             });
             console.log('returnJson ===='+returnJson);
-            return returnJson;
+            callback(returnJson);
 		}
 
 		if ( !latitude.match(/^-?\d+\.?\d*$/) || !longitude.match(/^-?\d+\.?\d*$/) ) {
@@ -99,7 +99,7 @@ function getElevation(req, res, callback) {
 			returnError(dataObj, function(ret){
                  returnJson = GeoJSON.parse(ret, {});
             });
-            return returnJson;        	
+            callback(returnJson);
 		}
 
 		lat = parseFloat(latitude);
@@ -111,7 +111,7 @@ function getElevation(req, res, callback) {
 			returnError(dataObj, function(ret){
                  returnJson = GeoJSON.parse(ret, {});
             });
-            return returnJson;
+            callback(returnJson);
 		}
 
 		if (datatype != 'ned' && datatype != 'ned_1' && datatype != 'ned_2' && datatype != 'ned_13' && datatype != 'globe30' && datatype != 'usgs') {
@@ -120,7 +120,7 @@ function getElevation(req, res, callback) {
 			returnError(dataObj, function(ret){
                  returnJson = GeoJSON.parse(ret, {});
             });
-            return returnJson;
+            callback(returnJson);
 		}
 
 		if (unit != 'm' && unit != 'mi' && unit != 'ft') {
@@ -129,7 +129,7 @@ function getElevation(req, res, callback) {
         	returnError(dataObj, function(ret){
                  returnJson = GeoJSON.parse(ret, {});
             });
-            return returnJson;
+            callback(returnJson);
 		}
 
 		var ns = 'n';

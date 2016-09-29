@@ -51,16 +51,12 @@
         },
         createContour: function(data) {
             var contour_style = {
-                color: "#13428B",
-                fillColor: "#13428B",
+                color: '#13428B',
+                fillColor: '#13428B',
                 opacity: 1.0,
                 fillOpacity: 0.3,
                 weight: 4
             };
-
-            var p = data.features[0].properties;
-            var station_lat = p.station_lat;
-            var station_lon = p.station_lon;
 
             Map.clearLayers();
 
@@ -69,10 +65,58 @@
             }).addTo(Map.map);
 
             Map.map.fitBounds(Map.contourJSON.getBounds());
-            ContourMap.createMarker(data);
+
+            if ($('#apiType') === 'contoursOPIF') {
+                ContourMap.createOPIFMarker(data);
+            } else {
+                ContourMap.createMarker(data);
+            }
+
 
         },
         createMarker: function(data) {
+            var dataFeat = data.features[0].properties;
+            var contourMeta = '';
+
+            Map.featureLayer = L.mapbox.featureLayer().addTo(Map.map);
+            Map.featureLayer.clearLayers();
+
+            contourMeta = '';
+            contourMeta += '<dl class="dl-contour dl-horizontal">';
+            contourMeta += '<dt>Latitude:</dt>';
+            contourMeta += '<dd>' + dataFeat.antenna_lat + '</dd>';
+
+            contourMeta += '<dt>Longitude:</dt>';
+            contourMeta += '<dd>' + dataFeat.antenna_lon + '</dd>';
+
+            contourMeta += '<dt>Num. of Radials:</dt>';
+            contourMeta += '<dd>' + dataFeat.nradial + '</dd>';
+
+            contourMeta += '<dt>RCAMSL:</dt>';
+            contourMeta += '<dd>' + dataFeat.rcamsl + ' meters</dd>';
+
+            contourMeta += '<dt>Field Strength:</dt>';
+            contourMeta += '<dd>' + dataFeat.field + '</dd>';
+
+            contourMeta += '<dt>FM Channel:</dt>';
+            contourMeta += '<dd>' + dataFeat.channel + '</dd>';
+
+            contourMeta += '<dt>ERP:</dt>';
+            contourMeta += '<dd>' + dataFeat.erp + '</dd>';
+
+            contourMeta += '<dt>Curve:</dt>';
+            contourMeta += '<dd>' + dataFeat.curve + '</dd>';
+
+            contourMeta += '<dt>Source:</dt>';
+            contourMeta += '<dd>' + dataFeat.elevation_data_source + '</dd>';
+            contourMeta += '</dl>';
+
+            Map.stationMarker = L.marker([dataFeat.antenna_lat, dataFeat.antenna_lon], Map.markerIcon)
+                .addTo(Map.featureLayer)
+                .bindPopup(contourMeta);
+
+        },
+        createOPIFMarker: function(data) {
             var contourMeta = '';
 
             Map.featureLayer = L.mapbox.featureLayer().addTo(Map.map);
@@ -104,6 +148,7 @@
                 Map.stationMarker = L.marker([data.features[i].properties.station_lat, data.features[i].properties.station_lon], Map.markerIcon)
                     .addTo(Map.featureLayer)
                     .bindPopup(contourMeta);
+
             }
         }
     };

@@ -11,36 +11,27 @@ var NODE_PORT =  process.env.PORT || configEnv[NODE_ENV].NODE_PORT;
 var host =  configEnv[NODE_ENV].HOST;
 var geo_host =  configEnv[NODE_ENV].GEO_HOST;
 var geo_space = configEnv[NODE_ENV].GEO_SPACE;
-var AWS_ACCESS_KEY =  configEnv[NODE_ENV].AWS_ACCESS_KEY;
-var AWS_SECRET_KEY = configEnv[NODE_ENV].AWS_SECRET_KEY;
-var AWS_REGION = configEnv[NODE_ENV].AWS_REGION;
-var S3_BUCKET = configEnv[NODE_ENV].S3_BUCKET;
-var S3_NED_LOCATION;
-var S3_ELEV_LOCATION = configEnv[NODE_ENV].S3_ELEV_LOCATION;
-var CDBS_HOST = configEnv[NODE_ENV].CDBS_HOST;
-var CDBS_PORT = configEnv[NODE_ENV].CDBS_PORT;
-var CDBS_DBNAME = configEnv[NODE_ENV].CDBS_DBNAME;
-var CDBS_USER = configEnv[NODE_ENV].CDBS_USER;
-var CDBS_PASSWD = configEnv[NODE_ENV].CDBS_PASSWD;
+//var AWS_ACCESS_KEY =  configEnv[NODE_ENV].AWS_ACCESS_KEY;
+//var AWS_SECRET_KEY = configEnv[NODE_ENV].AWS_SECRET_KEY;
+//var AWS_REGION = configEnv[NODE_ENV].AWS_REGION;
+
+//var CDBS_HOST = configEnv[NODE_ENV].CDBS_HOST;
+//var CDBS_PORT = configEnv[NODE_ENV].CDBS_PORT;
+//var CDBS_DBNAME = configEnv[NODE_ENV].CDBS_DBNAME;
+//var CDBS_USER = configEnv[NODE_ENV].CDBS_USER;
+//var CDBS_PASSWD = configEnv[NODE_ENV].CDBS_PASSWD;
+var EFS_ELEVATION_DATASET = configEnv[NODE_ENV].EFS_ELEVATION_DATASET;
 
 var fs = require('fs');
-var async = require('async');
-//var Sybase = require('sybase');
 var request = require('request');
 var math = require('mathjs');
 
 var distance = require('./distance.js');
 var tvfm_curves = require('./tvfm_curves.js');
 
-if (NODE_ENV == 'LOCAL') {
-	var data_dir = 'data';
-}
-else {
-	var data_dir = '/var/data';
-}
+var data_dir = EFS_ELEVATION_DATASET;
 
 var startTime;
-
 
 
 function elevation(req, res) {
@@ -535,6 +526,7 @@ function getContours(req, res) {
 			var output = {"type": "FeatureCollection",
 							"features": [
 								{
+									"type": "Feature",
 									"geometry": {
 									"type": "MultiPolygon",
 									"coordinates": coordinates
@@ -554,7 +546,13 @@ function getContours(req, res) {
 									}
 								}
 							
-							]
+							],
+							"crs": {
+								"type": "EPSG",
+								"properties": {
+								"code": "4326"
+								}
+							},
 						};
 			
 			
@@ -604,7 +602,7 @@ function getLatLonFromDist(lat1, lon1, az, d) {
 
 
 
-module.exports.elevation = elevation;
+//module.exports.elevation = elevation;
 module.exports.getContours = getContours;
 
 

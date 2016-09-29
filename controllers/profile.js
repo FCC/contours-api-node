@@ -11,40 +11,20 @@ var NODE_PORT =  process.env.PORT || configEnv[NODE_ENV].NODE_PORT;
 var host =  configEnv[NODE_ENV].HOST;
 var geo_host =  configEnv[NODE_ENV].GEO_HOST;
 var geo_space = configEnv[NODE_ENV].GEO_SPACE;
-var AWS_ACCESS_KEY =  configEnv[NODE_ENV].AWS_ACCESS_KEY;
-var AWS_SECRET_KEY = configEnv[NODE_ENV].AWS_SECRET_KEY;
-var AWS_REGION = configEnv[NODE_ENV].AWS_REGION;
-var S3_BUCKET = configEnv[NODE_ENV].S3_BUCKET;
-var S3_NED_LOCATION;
-var S3_ELEV_LOCATION = configEnv[NODE_ENV].S3_ELEV_LOCATION;
 var EFS_ELEVATION_DATASET = configEnv[NODE_ENV].EFS_ELEVATION_DATASET;
 
 var fs = require('fs');
-var async = require('async');
-//var AWS = require('aws-sdk');
+//var async = require('async');
 var GeoJSON = require('geojson');
-
-//AWS.config.update({
-//        accessKeyId: AWS_ACCESS_KEY,
-//        secretAccessKey: AWS_SECRET_KEY,
-//        region: AWS_REGION,
-//        apiVersions: {
-//                s3: '2006-03-01',
-//                // other service API versions
-//                }
-//});
-
-//var s3 = new AWS.S3();
+var mathjs = require('mathjs');
 
 var data_dir = EFS_ELEVATION_DATASET;
 
-//var ned_1_files = require('../data/ned_1_files.json');
-//var ned_2_files = require('../data/ned_2_files.json');
 var globe_files = require('../data/globe_files.json');
 
-var src, lat, lon, rcamsl, nradial, format, unit, azimuth;
+var src, lat, lon, lat_all, lon_all, rcamsl, nradial, format, unit, azimuth;
 var  output_data;
-var dist_arr, azimuths, filenames, latlon, startTime, endTime;
+var dist_arr, azimuths, filenames, latlon, startTime, endTime, start, end, num_points, unit;
 var filename_ned_1, filename_ned_2, filename_globe;
 var filenames_ned_1, filenames_ned_2, filenames_globe;
 
@@ -67,88 +47,213 @@ function getProfile(req, res) {
 		dataObj['latitude'] = '';
 		dataObj['longitude'] = '';
 
-		GeoJSON.defaults = {Point: ['latitude', 'longitude'], include: ['status','statusCode','statusMessage']};
+		//GeoJSON.defaults = {LineString: linestring_coords, include: ['status','statusCode','statusMessage']};
 		
 		startTime = new Date().getTime();
 
-		if (!url.match(/lat=/i)) {	
-			console.error('lat error');
-
-			dataObj.statusMessage = 'missing lat value';
-			returnError(dataObj, function(ret){
-                 res.status(400).send(GeoJSON.parse(ret, {}));                                         
-            });
-            return;
-		}
-		if (!url.match(/lon=/i)) {
-			dataObj.statusMessage = 'missing lon value';
-			returnError(dataObj, function(ret){
-                 res.status(400).send(GeoJSON.parse(ret, {}));                                         
-            });
-            return;			
-		}
-		if (!url.match(/azimuth=/i)) {
-			dataObj.statusMessage = 'missing azimuth value';
-			returnError(dataObj, function(ret){
-                 res.status(400).send(GeoJSON.parse(ret, {}));                                         
-            });
-            return;
-		}
-
-		console.log('params input passed');
+		src = req.query.src;
+		lat = req.query.lat;
+		lon = req.query.lon;
+		azimuth = req.query.azimuth;
+		start = req.query.start;
+		end = req.query.end;
+		num_points = req.query.num_points;
+		unit = req.query.unit;
 		
-		src = url.replace(/^.*src=/i, '').replace(/&.*$/, '').toLowerCase();
-		src = src.toLowerCase();
-		if (src != "ned_1" && src != "globe30") {
-			src = "ned_1";
+		if (src == undefined) {
+			src = 'ned_1';
 		}
 		
-		lat = url.replace(/^.*lat=/i, '').replace(/&.*$/, '');
-		lon = url.replace(/^.*lon=/i, '').replace(/&.*$/, '');
-		azimuth = url.replace(/^.*azimuth=/i, '').replace(/&.*$/, '');
-		format = url.replace(/\?.*$/i, '').replace(/^.*\./, '');		
-		unit = url.replace(/^.*unit=/i, '').replace(/&.*$/, '');
-		unit = unit.toLowerCase();
-		if (unit != "m" && unit != "mi" && unit != "ft") {
-			unit = "m";
+		if (unit == undefined) {
+			unit = 'm';
 		}
+		
+		if (lat == undefined) {
+			console.log('missing lat');
+			res.status(400).send({
+			'status': 'error',
+			'statusCode':'400',
+			'statusMessage': 'missing lat'
+			});
+			return;
+		}
+		
+		if (lon == undefined) {
+			console.log('missing lon');
+			res.status(400).send({
+			'status': 'error',
+			'statusCode':'400',
+			'statusMessage': 'missing lon'
+			});
+			return;
+		}
+		
+		if (azimuth == undefined) {
+			console.log('missing azimuth');
+			res.status(400).send({
+			'status': 'error',
+			'statusCode':'400',
+			'statusMessage': 'missing azimuth'
+			});
+			return;
+		}
+		
+		if (start == undefined) {
+			console.log('missing start');
+			res.status(400).send({
+			'status': 'error',
+			'statusCode':'400',
+			'statusMessage': 'missing start'
+			});
+			return;
+		}
+		
+		if (end == undefined) {
+			console.log('missing end');
+			res.status(400).send({
+			'status': 'error',
+			'statusCode':'400',
+			'statusMessage': 'missing end'
+			});
+			return;
+		}
+		if (num_points == undefined) {
+			console.log('missing num_points');
+			res.status(400).send({
+			'status': 'error',
+			'statusCode':'400',
+			'statusMessage': 'missing num_points'
+			});
+			return;
+		}
+		
+		if (src && src != 'ned_1' && src != 'globe30') {
+			console.log('wrong src - must be ned_1 or globe30');
+			res.status(400).send({
+			'status': 'error',
+			'statusCode':'400',
+			'statusMessage': 'wrong src - must be ned_1 or globe30'
+			});
+			return;
+		}
+		
+		var unit_list = ['m', 'mi', 'ft'];
+		if (unit_list.indexOf(unit) < 0) {
+			console.log('wrong unit - must be m, ft, or mi');
+			res.status(400).send({
+			'status': 'error',
+			'statusCode':'400',
+			'statusMessage': 'wrong unit - must be m, ft, or mi'
+			});
+			return;
+		}
+		
+		if ( !lat.match(/^-?\d+\.?\d*$/)) {
+			res.status(400).send({
+			'status': 'error',
+			'statusCode':'400',
+			'statusMessage': 'invalid lat value'
+			});
+			return;
+		}
+		
+		if ( !lon.match(/^-?\d+\.?\d*$/)) {
+			res.status(400).send({
+			'status': 'error',
+			'statusCode':'400',
+			'statusMessage': 'invalid lon value'
+			});
+			return;
+		}
+		
+		if ( !azimuth.match(/^\d+\.?\d*$/)) {
+			res.status(400).send({
+			'status': 'error',
+			'statusCode':'400',
+			'statusMessage': 'invalid azimuth value'
+			});
+			return;
+		}
+		
+		if ( !start.match(/^\d+\.?\d*$/)) {
+			res.status(400).send({
+			'status': 'error',
+			'statusCode':'400',
+			'statusMessage': 'invalid start value'
+			});
+			return;
+		}
+		
+		if ( !end.match(/^\d+\.?\d*$/)) {
+			res.status(400).send({
+			'status': 'error',
+			'statusCode':'400',
+			'statusMessage': 'invalid end value'
+			});
+			return;
+		}	
+		
+		if ( !num_points.match(/^\d+$/)) {
+			res.status(400).send({
+			'status': 'error',
+			'statusCode':'400',
+			'statusMessage': 'invalid num_points value'
+			});
+			return;
+		}
+		
+		if ( parseFloat(lat) > 90 || parseFloat(lat) < -90 ) {
+			res.status(400).send({
+			'status': 'error',
+			'statusCode':'400',
+			'statusMessage': 'lat value out of range'
+			});
+			return;		
+		}
+		
+		if ( parseFloat(lon) > 180 || parseFloat(lon) < -180 ) {
+			res.status(400).send({
+			'status': 'error',
+			'statusCode':'400',
+			'statusMessage': 'lon value out of range'
+			});
+			return;
+		}
+		
+		if ( parseFloat(azimuth) < 0 || parseFloat(azimuth) > 360 ) {
+			res.status(400).send({
+			'status': 'error',
+			'statusCode':'400',
+			'statusMessage': 'azimuth value out of range'
+			});
+			return;
+		}
+		
+		if ( parseFloat(end) <= parseFloat(start)) {
+			res.status(400).send({
+			'status': 'error',
+			'statusCode':'400',
+			'statusMessage': 'end is not larger than start'
+			});
+			return;
+		}
+		
+		if ( parseFloat(num_points) < 2) {
+			res.status(400).send({
+			'status': 'error',
+			'statusCode':'400',
+			'statusMessage': 'num_points is smaller than 2'
+			});
+			return;
+		}
+		
+		format = url.replace(/\?.*$/i, '').replace(/^.*\./, '');
 		
 		var i, j;
 		dataObj.latitude = lat;
 		dataObj.longitude = lon;
 
-		if ( !lat.match(/^-?\d+\.?\d*$/) || !lon.match(/^-?\d+\.?\d*$/) ) {			
-			
-			dataObj.statusMessage = 'invalid lat/lon value';
-			returnError(dataObj, function(ret){
-                 res.status(400).send(GeoJSON.parse(ret, {}));                                         
-            });
-            return;
-		}
-		if ( parseFloat(lat) > 90 || parseFloat(lat) < -90 ) {
 
-			dataObj.statusMessage = 'lat value out of range';
-			returnError(dataObj, function(ret){
-                 res.status(400).send(GeoJSON.parse(ret, {}));                                         
-            });
-            return;			
-		}
-		if ( parseFloat(lon) > 180 || parseFloat(lon) < -180 ) {
-
-			dataObj.statusMessage = 'lon value out of range';
-			returnError(dataObj, function(ret){
-                 res.status(400).send(GeoJSON.parse(ret, {}));                                         
-            });
-            return;
-		}
-		if ( parseFloat(azimuth) < 0 || parseFloat(azimuth) > 360 ) {
-			
-			dataObj.statusMessage = 'azimuth value out of range';
-			returnError(dataObj, function(ret){
-                 res.status(400).send(GeoJSON.parse(ret, {}));                                         
-            });
-            return;            
-		}
 
 		rcamsl = "1000";
 		nradial = "1";
@@ -158,6 +263,10 @@ function getProfile(req, res) {
 		rcamsl = parseFloat(rcamsl);
 		nradial = parseInt(nradial);
 		azimuth = parseFloat(azimuth);
+		start = parseFloat(start);
+		end = parseFloat(end);
+		num_points = parseInt(num_points);
+		
 		if (azimuth == 360) {
 			azimuth = 0;
 		}
@@ -165,23 +274,24 @@ function getProfile(req, res) {
 		
 		console.log('src=' + src + ' lat=' + lat + ' lon=' + lon + ' azimuth=' + azimuth + ' rcamsl=' + rcamsl + ' nradial=' + nradial + ' format=' + format + ' unit=' + unit);
 
-		var num_points_per_radial = 51;
+		var num_points_per_radial = num_points;
 		var num_interval_per_radial = num_points_per_radial - 1;
-		var start_point = 3; //kms
-		var end_point = 16; //kms
+		var start_point = start; //kms
+		var end_point = end; //kms
 		var dist_delta = (end_point - start_point) / num_interval_per_radial; //distance between 2 points
 		
 		dist_arr = [];
 		for (i = 0; i < num_points_per_radial; i++) {
-			dist_arr.push(  Math.round(100 * (start_point + i*dist_delta))/100);
+			dist_arr.push( start_point + i*dist_delta);
 		}
-
+		
 		azimuths.push(azimuth);
 
 		var latlon0;
 		var lat1 = lat;
 		var lon1 = lon;
-		var lat_all = [], lon_all = [];
+		lat_all = [];
+		lon_all = [];
 		var filename_ned_1, filename_ned_2, filename_globe;
 		latlon = [];
 		for (i = 0; i < nradial; i++) {
@@ -219,13 +329,12 @@ function getProfile(req, res) {
 			return;
 		}
 		
-		//check if file exists locally and on S3
-		var filenames_no_ned_1 = getNonExistingFiles(filenames_ned_1); //ned_1 files not exist locally
-		var filenames_no_ned_2 = getNonExistingFiles(filenames_ned_2); //ned_2 files not exist locally
-		//var filenames_ned_1_s3 = checkS3(filenames_no_ned_1, 'ned_1'); //ned_1 files that exist on S3
-		//var filenames_ned_2_s3 = checkS3(filenames_no_ned_2, 'ned_2'); //ned_2 files that exist on S3
+		//check files
+		var filenames_no_ned_1 = getNonExistingFiles(filenames_ned_1); //ned_1 files that do not exist on EFS
+		var filenames_no_ned_2 = getNonExistingFiles(filenames_ned_2); //ned_2 files that do not exist on EFS
 
 		if (filenames_no_ned_1.length == 0) {
+			src = 'ned_1';
 			processDataFiles(res, dataObj, filenames_ned_1);
 			return;
 		}
@@ -243,56 +352,19 @@ function getProfile(req, res) {
 	}
 	catch(err) {
 		console.error('--- profile processing error ---'+err);
-		dataObj.statusMessage = 'processing error occured';
-		returnError(dataObj, function(ret){
-             res.status(400).send(GeoJSON.parse(ret, {}));                                         
-        });
+		res.status(400).send({
+		'status': 'error',
+		'statusCode':'400',
+		'statusMessage': 'profile processing error',
+		'error': 'internal error'
+		});
+		
+
         return;	
 	}
 	
 }
 
-var getFileFromS3 = function(filename) { return function(callback) {
-	console.log('getting ' + filename + ' src=' + src);
-		
-	var params = {
-		Bucket: S3_BUCKET,
-		Key : S3_ELEV_LOCATION + src + '/' + filename
-	};
-	
-	s3.getObject(params, function(err, data) {
-		if (err) {
-				//console.log(err, err.stack);
-				console.log('S3 error - no file');
-				callback();
-		}
-		else {
-				//write to disk
-			var filepath = data_dir + '/' + src + '/' + filename;
-			console.log('writing filepath=' + filepath);
-			//res.send({'msg': 's3 writeting ' + filepath});
-			
-			fs.writeFile(filepath, data.Body, 'binary', function(err) {
-				if(err) {
-				console.log('write error');
-						callback();
-						//return console.log(err);
-				}
-
-				var endTime = new Date().getTime();
-				var dt = endTime - startTime;
-				console.log(filename + ', time to get file from S3: ' + dt);
-
-				callback();
-				
-			});
-
-		}
-	});
-	
-
-}
-}
 
 
 function processDataFiles(res, dataObj, filenames) {
@@ -319,8 +391,9 @@ function processDataFiles(res, dataObj, filenames) {
 
 		var return_data = [output_haat];
 
-		res.status(200).send(GeoJSON.parse(return_data, {Point: ['lat', 'lon'], include: ['status','statusCode','statusMessage','about',
-			'elevation_data_source','lat','lon','azimuth','distance','elevation','average_elevation','unit', 'elapsed_time']})); 
+		var output = GeoJSON.parse(return_data, {LineString: 'linestring_coords', include: ['status','statusCode','statusMessage', 'points',
+			'elevation_data_source','lat','lon','azimuth','distance','elevation','average_elevation','unit', 'elapsed_time']}); 
+		res.status(200).send(output);
 
 		console.log('processDataFiles Done');
 }
@@ -429,7 +502,7 @@ function formatHAAT(dataObj) {
 	var haat_av = [];
 	var elev_av = [];
 	var i, j, elevs;
-	
+
 	for (i = 0; i < nradial; i++) {
 		elevs = [];
 		for (j = 0; j < output_data.length; j++) {
@@ -441,6 +514,7 @@ function formatHAAT(dataObj) {
 		}
 		haat_av.push(Math.round( 100*(1000 - arrMean(elevs)) ) / 100.0);
 		elev_av.push(Math.round( 100*(arrMean(elevs)) ) / 100.0);
+		
 		//console.log(i + ' ' + azimuths[i] + ' ' + haat_av[i] + ' elevs=' + elevs);
 	}
 	
@@ -451,7 +525,7 @@ function formatHAAT(dataObj) {
 	//change distance unit first - in km originally, change to meter first
 
 	for (i = 0; i < elevs.length; i++) {
-		dist_arr[i] = 1000 * dist_arr[i];
+		dist_arr[i] = mathjs.round(1000 * dist_arr[i], 2);
 	}
 	
 	
@@ -480,6 +554,13 @@ function formatHAAT(dataObj) {
 		
 	}
 	
+	var points = [];
+	var linestring_coords = [];
+	for (i = 0; i < dist_arr.length; i++) {
+		points[i] = {'lat': mathjs.round(lat_all[i], 10), 'lon': mathjs.round(lon_all[i], 10), 'distance': dist_arr[i], 'elevation': elevs[i]};
+		linestring_coords[i] = [mathjs.round(lon_all[i], 10), mathjs.round(lat_all[i], 10)];
+	}
+	
 	if (format == 'csv') {
 		var content = 'distance,elevation\n'
 		for (i = 0; i < dist_arr.length; i++) {
@@ -500,6 +581,8 @@ function formatHAAT(dataObj) {
 		dataObj.elevation = elevs;
 		dataObj.average_elevation = elev_av[0];
 		dataObj.unit = unit;
+		dataObj.points = points;
+		dataObj.linestring_coords = linestring_coords;
 
 		return dataObj;	
 	}
@@ -680,39 +763,19 @@ function useGlobeData(res, dataObj, filenames_globe) {
 		
 		/*res.send(output_haat);*/
 		var return_data = [output_haat];
+		
+		var output = GeoJSON.parse(return_data, {LineString: 'linestring_coords', include: ['status','statusCode','statusMessage', 'points',
+			'elevation_data_source','lat','lon','azimuth','distance','elevation','average_elevation','unit', 'elapsed_time']}); 
+		res.status(200).send(output);
 
-		res.status(200).send(GeoJSON.parse(return_data, {Point: ['lat', 'lon'], include: ['status','statusCode','statusMessage',
-			'elevation_data_source','lat','lon','azimuth','distance','elevation','average_elevation','unit', 'elapsed_time']})); 
+		//res.status(200).send(GeoJSON.parse(return_data, {Point: ['lat', 'lon'], include: ['status','statusCode','statusMessage',
+			//'elevation_data_source','lat','lon','azimuth','distance','elevation','average_elevation','unit', 'elapsed_time', 'points']})); 
 
 		console.log('useGlobeData Done');
 
 }
 
-function checkS3(filenames, src) {
 
-	var files = [];
-	for (var i = 0; i < filenames.length; i++) {
-		if (src == 'ned_1') {
-			for (var key in ned_1_files) {
-				if (ned_1_files[key].file == filenames[i]) {
-					files.push(filenames[i]);
-					break;
-				}
-			}
-		}
-		else {
-			for (var key in ned_2_files) {
-				if (ned_2_files[key].file == filenames[i]) {
-					files.push(filenames[i]);
-					break;
-				}
-			}
-		
-		}
-	}
-	
-	return files;
-}
 
 function prepareDataObject(dataObj){	
 	
@@ -725,6 +788,7 @@ function prepareDataObject(dataObj){
 	dataObj['average_elevation'];
 	dataObj['unit'] = '';
 	dataObj['elapsed_time'] = '';
+	dataObj['points'] = [];
 	return dataObj;	
 }
 

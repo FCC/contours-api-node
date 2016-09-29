@@ -126,7 +126,7 @@ app.param('ext', function(req, res, next, ext) {
 app.get('/elevation.json', function(req, res){
     var req_url = req.url;
     var req_key = removeVariableFromURL(req_url, cached_param);
-    console.log('------------ elevation API ------------------')
+    console.log('------------ Elevation API ------------------')
     console.log('request url:'+req_url);    
    
     getCachedData(req, req_key, function(err, data) {
@@ -136,7 +136,7 @@ app.get('/elevation.json', function(req, res){
         }
         if(data){
             console.log('response from ElastiCache');
-            console.log('---- API return complete ------');
+            console.log('---- Elevation API return complete ------');
             res.status(data.features[0].properties.statusCode).send(data);
             return;
         }
@@ -154,7 +154,7 @@ app.get('/elevation.json', function(req, res){
                     memcached.end(); // as we are 100% certain we are not going to use the connection again, we are going to end it
                 });
                 console.log('response processed from code');
-                console.log('---- API return complete ------');
+                console.log('---- Elevation API return complete ------');
                 res.status(data.features[0].properties.statusCode).send(data);
                 return;     
             });
@@ -184,7 +184,7 @@ app.get('/haat.json', function(req, res){
         }
         if(data){
             console.log('response from ElastiCache');
-            console.log('---- API return complete ------');
+            console.log('--------- HAAT API return complete -----------');
             res.status(data.features[0].properties.statusCode).send(data);
             return;
         }
@@ -201,7 +201,7 @@ app.get('/haat.json', function(req, res){
                     memcached.end(); // as we are 100% certain we are not going to use the connection again, we are going to end it
                 });
                 console.log('response processed from code');
-                console.log('---- API return complete ------');
+                console.log('--------- HAAT API return complete -----------');
                 res.status(data.features[0].properties.statusCode).send(data);
                 return;     
             });
@@ -214,7 +214,42 @@ app.get('/haat.csv', function(req, res){
 });
 
 app.get('/profile.json', function(req, res){
-    profile.getProfile(req, res);
+    //profile.getProfile(req, res);
+    var req_url = req.url;
+    var req_key = removeVariableFromURL(req_url, cached_param);
+    console.log('------------ Profile API ------------------')
+    console.log('request url:'+req_url);    
+   
+    getCachedData(req, req_key, function(err, data) {
+        if(err){
+            console.error('callback getCachedData err: '+err);
+            return;            
+        }
+        if(data){
+            console.log('response from ElastiCache');
+            console.log('--------- Profile API return complete -----------');
+            res.status(data.features[0].properties.statusCode).send(data);
+            return;
+        }
+        else {
+            getProfileData(req, res, function(err, data) {
+                if(err){
+                    console.error('getProfileData err: '+err);
+                    return;            
+                }                                
+                memcached.set(req_key, data, memcached_lifetime, function( err, result ){
+                    if( err ) console.error( 'memcached set err='+err );
+                    
+                    console.log('memcached.set result='+result );
+                    memcached.end(); // as we are 100% certain we are not going to use the connection again, we are going to end it
+                });
+                console.log('response processed from code');
+                console.log('--------- Profile API return complete -----------');
+                res.status(data.features[0].properties.statusCode).send(data);
+                return;     
+            });
+        }        
+    });    
 });
 
 app.get('/profile.csv', function(req, res){
@@ -294,8 +329,8 @@ var server = app.listen(NODE_PORT, function () {
 
 function getCachedData(req, req_key, success){
     var outputcache = req.query.outputcache;
-    console.log('req_key= '+req_key);
-    console.log('outputcache= '+outputcache);
+    console.log('Cache req_key = '+req_key);
+    console.log('outputcache param = '+outputcache);
     if(outputcache && outputcache == 'false'){
         return success(null, null);
     }
@@ -317,9 +352,7 @@ function getElevationData(req, res, success) {
 			if(data){
 				return success(null, data);    
 			}
-			return success(null, null);
-			//req.write(dataString);
-			//req.end();
+			return success(null, null);			
 		});
     }
     catch(err){
@@ -341,6 +374,23 @@ function getHaatData(req, res, success) {
     }
     catch(err){
         console.error('\n\n getHaatData err '+err);  
+        return success(err, null);
+    }  
+};
+
+function getProfileData(req, res, success) {
+    console.log('app getProfileData');
+    try {
+        profile.getProfile(req, res, function(data){
+            console.log('app getProfileData data='+data);
+            if(data){
+                return success(null, data);    
+            }
+            return success(null, null);           
+        });
+    }
+    catch(err){
+        console.error('\n\n getProfileData err '+err);  
         return success(err, null);
     }  
 };

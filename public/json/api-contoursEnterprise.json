@@ -58,7 +58,7 @@
                     "defaultValue": ""
                 }, {
                     "name": "rcamsl",
-                    "label": "Radiation Center Above Mean Sea Level (meters)",
+                    "label": "RCAMSL (meters)",
                     "display": true,
                     "in": "query",
                     "description": "Radiation Center Above Mean Sea Level",

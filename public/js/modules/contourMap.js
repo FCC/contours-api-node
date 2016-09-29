@@ -5,18 +5,25 @@
     var Map = require('./map.js');
     var APIResponse = require('./apiResponse.js');
 
-    var ContourMap = {        
+    var ContourMap = {
         getContour: function() {
             var contourAPI = '';
             var apiURL = [];
+            var apiType = $('#apiType').val();
             var serviceType = $('#serviceType').val();
             var amParams = '';
 
-            $('.fields-contour').find(':input').not('button').each(function(element, value) {
-                apiURL.push(this.value);
-            });
+            if (apiType === 'contoursOPIF') {
+                $('.fields-' + apiType).find(':input').not('button').each(function(element, value) {
+                    apiURL.push(this.value);
+                });
 
-            contourAPI = apiURL.slice(0, 3).join('/') + '.json';
+                contourAPI = apiURL.slice(0, 3).join('/') + '.json';
+            } else {
+                contourAPI = './contours.json?';
+                contourAPI += $('.fields-contoursEnterprise').find('input, select').serialize();
+            }
+
 
             if (serviceType === 'am') {
                 amParams = '?' + $('#form-params').serialize().split('&').slice(3, 5).join('&');

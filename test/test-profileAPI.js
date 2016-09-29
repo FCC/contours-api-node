@@ -21,7 +21,7 @@ describe('Profile API test', function() {
                     done();
                 });
         });
-	
+
         it('should not return profile data if lat is not provided', function(done) {
             request(server)
                 .get('/profile.json?lon=-77.5&azimuth=45.5&src=ned_1&unit=m')
@@ -37,8 +37,8 @@ describe('Profile API test', function() {
                     done();
                 });
         });
-		
-		it('should not return profile data if lon is not provided', function(done) {
+
+        it('should not return profile data if lon is not provided', function(done) {
             request(server)
                 .get('/profile.json?lat=38.5&azimuth=45.5&src=ned_1&unit=m')
                 .expect('Content-Type', /json/)
@@ -53,8 +53,8 @@ describe('Profile API test', function() {
                     done();
                 });
         });
-		
-		it('should not return profile data if azimuth is not provided', function(done) {
+
+        it('should not return profile data if azimuth is not provided', function(done) {
             request(server)
                 .get('/profile.json?lat=38.5&lon=-77.5&src=ned_1&unit=m')
                 .expect('Content-Type', /json/)
@@ -69,8 +69,8 @@ describe('Profile API test', function() {
                     done();
                 });
         });
-		
-		it('should not return profile data if lat < -90 or lat > 90', function(done) {
+
+        it('should not return profile data if lat < -90 or lat > 90', function(done) {
             request(server)
                 .get('/profile.json?lat=90.5&lon=-90.5&azimuth=45.5&src=ned_1&unit=m')
                 .expect('Content-Type', /json/)
@@ -85,8 +85,8 @@ describe('Profile API test', function() {
                     done();
                 });
         });
-		
-		it('should not return profile data if lon < -180 or lon > 180', function(done) {
+
+        it('should not return profile data if lon < -180 or lon > 180', function(done) {
             request(server)
                 .get('/profile.json?lat=38.5&lon=-190.5&azimuth=45.5&src=ned_1&unit=m')
                 .expect('Content-Type', /json/)
@@ -104,14 +104,91 @@ describe('Profile API test', function() {
 
         it('should return data in CSV format', function(done) {
             request(server)
-                .get('/profile.csv')
+                .get('/profile.csv?lat=38.5&lon=-98.5&azimuth=45.5&outputcache=false')
                 .expect('Content-Type', /csv/)
                 .expect(200, done);
         });
 
-	});
+    });
 
-});	
+    describe('src values', function(done) {
+        it('should return profile data based on src = globe', function(done) {
+            request(server)
+                .get('/profile.json?lat=38.5&lon=-98.5&azimuth=45.5&src=globe30&unit=mi&outputcache=false')
+                .expect('Content-Type', /json/)
+                .expect(200)
+                .end(function(err, res) {
+                    if (err) {
+                        throw err;
+                    }
 
+                    res.body.features[0].properties.should.have.property('elevation_data_source').be.equal('globe30');
+                    done();
+                });
+        });
+    });
 
-        
+    describe('unit values', function(done) {
+        it('should return profile data based on unit = ft', function(done) {
+            request(server)
+                .get('/profile.json?lat=38.5&lon=-98.5&azimuth=45.5&src=ned_1&unit=mi&outputcache=false')
+                .expect('Content-Type', /json/)
+                .expect(200)
+                .end(function(err, res) {
+                    if (err) {
+                        throw err;
+                    }
+
+                    res.body.features[0].properties.should.have.property('unit').be.equal('mi');
+                    done();
+                });
+        });
+
+        it('should return profile data based on unit = ft', function(done) {
+            request(server)
+                .get('/profile.json?lat=38.5&lon=-98.5&azimuth=45.5&src=ned_1&unit=ft&outputcache=false')
+                .expect('Content-Type', /json/)
+                .expect(200)
+                .end(function(err, res) {
+                    if (err) {
+                        throw err;
+                    }
+
+                    res.body.features[0].properties.should.have.property('unit').be.equal('ft');
+                    done();
+                });
+        });
+
+        it('should return profile data based on meters if unit is not m, mi, ft', function(done) {
+            request(server)
+                .get('/profile.json?lat=38.5&lon=-98.5&azimuth=45.5&src=ned_1&unit=phjjhk&outputcache=false')
+                .expect('Content-Type', /json/)
+                .expect(200)
+                .end(function(err, res) {
+                    if (err) {
+                        throw err;
+                    }
+
+                    res.body.features[0].properties.should.have.property('unit').be.equal('m');
+                    done();
+                });
+        });
+    });
+
+    describe('src values', function(done) {
+        it('should return profile data based on ned_1 if src is not provided', function(done) {
+            request(server)
+                .get('/profile.json?lat=38.5&lon=-77.5&azimuth=45.5&unit=m')
+                .expect('Content-Type', /json/)
+                .expect(200)
+                .end(function(err, res) {
+                    if (err) {
+                        throw err;
+                    }
+
+                    res.body.features[0].properties.should.have.property('elevation_data_source').be.equal('ned_1');
+                    done();
+                });
+        });
+    });
+});

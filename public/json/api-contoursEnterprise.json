@@ -1,0 +1,174 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "version": "1.5.0",
+        "title": "FCC Enterprise Contours API"
+    },
+    "basePath": "/api/contours",
+    "tags": [{
+        "name": "enterprise contours",
+        "description": "FCC Enterprise Contours API"
+    }],
+    "paths": {
+
+        "/contours.{format}": {
+            "get": {
+                "tags": ["enterprise contours"],
+                "summary": "Get Contour by Service Type",
+                "description": "Get contour based on serviceType (FM, TV). Response returned in GeoJSON, JSONP, Shapefile, KML, GML, CSV.",
+                "parameters": [{
+                    "name": "tv_or_fm",
+                    "label": "Service Type",
+                    "display": true,
+                    "in": "query",
+                    "description": "Type of broadcast service. <br /><br />Valid values: tv, fm",
+                    "required": true,
+                    "type": "string",
+                    "defaultValue": "tv",
+                    "enum": [
+                        "tv",
+                        "fm"
+                    ]
+                }, {
+                    "name": "lat",
+                    "label": "Latitude",
+                    "display": true,
+                    "in": "query",
+                    "description": "Latitude",
+                    "required": true,
+                    "type": "number",
+                    "defaultValue": ""
+                }, {
+                    "name": "lon",
+                    "label": "Longitude",
+                    "display": true,
+                    "in": "query",
+                    "description": "Longitude",
+                    "required": true,
+                    "type": "number",
+                    "defaultValue": ""
+                }, {
+                    "name": "nradial",
+                    "label": "Number of Radials",
+                    "display": true,
+                    "in": "query",
+                    "description": "Number of radials",
+                    "required": true,
+                    "type": "integer",
+                    "defaultValue": ""
+                }, {
+                    "name": "rcamsl",
+                    "label": "RCAMSL (meters)",
+                    "display": true,
+                    "in": "query",
+                    "description": "Radiation Center Above Mean Sea Level",
+                    "required": true,
+                    "type": "number",
+                    "defaultValue": ""
+                }, {
+                    "name": "field",
+                    "label": "Field Strength",
+                    "display": true,
+                    "in": "query",
+                    "description": "field strength in dBu",
+                    "required": true,
+                    "type": "number",
+                    "defaultValue": ""
+                }, {
+                    "name": "channel",
+                    "label": "FM channel",
+                    "display": true,
+                    "in": "query",
+                    "description": "FM channel",
+                    "required": false,
+                    "type": "integer",
+                    "defaultValue": ""
+                }, {
+                    "name": "erp",
+                    "label": "ERP",
+                    "display": true,
+                    "in": "query",
+                    "description": "Effective Radiation Power (kW)",
+                    "required": true,
+                    "type": "number",
+                    "defaultValue": ""                    
+                }, {
+                    "name": "curve",
+                    "label": "Curve",
+                    "display": true,
+                    "in": "query",
+                    "description": "Type of propagation curve, range is 0-2.<br /><br /><b>0:</b> use F(50, 50) curve<br /><br /><b>1:</b>  use F(50, 10) curve<br /><br /><b>2:</b> use F(50, 90) curve",
+                    "required": false,
+                    "type": "string",
+                    "defaultValue": "0",
+                    "enum": [
+                        "0",
+                        "1",
+                        "2"
+                    ]
+                }, {
+                    "name": "src",
+                    "label": "Source",
+                    "display": true,
+                    "in": "query",
+                    "description": "Data source.",
+                    "required": false,
+                    "type": "string",
+                    "defaultValue": "ned",
+                    "enum": [
+                        "ned",
+                        "ned_1",
+                        "ned_2",
+                        "ned_13",
+                        "globe30",
+                        "usgs"
+                    ]
+                }, {
+                    "name": "unit",
+                     "label": "Unit",
+                    "display": true,
+                    "in": "query",
+                    "description": "Unit of measurement: m=meters (default), mi=miles, ft=feet",
+                    "required": false,
+                    "type": "string",
+                    "defaultValue": "m",
+                    "enum": [
+                        "m",
+                        "mi",
+                        "ft"
+                    ]
+                }, {
+                    "name": "format",
+                    "label": "Format",
+                    "display": false,
+                    "in": "path",
+                    "description": "Format for the returned results.<br /><br />Valid values: json, jsonp, shp, kml, gml, csv. Shapefiles (.shp) download as zip archive (.zip). <br /><br />Defaults to json.",
+                    "required": false,
+                    "type": "string",
+                    "defaultValue": "json",
+                    "enum": [
+                        "json",
+                        "jsonp",
+                        "shp",
+                        "kml",
+                        "gml",
+                        "csv"
+                    ]
+                }],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                },
+                "produces": [
+                    "application/json",
+                    "text/javascript",
+                    "application/zip",
+                    "application/vnd.google-earth.kml+xml",
+                    "text/xml",
+                    "text/csv"
+                ]
+            }
+        }
+    }
+}

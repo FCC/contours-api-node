@@ -47,10 +47,7 @@
             $('.alert').hide('fast');
             $('.alert').slideDown();
 
-            APIResponse.clear();
-
-            Map.clearLayers();
-            Map.resetView();
+            APIResponse.clear();                     
         }
     };
 

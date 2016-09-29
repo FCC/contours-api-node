@@ -46,13 +46,13 @@
                 $('label[for="idValue"]').text(idTypes[this.value]);
             });
 
-            $('#form-params').on('click.contourAPI', '[data-api="contour"]', ContourMap.getContour);
+            $('#form-params').on('click.contoursOPIFAPI', '[data-api="contoursOPIF"]', ContourMap.getContour);
             
         },
-        getParams: function() {
+        getParams: function() { 
             // get parameters (form fields) from Swagger JSON
             $.ajax({
-                url: 'json/api-contour.json',
+                url: 'json/api-contoursOPIF.json',
                 async: true,
                 type: "GET",
                 dataType: "json",
@@ -63,7 +63,7 @@
                 }
             });
         },
-        createTemplate: function(data) {
+        createTemplate: function(data) { 
             var fields = {};
             var source = $('#apiForm-template').html();
             var template, fieldsetHTML;
@@ -72,7 +72,8 @@
 
             fields.params = data;
             fieldsetHTML = template(fields);
-            $('#frm-contour').append(fieldsetHTML);
+    
+            $('#frm-contoursOPIF').append(fieldsetHTML);
             
             ContourForm.bindEvents();
         }

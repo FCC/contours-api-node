@@ -1,19 +1,19 @@
 {
     "swagger": "2.0",
     "info": {
-        "version": "1.3.0",
-        "title": "FCC Contour API"
+        "version": "1.5.0",
+        "title": "FCC OPIF Contours API"
     },
     "basePath": "/api/contours",
     "tags": [{
-        "name": "contour",
-        "description": "FCC Contour API"
+        "name": "OPIF contours",
+        "description": "FCC OPIF Contours API"
     }],
     "paths": {
 
         "/{serviceType}/{idType}/{idValue}.{format}": {
             "get": {
-                "tags": ["contour"],
+                "tags": ["OPIF contours"],
                 "summary": "Get Contour by Service Type",
                 "description": "Get contour based on serviceType (AM, FM, TV), idType (callsign, applicationid, fileNumber, antennaid), and idValue. Response returned in GeoJSON, JSONP, Shapefile, KML, GML, CSV.",
                 "parameters": [{
@@ -53,7 +53,7 @@
                     "in": "path",
                     "description": "Name or ID of service. <br /><br />Values of facilityid, callsign, filenumber, applicationid, or antennaid. <br /><br />Examples: 1051 (facilityid); WBAL-TV (callsign)",
                     "required": true,
-                    "type": "string",
+                    "type": "integer",
                     "defaultValue": ""
                 }, {
                     "name": "stationClass",

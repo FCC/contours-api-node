@@ -1,3 +1,13 @@
+
+// **********************************************************
+
+'use strict';
+
+// **********************************************************
+
+var math = require('mathjs');
+
+
 // Distance values for F(50,50) curves  - 26 data points
 var D50 = [ 1.609344, 3.218688, 4.828032, 6.437376, 8.046720, 16.09344, 32.18688, 48.28032, 64.37376, 80.46720, 96.56064, 112.65408, 128.74752, 144.84096, 160.93440, 177.02784, 193.12128, 209.21472, 225.30816, 241.40160, 257.49504, 273.58848, 289.68192, 305.77536, 321.86880];
 
@@ -52,7 +62,7 @@ var F55LV = [
 	21.8 ,18.3 ,15. ,12.4 ,10. ,7.7 ,5.1 ,2.8 ,.2 ,-2., 0.0
 	];
 
-	console.log('F55LV: ' + F55LV.length);
+	//console.log('F55LV: ' + F55LV.length);
 	
 //***********************************************************************
 //  F(50,10)  FIELD STRENGTH DATA  FOR THE LOW VHF PROPAGATION CURVE.  ( FM AND TV CHANNELS 2 THROUGH 6 ) -- (13 points * 31 curves = 403) + 1                                *
@@ -101,7 +111,7 @@ var F51LV = [
 	-11. ,-13. ,-15. ,-17., 0.0
 	];
 	
-console.log('F51LV: ' + F51LV.length);
+//console.log('F51LV: ' + F51LV.length);
 
 //***********************************************************************
 //  F(50,50) FIELD STRENGTH DATA FOR THE HIGH VHF PROPAGATION CURVE  ( TV CHANNELS 7 THROUGH 13 ) -- (13 points * 25 rows = 325) + 1
@@ -140,7 +150,7 @@ var F55HV = [
 	15.1 ,12.3 ,10.1 ,7.5 ,5.1 ,2.9 ,.3 ,-1.9, 0.0
 	];
 	
-	console.log('F55HV: ' + F55HV.length);
+	//console.log('F55HV: ' + F55HV.length);
 	
 //***********************************************************************
 //   F(50,10) FIELD STRENGTH DATA FOR THE HIGH VHF PROPAGATION CURVE  ( TV CHANNELS 7 THROUGH 13 ) -- (13 points * 31 curves = 403) + 1                               *
@@ -189,7 +199,7 @@ var F51HV = [
 	-.1 ,-2.4 ,-4.7 ,-7. ,-9. ,-11. ,-13. ,-15. ,-17., 0.0
 	];
 	
-		console.log('F51HV: ' + F51HV.length);
+		//console.log('F51HV: ' + F51HV.length);
 	
 //***********************************************************************
 //   F(50,50) FIELD STRENGTH DATA FOR THE UHF PROPAGATION CURVE ( TV CHANNELS 14 THROUGH 83 ) -- (13 points * 25 curves = 325) + 1                                       *
@@ -230,7 +240,7 @@ var  F55U = [
 	-4.4 ,-6.3, 0.0
 	];
 	
-console.log('F55U: ' + F55U.length);
+//console.log('F55U: ' + F55U.length);
 	
 //***********************************************************************
 //   F(50,10) FIELD STRENGTH DATA FOR THE UHF PROPAGATION CURVE ( TV CHANNELS 14 THROUGH 83 )  - (13 points * 31 curves = 403) + 1                                     *
@@ -279,7 +289,7 @@ var F51U = [
 	23.7 ,20.5 ,17.4 ,14.7 ,12. ,9.2 ,6.5 ,4. ,1.8 ,-.4 ,-2.8 ,-5. ,
 	-7. ,-9. ,-11. ,-13. ,-15. ,-16.8 ,-18.6, 0.0
 	];
-console.log('F51U: ' + F51U.length);
+//console.log('F51U: ' + F51U.length);
 	
 // ========The following data is needed for fzq to calculate F(50,90) or other curves ================//
 
@@ -289,8 +299,8 @@ var VGRID = [.01,.02,.03,.04,.05,.06,.07,.08,.09,.1,.15,.2,.3,.4,.5,.6,.7,.8,.9,
 //ZGRI: 58 data points
 var ZGRI = [-3.71902,-3.54008,-3.43161,-3.35279,-3.29053,-3.23888,-3.19465,-3.15591,-3.12139,-3.09023,-2.96774,-2.87816,-2.74778,-2.65207,-2.57583,-2.51214,-2.45726,-2.40892,-2.36562,-2.32635,-2.25713,-2.19729,-2.14441,-2.09693,-2.05375,-1.88079,-1.75069,-1.64485,-1.55477,-1.47579,-1.40507,-1.34076,-1.28155,-1.22653,-1.17499,-1.12639,-1.08032,-1.03643,-.99446,-.95416,-.91537,-.8779,-.84162,-.77219,-.7063,-.64335,-.58284,-.5244,-.4677,-.41246,-.35846,-.30548,-.25335,-.20189,-.15097,-.10043,-.05015,0.0];
 
-console.log('VGRID: ' + VGRID.length);
-console.log('ZGRI: ' + ZGRI.length);
+//console.log('VGRID: ' + VGRID.length);
+//console.log('ZGRI: ' + ZGRI.length);
 
 var F, H, D;
 
@@ -301,37 +311,10 @@ var F51HV_2d = makeArray(F51HV, 13, 31);
 var F55U_2d = makeArray(F55U, 13, 25);
 var F51U_2d = makeArray(F51U, 13, 31);
 
-
-
-var id50 = 25;
-var ih50 = 13;
-var id10 = 31;
-var ih10 = 13;
-var iu = 6;
-var range = 100.;
-var delta = 0.5;
-var erp_db = 0.0;
-var height, d_first, d_last, e_volts_meter = 0.0;
-var n_points = 201;
-var curve_2 = 0;
-var i = 0;
-var j = 1;
-
-var d = [];
-var h = [];
-var f = [];
-
-var erp = 10;
-var channel = 4;
-var curve = 0;
-var fs_or_dist = 2;
-var distance = 20;
-var haat = 100;
-
-var flag = [0,0,0,0,0,0,0,0,0,0];
+//var i;
 
 function calTvFmDist(antennaHeight, fieldStrength, curveType) {
-//antennaHeight: HAAT in meters
+//antennaHeight: antennaHeight in meters
 //fieldStrength: dB above 1 uV/m for 1kw ERP
 //curveType:
 	//F55LV: use F(50, 50) for FM and NTSC TV channels 2 to 6
@@ -340,6 +323,17 @@ function calTvFmDist(antennaHeight, fieldStrength, curveType) {
 	//F51HV: use F(50, 10) for NTSC TV channels 7 to 13
 	//F55U:  use F(50, 50) for NTSC TV channels 14 to 69
 	//F51U:  use F(50, 10) for NTSC TV channels 14 to 69
+	
+	if (antennaHeight < 30) {
+		antennaHeight = 30;
+	}
+	
+	if (antennaHeight > 1600) {
+		antennaHeight = 1600;
+	}
+	
+	
+	try {
 	
 	var i;
 
@@ -374,42 +368,156 @@ function calTvFmDist(antennaHeight, fieldStrength, curveType) {
 		H = H10;
 	}
 	
-	
 	var indice = getIndex(antennaHeight, H);
 	var index1_h = indice[0];
 	var index2_h = indice[1];
 	
-	//console.log('antennaHeight: ' + antennaHeight);
-	//console.log('fieldStrength: ' + fieldStrength);
-	//console.log('curveType: ' + curveType);
-		
-	//console.log('index1_h: ' + index1_h);
-	//console.log('index2_h: ' + index2_h);
-	
+	//console.log("index1_h=" + index1_h + " index2_h=" + index2_h); 
+
 	var field1;
 	var field2;
-	var index_d;
+	var index1_d;
+	var index2_d;
 	
 	var distance = 0;
-	for (i = 0; i < D.length-1; i++) {
-		index_d = i;
-		field1 = interpolateField(antennaHeight, index1_h, index2_h, index_d, F);
-		index_d = i + 1;
-		field2 = interpolateField(antennaHeight, index1_h, index2_h, index_d, F);
+	for (var i = 0; i < D.length-1; i++) {
+		index1_d = i;
+		field1 = interpolateField(antennaHeight, index1_h, index2_h, index1_d, F);
+		index2_d = i + 1;
+		field2 = interpolateField(antennaHeight, index1_h, index2_h, index2_d, F);
 		
 		//console.log(antennaHeight + ' ' + field1 + ' ' + field2 + ' ' + fieldStrength + ' ' + D[i] + ' ' + D[i+1]);
 		
 		if (field1 >= fieldStrength && field2 <= fieldStrength) {
-			distance = D[i+1] - (fieldStrength - field2) * (D[i+1] - D[i]) / (field1 - field2);
+			//distance = D[i+1] - (fieldStrength - field2) * (D[i+1] - D[i]) / (field1 - field2);
 			break;
 		}
 	}
+
+	var index_center_h = index1_h;
+	var index_other_h = index2_h;
+	if (antennaHeight - H[index1_h] > H[index2_h] - antennaHeight) {
+		index_center_h = index2_h;
+		var index_other_h = index1_h;
+	}
 	
-	//console.log('distance=' + distance);
+	var index_center_d = index1_d;
+	var index_other_d = index2_d;
+	if (F[index_center_h][index1_d] - fieldStrength > fieldStrength - F[index_center_h][index2_d]) {
+		index_center_d = index2_d;
+		var index_other_d = index1_d;
+	}
+	
+	if (index1_h == 0 && index2_h == 0) {
+	index_center_h = 1;
+	index_other_h = 0;
+	}
+	
+	if (index1_h == H.length-1 && index2_h == H.length-1) {
+	index_center_h = H.length-2;
+	index_other_h = H.length-1;
+	}
+	
+	
+	//console.log('index_center_h=' + index_center_h + ' index_center_d=' +  index_center_d + ' index_other_h=' + index_other_h + ' index_other_d=' + index_other_d);
+	//console.log('H len:' + H.length + ' D len:' + D.length)
 
-	return distance;
+	
+	var x = [];
+	var y = [];
+	var z = [];
+	var index_x0 = index_center_h - (index_other_h - index_center_h);
+	var index_y0 = index_center_d;
+	x[0] = H[index_x0];
+	y[0] = D[index_y0];
+	z[0] = F[index_x0][index_y0];
+	
+	var index_x1 = index_center_h;
+	var index_y1 = index_other_d;
+	x[1] = H[index_x1];
+	y[1] = D[index_y1];
+	z[1] = F[index_x1][index_y1];
+	
+	var index_x2 = index_center_h;
+	var index_y2 = index_center_d;
+	x[2] = H[index_x2];
+	y[2] = D[index_y2];
+	z[2] = F[index_x2][index_y2];
+	
+	var index_x3 = index_center_h;
+	var index_y3 = index_center_d - (index_other_d - index_center_d);
+	x[3] = H[index_x3];
+	y[3] = D[index_y3];
+	z[3] = F[index_x3][index_y3];
+
+	var index_x4 = index_other_h;
+	var index_y4 = index_other_d;
+	x[4] = H[index_x4];
+	y[4] = D[index_y4];
+	z[4] = F[index_x4][index_y4];
+	
+	var index_x5 = index_other_h;
+	var index_y5 = index_center_d;
+	x[5] = H[index_x5];
+	y[5] = D[index_y5];
+	z[5] = F[index_x5][index_y5];
+	
+	var m = [];
+
+	for (var i = 0; i < x.length; i++) {
+	m[i] = [x[i]*x[i], x[i]*y[i], y[i]*y[i], x[i], y[i], 1];
+	}
+
+	var mat = math.matrix(m);
+	var mat_inv = math.inv(mat);
+	var coef = math.multiply(mat_inv, z);
+
+	var d = findD(antennaHeight, fieldStrength, coef._data, index_center_d, index_other_d);
+
+	return d;
+	
+	}
+	catch(err) {
+	console.log(err);
+	
+	return -1;
+
+	}
 
 
+}
+
+
+function findD(antennaHeight, fieldStrength, coef, index_center_d, index_other_d) {
+
+	var a = coef[2];
+	var b = coef[1]*antennaHeight + coef[4];
+	var c = coef[0]*antennaHeight*antennaHeight + coef[3]*antennaHeight + coef[5] - fieldStrength;
+	var insqroot = b*b - 4*a*c;
+
+	var y_use;
+	if (insqroot >= 0) {
+	var y1 = (-1*b + Math.sqrt(insqroot)) / (2*a);
+	var y2 = (-1*b - Math.sqrt(insqroot)) / (2*a);
+	var average_d = (D[index_center_d] + D[index_other_d]) / 2;
+	var y_use;
+	if (Math.abs(average_d - y1) <= Math.abs(y2 - average_d)) {
+		y_use = y1;
+	}
+	else {
+		y_use = y2;
+	}
+
+	y_use = math.round(y_use, 1);
+	}
+
+	return y_use;
+}
+
+
+function getZ(x,y, coef) {
+	var v = coef[0]*x*x + coef[1]*x*y + coef[2]*y*y + coef[3]*x + coef[4]*y + coef[5];
+	return v;
 }
 
 function interpolateField(antennaHeight, index1_h, index2_h, index_d, F) {
@@ -426,12 +534,14 @@ function getIndex(value, X) {
 //console.log('value: ' + value);
 //console.log('X: ' + X)
 
+	var i;
+
 	var index1 = -1;
 	var index2 = -1;
 	for (i = 0; i < X.length; i++) {
 		if (value == X[i]) {
 			index1 = i;
-			index2 = i;
+			index2 = i+1;
 			break;
 		}
 	}
@@ -451,6 +561,11 @@ function getIndex(value, X) {
 		index2 = X.length-1;
 	}
 	
+	if (value <= X[0]) {
+		index1 = 0;
+		index2 = 0;
+	}
+	
 	return [index1, index2];
 	
 }
@@ -468,21 +583,112 @@ function makeArray(arr, nrow, ncol) {
 }
 
 
+function getDistance(req, res) {
+	try {
+	
+	var haat = req.query.haat;
+	var dbu = req.query.dbu;
+	var curve_type = req.query.curve_type;
+	
+	if (haat == undefined) {
+		res.status(400).send({
+		'status': 'error',
+		'statusCode':'400',
+		'statusMessage': 'missing haat'
+		});
+		return;
+	}
+	
+	if (dbu == undefined) {
+		res.status(400).send({
+		'status': 'error',
+		'statusCode':'400',
+		'statusMessage': 'missing dbu'
+		});
+		return;
+	}
+	
+	if (curve_type == undefined) {
+		res.status(400).send({
+		'status': 'error',
+		'statusCode':'400',
+		'statusMessage': 'missing curve_type'
+		});
+		return;
+	}
+	
+	var curveList = ['F55LV', 'F51LV', 'F55HV', 'F51HV', 'F55U', 'F51U'];
+	
+	var curve_type_uc = curve_type.toUpperCase();
+	if (curveList.indexOf(curve_type_uc) == -1) {
+		res.status(400).send({
+		'status': 'error',
+		'statusCode':'400',
+		'statusMessage': 'wrong curve_type - must be F55LV, F51LV, F55HV, F51HV, F55U, or F51U'
+		});
+		return;
+	}
+	
+	 if ( !haat.match(/\d+\.?\d*$/)) {
+	 	res.status(400).send({
+		'status': 'error',
+		'statusCode':'400',
+		'statusMessage': 'invalid haat value'
+		});
+		return;
+	 }
+	
+	if ( !dbu.match(/-?\d+\.?\d*$/)) {
+	 	res.status(400).send({
+		'status': 'error',
+		'statusCode':'400',
+		'statusMessage': 'invalid dbu value'
+		});
+		return;
+	 }
+	
+	
+	
+	
+	var distance = calTvFmDist(haat, dbu, curve_type_uc);
+	
+	res.status(200).send(
+	{'haat': haat,
+	'haat_unit': 'm',
+	'dbu': dbu,
+	'curve_type': curve_type,
+	'distance': distance,
+	'distance_unit': 'km'
+	});
+
+
+	}
+	catch(err) {
+		console.log(err);
+		res.status(400).send({
+			'status': 'error',
+        	'statusCode':'400',
+        	'statusMessage': 'Error occurred',
+			'error': err.stack
+        });
+	
+	}
+
+
+}
+
 
 
 var antennaHeight = 100;
 var fieldStrength = 28;
 var curveType = 'F55LV';
 
-for (n = 0; n < 360; n++) {
 
-//var distance = calTvFmDist(antennaHeight, fieldStrength, curveType);
-//console.log(distance);
-
-}
+var distance = calTvFmDist(antennaHeight, fieldStrength, curveType);
+console.log("antennaHeight:" + antennaHeight + " fieldStrength:" + fieldStrength + " distance:" + distance);
 
 
 module.exports.calTvFmDist = calTvFmDist;
-
+module.exports.getDistance = getDistance;
 
 

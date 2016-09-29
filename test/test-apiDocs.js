@@ -4,7 +4,7 @@ var server = require('../app.js');
 describe('GET API docs', function() {
   it('should render API docs', function(done) {
     request(server)
-      .get('/api-docs')
+      .get('/')
       .expect(200, done);
   });
 });

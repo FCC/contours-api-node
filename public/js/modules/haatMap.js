@@ -8,7 +8,7 @@
         getData: function() {
             var haatAPI = './haat.json?';
             
-            haatAPI += $('.fields-haat').serialize();
+            haatAPI += $('.fields-haat').find('input, select').serialize();
 
             APIMap.getTooltipMeta = HAATMap.getTooltipMeta;
 

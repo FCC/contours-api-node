@@ -49,15 +49,17 @@
             };
 
             Map.map.on('click', function(event) {
-                if ($('#apiType').val() !== 'contour') {
+                var apiType = $('#apiType').val();
+
+                if (apiType !== 'contoursOPIF' ) {
                     Map.createTempMarker(event);
                 }
             });
         },
         createTempMarker: function(event) {
 
-            var lat = event.latlng.lat;
-            var lon = event.latlng.lng;
+            var lat = event.latlng.lat.toFixed(10);
+            var lon = event.latlng.lng.toFixed(10);
             var fields = $('.fields:visible');
             var latField = fields.find('input[name="lat"]');
             var lonField = fields.find('input[name="lon"]');

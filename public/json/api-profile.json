@@ -43,6 +43,33 @@
                     "type": "number",
                     "defaultValue": ""
                 }, {
+                    "name": "start",
+                    "label": "Start",
+                    "display": true,
+                    "in": "query",
+                    "description": "Distance of the starting point of profile from the location, in kilometers.",
+                    "required": true,
+                    "type": "number",
+                    "defaultValue": ""
+                }, {
+                    "name": "end",
+                    "label": "End",
+                    "display": true,
+                    "in": "query",
+                    "description": "Distance of the ending point of the profile from the location, in kilometers.",
+                    "required": true,
+                    "type": "number",
+                    "defaultValue": ""
+                }, {
+                    "name": "num_points",
+                    "label": "No. of Points",
+                    "display": true,
+                    "in": "query",
+                    "description": "Number of points used for the profile.",
+                    "required": true,
+                    "type": "number",
+                    "defaultValue": ""
+                }, {
                     "name": "src",
                     "label": "Source",
                     "display": true,

@@ -33,8 +33,8 @@
 
         createMarker: function(data) {
             var meta = APIMap.getTooltipMeta(data);
-            var lat = data.lat ? data.lat : data.features[0].geometry.coordinates[1];
-            var lon = data.lon ? data.lon : data.features[0].geometry.coordinates[0];
+            var lat = data.features[0].properties.lat;
+            var lon = data.features[0].properties.lon;
 
             Map.clearLayers();
 

@@ -19,7 +19,7 @@
             var dataProfile = data.features[0].properties;
             
             haatMeta += '<dt>Average Elevation:</dt>';
-            haatMeta += '<dd>' + dataProfile.average_elevation[0] + ' ' + dataProfile.unit + '</dd>';
+            haatMeta += '<dd>' + dataProfile.average_elevation + ' ' + dataProfile.unit + '</dd>';
             haatMeta += '<dt>Latitude:</dt>';
             haatMeta += '<dd>' + dataProfile.lat + '</dd>';
             haatMeta += '<dt>Longitude:</dt>';

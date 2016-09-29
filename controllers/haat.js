@@ -65,10 +65,10 @@ function getHAAT(req, res, callback) {
 		dataObj['status'] = 'error';
 		dataObj['statusCode'] = '400';
 		dataObj['statusMessage'] = '';
-		dataObj['latitude'] = '';
-		dataObj['longitude'] = '';
+		dataObj['lat'] = '';
+		dataObj['lon'] = '';
 
-		GeoJSON.defaults = {Point: ['latitude', 'longitude'], include: ['status','statusCode','statusMessage']};
+		GeoJSON.defaults = {Point: ['lat', 'lon'], include: ['status','statusCode','statusMessage']};
 		
 		startTime = new Date().getTime();
 
@@ -80,28 +80,28 @@ function getHAAT(req, res, callback) {
                  //res.status(400).send(GeoJSON.parse(ret, {}));                                         
                  returnJson = GeoJSON.parse(ret, {});
             });
-            callback(returnJson);
+            return callback(returnJson);
 		}
 		if (!url.match(/lon=/i)) {
 			dataObj.statusMessage = 'missing lon value';
 			returnError(dataObj, function(ret){
                  returnJson = GeoJSON.parse(ret, {});
             });
-            callback(returnJson);
+            return callback(returnJson);
 		}
 		if (!url.match(/rcamsl=/i)) {
 			dataObj.statusMessage = 'missing rcamsl value';
 			returnError(dataObj, function(ret){
                  returnJson = GeoJSON.parse(ret, {});
             });
-            callback(returnJson);
+            return callback(returnJson);
 		}
 		if (!url.match(/nradial=/i)) {
 			dataObj.statusMessage = 'missing nradial value';
 			returnError(dataObj, function(ret){
                  returnJson = GeoJSON.parse(ret, {});
             });
-            callback(returnJson);
+            return callback(returnJson);
 		}
 
 		src = url.replace(/^.*src=/i, '').replace(/&.*$/, '').toLowerCase();
@@ -122,8 +122,8 @@ function getHAAT(req, res, callback) {
 		}
 		
 		var i, j;
-		dataObj.latitude = lat;
-        dataObj.longitude = lon;
+		dataObj.lat = lat;
+        dataObj.lon = lon;
 
         if ( !lat.match(/^-?\d+\.?\d*$/) || !lon.match(/^-?\d+\.?\d*$/) ) {            
             
@@ -131,7 +131,7 @@ function getHAAT(req, res, callback) {
             returnError(dataObj, function(ret){
             	 returnJson = GeoJSON.parse(ret, {});
             });
-            callback(returnJson);
+            return callback(returnJson);
         }
 		
 		if ( !rcamsl.match(/^\d+\.?\d*$/) ) {
@@ -139,35 +139,35 @@ function getHAAT(req, res, callback) {
             returnError(dataObj, function(ret){
                  returnJson = GeoJSON.parse(ret, {});
             });
-            callback(returnJson);
+            return callback(returnJson);
 		}
 		if ( !nradial.match(/^\d*$/) ) {
 			dataObj.statusMessage = 'invalid nradial value';
             returnError(dataObj, function(ret){
                  returnJson = GeoJSON.parse(ret, {});
             });
-            callback(returnJson);
+            return callback(returnJson);
 		}
 		if ( parseFloat(lat) > 90 || parseFloat(lat) < -90 ) {
 			dataObj.statusMessage = 'lat value out of range';
             returnError(dataObj, function(ret){
                  returnJson = GeoJSON.parse(ret, {});
             });
-            callback(returnJson);
+            return callback(returnJson);
 		}
 		if ( parseFloat(lon) > 180 || parseFloat(lon) < -180 ) {
 			dataObj.statusMessage = 'lon value out of range';
             returnError(dataObj, function(ret){
                  returnJson = GeoJSON.parse(ret, {});
             });
-            callback(returnJson);
+            return callback(returnJson);
 		}
 		if ( parseFloat(nradial) <1 || parseFloat(nradial) > 360 ) {
 			dataObj.statusMessage = 'nradial value out of range';
             returnError(dataObj, function(ret){
                  returnJson = GeoJSON.parse(ret, {});
             });
-            callback(returnJson);			
+            return callback(returnJson);			
 		}
 
 		lat = parseFloat(lat);
@@ -284,7 +284,7 @@ function getHAAT(req, res, callback) {
         returnError(dataObj, function(ret){
              returnJson = GeoJSON.parse(ret, {});
         });
-        callback(returnJson);
+        return callback(returnJson);
 	}
 }
 
@@ -782,8 +782,8 @@ function returnError(data, callback) {
         status: 'error',
         statusCode: '400',
         statusMessage: data.statusMessage,
-        latitude: data.latitude,
-        longitude: data.longitude
+        lat: data.lat,
+        lon: data.lon
         }];
     return callback(ret);
 }

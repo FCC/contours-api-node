@@ -66,7 +66,7 @@
 
             Map.map.fitBounds(Map.contourJSON.getBounds());
 
-            if ($('#apiType') === 'contoursOPIF') {
+            if ($('#apiType').val() === 'contoursOPIF') {
                 ContourMap.createOPIFMarker(data);
             } else {
                 ContourMap.createMarker(data);
@@ -116,7 +116,7 @@
                 .bindPopup(contourMeta);
 
         },
-        createOPIFMarker: function(data) {
+        createOPIFMarker: function(data) { 
             var contourMeta = '';
 
             Map.featureLayer = L.mapbox.featureLayer().addTo(Map.map);

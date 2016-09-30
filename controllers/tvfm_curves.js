@@ -1280,25 +1280,27 @@ function getDistance2(req, res) {
 		var erp = req.query.erp;
 		var channel = req.query.channel;
 		var curve = req.query.curve;
-		var tv_or_fm = req.query.tv_or_fm;
+		var serviceType = req.query.serviceType;
 		
-		if (tv_or_fm == undefined) {
-		console.log('missing tv_or_fm');
+		if (serviceType == undefined) {
+		console.log('missing serviceType');
 			res.status(400).send({
 			'status': 'error',
 			'statusCode':'400',
-			'statusMessage': 'missing tv_or_fm'
+			'statusMessage': 'missing serviceType'
 			});
 			return;
 		}
 		
+		serviceType = serviceType.toLowerCase();
+		
 		var tv_fm_list = ['tv', 'fm'];
-		if (tv_fm_list.indexOf(tv_or_fm) < 0) {
-			console.log('invalid tv_or_fm value');
+		if (tv_fm_list.indexOf(serviceType) < 0) {
+			console.log('invalid serviceType value');
 			res.status(400).send({
 			'status': 'error',
 			'statusCode':'400',
-			'statusMessage': 'invalid tv_or_fm value'
+			'statusMessage': 'invalid serviceType value'
 			});
 			return;
 		}
@@ -1333,7 +1335,7 @@ function getDistance2(req, res) {
 			return;
 		}
 		
-		if (tv_or_fm.toLowerCase() == 'fm' && channel == undefined) {
+		if (serviceType == 'tv' && channel == undefined) {
 			console.log('missing channel');
 			res.status(400).send({
 			'status': 'error',
@@ -1393,7 +1395,7 @@ function getDistance2(req, res) {
 			return;
 		}
 		
-		if ( tv_or_fm.toLowerCase() == 'fm' && !curve.match(/^\d+$/)) {
+		if ( serviceType.toLowerCase() == 'fm' && !curve.match(/^\d+$/)) {
 			console.log('invalid curve value');
 			res.status(400).send({
 			'status': 'error',
@@ -1435,11 +1437,14 @@ function getDistance2(req, res) {
 		channel = parseFloat(channel);
 		curve = parseFloat(curve);
 		
-		if (tv_or_fm.toLowerCase() == 'tv') {
-			channel = 6;
+		var channel_use = channel;
+		if (serviceType.toLowerCase() == 'fm') {
+			channel_use = 6;
 		}
 
-		var distance = tvfmfs_metric(erp, haat, channel, field, distance, fs_or_dist, curve, flag);
+		console.log(channel)
+		
+		var distance = tvfmfs_metric(erp, haat, channel_use, field, distance, fs_or_dist, curve, flag);
 
 		console.log('distance=');
 		console.log(distance);
@@ -1466,9 +1471,7 @@ function getDistance2(req, res) {
 		else {
 		
 			var dist = mathjs.round(distance, 3);
-			if (tv_or_fm.toLowerCase() == 'tv') {
-				channel = '';
-			}
+
 			res.status(200).send({
 				'distance': dist,
 				'distance_unit': 'km',
@@ -1478,7 +1481,7 @@ function getDistance2(req, res) {
 				'erp': erp,
 				'channel': channel,
 				'curve': curve,
-				'tv_or_fm': tv_or_fm
+				'serviceType': serviceType
 			});
 
 		}

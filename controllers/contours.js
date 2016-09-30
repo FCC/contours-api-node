@@ -187,26 +187,28 @@ function getContours(req, res) {
 		var field = req.query.field;
 		var channel = req.query.channel;
 		var curve = req.query.curve;
-		var tv_or_fm = req.query.tv_or_fm;
+		var serviceType = req.query.serviceType;
 		
 		
-		if (tv_or_fm == undefined) {
-			console.log('missing tv_or_fm');
+		if (serviceType == undefined) {
+			console.log('missing serviceType');
 			res.status(400).send({
 			'status': 'error',
 			'statusCode':'400',
-			'statusMessage': 'missing tv_or_fm'
+			'statusMessage': 'missing serviceType'
 			});
 			return;
 		}
 		
+		serviceType = serviceType.toLowerCase();
+		
 		var tv_fm_list = ['tv', 'fm'];
-		if (tv_fm_list.indexOf(tv_or_fm) < 0) {
-			console.log('invalid tv_or_fm value');
+		if (tv_fm_list.indexOf(serviceType) < 0) {
+			console.log('invalid serviceType value');
 			res.status(400).send({
 			'status': 'error',
 			'statusCode':'400',
-			'statusMessage': 'invalid tv_or_fm value'
+			'statusMessage': 'invalid serviceType value'
 			});
 			return;
 		}
@@ -272,7 +274,7 @@ function getContours(req, res) {
 			return;
 		}
 		
-		if (tv_or_fm.toLowerCase() == 'fm' && channel == undefined) {
+		if (serviceType == 'tv' && channel == undefined) {
 			console.log('missing channel');
 			res.status(400).send({
 			'status': 'error',
@@ -287,15 +289,6 @@ function getContours(req, res) {
 			'status': 'error',
 			'statusCode':'400',
 			'statusMessage': 'missing curve'
-			});
-			return;
-		}
-		
-		if (tv_or_fm == undefined) {
-			res.status(400).send({
-			'status': 'error',
-			'statusCode':'400',
-			'statusMessage': 'missing tv_or_fm'
 			});
 			return;
 		}
@@ -483,7 +476,7 @@ function getContours(req, res) {
 			var fs_or_dist = 2;
 			var flag = [];
 			var channel_use = channel;
-			if (tv_or_fm == 'tv') {
+			if (serviceType == 'fm') {
 				channel_use = 6;
 			}
 			for (var i = 0; i < body.features[0].properties.haat_azimuth.length; i++) {
@@ -536,7 +529,7 @@ function getContours(req, res) {
 										"antenna_lon": lon,
 										"field": field,
 										"erp": erp,
-										"tv_or_fm": tv_or_fm,
+										"serviceType": serviceType,
 										"curve": curve,
 										"channel": channel,
 										"rcamsl": rcamsl,

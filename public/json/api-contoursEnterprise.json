@@ -10,14 +10,13 @@
         "description": "FCC Enterprise Contours API"
     }],
     "paths": {
-
         "/contours.{format}": {
             "get": {
                 "tags": ["enterprise contours"],
                 "summary": "Get Contour by Service Type",
                 "description": "Get contour based on serviceType (FM, TV). Response returned in GeoJSON, JSONP, Shapefile, KML, GML, CSV.",
                 "parameters": [{
-                    "name": "tv_or_fm",
+                    "name": "serviceType",
                     "label": "Service Type",
                     "display": true,
                     "in": "query",
@@ -76,10 +75,11 @@
                     "defaultValue": ""
                 }, {
                     "name": "channel",
-                    "label": "FM channel",
+                    "label": "Channel",
                     "display": true,
+                    "fmOnly": true,
                     "in": "query",
-                    "description": "FM channel",
+                    "description": "Channel (required for TV)",
                     "required": false,
                     "type": "integer",
                     "defaultValue": ""

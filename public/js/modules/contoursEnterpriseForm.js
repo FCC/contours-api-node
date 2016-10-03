@@ -3,47 +3,29 @@
 
     var ContourMap = require('./contourMap.js');   
 
-    var ContourForm = {
+    var EntrpContourForm = {
         bindEvents: function() {
-            var idTypes = {
-                facilityid: 'Facility ID',
-                callsign: 'Call Sign',
-                filenumber: 'File Number',
-                applicationid: 'Application ID',
-                antennaid: 'Antenna ID'
-            };
-
-            var serviceTypes = {
-                tv: ['facilityid', 'callsign', 'filenumber', 'applicationid'],
-                fm: ['facilityid', 'callsign', 'filenumber', 'applicationid'],
-                am: ['facilityid', 'callsign', 'antennaid']
-            };
+            var entrpForm = $('#frm-contoursEnterprise');
+            var serviceSel = entrpForm.find('select').eq(0);
+            
+            serviceSel.addClass('js-entrp');
+            $('label[for="channel"]').attr('required', true);
 
             // display optional fields based on Service Type
-            $('#serviceType').on('change', function() {
+            $('#frm-contoursEnterprise').on('change', '.js-entrp', function() {
+                var serviceVal = this.value;
 
-                $('#idType')
-                    .val('facilityid')
-                    .find('option').hide();
-
-                $('label[for="idValue"]').text('Facility ID');
-                $('#idValue').val('');
-
-                $(serviceTypes[this.value]).each(function(index, value) {
-                    $('option[value="' + value + '"]').show();
-                });
-
-                if (this.value === 'am') {
-                    $('.js-am-only').slideDown();
+                $('#frm-contoursEnterprise').find('input').val('');
+                $('#curve').val(0);
+                $('#src').val('ned');
+                $('#unit').val('m');
+                
+                if (serviceVal === 'fm') {
+                    $('label[for="channel"]').attr('required', false);
+                
                 } else {
-                    $('.js-am-only').slideUp();
+                    $('label[for="channel"]').attr('required', true);
                 }
-            });
-
-            // update selected ID Type label text
-            $('#idType').on('change', function() {
-                $('#idValue').val('');
-                $('label[for="idValue"]').text(idTypes[this.value]);
             });
 
             $('#form-params').on('click.contoursEnterpriseAPI', '[data-api="contoursEnterprise"]', ContourMap.getContour);
@@ -59,7 +41,7 @@
                 success: function(data) {
                     var paramsData = data.paths['/contours.{format}'].get.parameters;
 
-                    ContourForm.createTemplate(paramsData);
+                    EntrpContourForm.createTemplate(paramsData);
                 }
             });
         },
@@ -74,10 +56,10 @@
             fieldsetHTML = template(fields);
             $('#frm-contoursEnterprise').append(fieldsetHTML);
             
-            ContourForm.bindEvents();
+            EntrpContourForm.bindEvents();
         }
     };
 
-    module.exports = ContourForm;
+    module.exports = EntrpContourForm;
 
 }());

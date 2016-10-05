@@ -189,7 +189,6 @@ function getContours(req, res) {
 		var curve = req.query.curve;
 		var serviceType = req.query.serviceType;
 		
-		
 		if (serviceType == undefined) {
 			console.log('missing serviceType');
 			res.status(400).send({
@@ -274,7 +273,7 @@ function getContours(req, res) {
 			return;
 		}
 		
-		if (serviceType == 'tv' && channel == undefined) {
+		if (serviceType == 'tv' && (channel == undefined || channel == '')) {
 			console.log('missing channel');
 			res.status(400).send({
 			'status': 'error',
@@ -421,13 +420,16 @@ function getContours(req, res) {
 			return;
 		}
 		
-		
-		//var delta_dbu = 10*Math.log(parseFloat(erp))/Math.log(10);
-		
-		//var dbu_curve = dbu - delta_dbu;
-		
-		//console.log('erp=' + erp + 'DBU=' + dbu  + ' ' + delta_dbu + ' ' +dbu_curve);
-
+		lat = parseFloat(lat);
+		lon = parseFloat(lon);
+		field = parseFloat(field);
+		erp = parseFloat(erp);
+		if (channel != undefined) {
+			channel = parseInt(channel);
+		}
+		rcamsl = parseFloat(rcamsl);
+		nradial = parseInt(nradial);
+		curve = parseInt(curve);
 		
 		var hostname = req.hostname;
 		if (hostname == "localhost" || hostname == "127.0.0.1") {

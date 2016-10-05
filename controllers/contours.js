@@ -358,7 +358,7 @@ function getContours(req, res) {
 				}
 				//dist = distance.calTvFmDist(body.features[0].properties.haat_azimuth[i], dbu_curve, curve_type);
 				dist = tvfm_curves.tvfmfs_metric(erp, haat, channel_use, field, distance_tmp, fs_or_dist, curve, flag);
-				if (!isNaN(dist)) {
+				if (isNaN(dist)) {
 					console.log('error in distance calculation');
 					res.status(400).send({
 					'status': 'error',

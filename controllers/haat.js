@@ -232,9 +232,7 @@ function getHAAT(req, res, callback) {
 		var filenames_no_ned_1 = getNonExistingFiles(filenames_ned_1); //ned_1 files not exist locally
 		var filenames_no_ned_2 = getNonExistingFiles(filenames_ned_2); //ned_2 files not exist locally
 		var filenames_no_globe30 = getNonExistingFiles(filenames_globe); //globe30 files not exist locally
-		
-		filenames_no_globe30 = ['ss'];
-		
+			
 		if (filenames_no_ned_1.length != 0 && filenames_no_ned_2.length != 0 && filenames_no_globe30.length != 0) {
 			console.error('elevation data file missing');
 			dataObj.statusMessage = 'elevation data file missing';

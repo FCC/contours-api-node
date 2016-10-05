@@ -226,8 +226,27 @@ function getHAAT(req, res, callback) {
 		filenames_ned_2 = uniqArray(filenames_ned_2);
 		filenames_globe = uniqArray(filenames_globe);
 
-		dataObj = prepareDataObject(dataObj);        
+		dataObj = prepareDataObject(dataObj);
+		
+		//check if file exists locally
+		var filenames_no_ned_1 = getNonExistingFiles(filenames_ned_1); //ned_1 files not exist locally
+		var filenames_no_ned_2 = getNonExistingFiles(filenames_ned_2); //ned_2 files not exist locally
+		var filenames_no_globe30 = getNonExistingFiles(filenames_globe); //globe30 files not exist locally
+		
+		filenames_no_globe30 = ['ss'];
+		
+		if (filenames_no_ned_1.length != 0 && filenames_no_ned_2.length != 0 && filenames_no_globe30.length != 0) {
+			console.error('elevation data file missing');
+			dataObj.statusMessage = 'elevation data file missing';
+			returnError(dataObj, function(ret){
+                 //res.status(400).send(GeoJSON.parse(ret, {}));                                         
+                 returnJson = GeoJSON.parse(ret, {});
+            });
+            return callback(returnJson);
+		}
+			
 
+		console.log('filenames_ned_1='+filenames_ned_1+', filenames_ned_2='+filenames_ned_2+', filenames_no_ned_1='+filenames_no_ned_1+', filenames_no_ned_2='+filenames_no_ned_2);
 		
 		if (src == 'globe30') {
 			console.log('use globe data');	
@@ -240,13 +259,6 @@ function getHAAT(req, res, callback) {
 			//return callback(null);
 		}
 		
-		//check if file exists locally and on S3
-		var filenames_no_ned_1 = getNonExistingFiles(filenames_ned_1); //ned_1 files not exist locally
-		var filenames_no_ned_2 = getNonExistingFiles(filenames_ned_2); //ned_2 files not exist locally
-		//var filenames_ned_1_s3 = checkS3(filenames_no_ned_1, 'ned_1'); //ned_1 files that exist on S3
-		//var filenames_ned_2_s3 = checkS3(filenames_no_ned_2, 'ned_2'); //ned_2 files that exist on S3
-
-		console.log('filenames_ned_1='+filenames_ned_1+', filenames_ned_2='+filenames_ned_2+', filenames_no_ned_1='+filenames_no_ned_1+', filenames_no_ned_2='+filenames_no_ned_2);
 		
 		if (filenames_no_ned_1.length == 0) {
 			processDataFiles(res, dataObj, filenames_ned_1, function(data){

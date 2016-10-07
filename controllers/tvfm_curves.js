@@ -776,7 +776,6 @@ function itplbv(lx, ly, x, y, z, n, u, v, w)
 
 function tvfmfs_metric(erp, haat, channel, field, distance, fs_or_dist, curve, flag)
 {
-
   var id50 = 25;
   var ih50 = 13;
   var id10 = 31;
@@ -818,7 +817,7 @@ function tvfmfs_metric(erp, haat, channel, field, distance, fs_or_dist, curve, f
 
       // Input data checks
 
-         if ((channel < 2 || channel > 300) || (channel > 83 && channel < 200) || channel == '') { flag[3] = 1; }
+         if ((channel < 2 || channel > 300) || (channel > 69 && channel < 200) || channel == '') { flag[3] = 1; }
 	  if (erp < 0.0001)  
              { 
                 flag[6] = 1;
@@ -849,8 +848,8 @@ function tvfmfs_metric(erp, haat, channel, field, distance, fs_or_dist, curve, f
          erp_db = 10.0 * (Math.log(erp)/Math.log(10));  
          // Math.log(x)/Math.log(10) = log10(x) which is not supported in some browsers
          
-         if (haat < 30.0)       { height = 30.0;  flag[7] = 1; }  // All HAAT below 30 meters are set to 30
-         else if (haat > 1600)  { height = 1600.; flag[8] = 1; }  // All HAAT above 1600 are set to 1600
+         if (haat < 30.0)       { haat = 30.0;  flag[7] = 1; }  // All HAAT below 30 meters are set to 30
+         else if (haat > 1600)  { haat = 1600.; flag[8] = 1; }  // All HAAT above 1600 are set to 1600
 
          if(flag[3]==1 || flag[4]==1 || flag[5]==1) { return flag; } //need more info -- NO CALCULATIONS
          else if(flag[12]==1 || flag[13]==1 || flag[14]==1 || flag[15]==1 || flag[16]==1 || flag[17]==1) { return flag; } //need more info -- NO CALCULATIONS
@@ -874,6 +873,8 @@ function tvfmfs_metric(erp, haat, channel, field, distance, fs_or_dist, curve, f
                        // Math.log(x)/Math.log(10) = log10(x) which is not supported in some browsers (Internet Explorer)
 
                     flag[1] = 1;
+
+                    return field;
 
          	  }
 	      if ((curve == 0 && distance > 300.0) || (curve == 1 && distance > 500.0)) 
@@ -960,7 +961,7 @@ function tvfmfs_metric(erp, haat, channel, field, distance, fs_or_dist, curve, f
                         }
 
 	             }
-                  else if (channel >= 14 && channel <= 83) 
+                  else if (channel >= 14 && channel <= 69) 
 	             {
                        if (curve == 0 || (curve == 1 &&  distance < 15.0)) //F(50,50)
 		         { 
@@ -1149,23 +1150,16 @@ function tvfmfs_metric(erp, haat, channel, field, distance, fs_or_dist, curve, f
                     else if(channel >= 7 && channel <= 13)
                          {  itplbv(id50, ih50, D50, H50, F55HV, j, d1, h, f1); }
                     else if(channel >= 14 && channel <= 69)
-                         {  itplbv(id50, ih50, D50, H50, F55U,  j, d1, h, f1); }
+                         {  itplbv(id50, ih50, D50, H50, F55U,  j, d1, h, f5050); }
                      
                    //i=i for FM vhf uhf
 
                    for(i=0; i < 30; i++)
                     {
-   
-                      if(curve == 1)
-                        {
-                          f[i] = f1[i] * 1.0;
-                          d[i] = (i * delta);
-                        }
-                      else if(curve == 2)
-                        {     
-                         f[i] = f5010[i] * 1.0;
-                         d[i] = (i * delta);
-                        }
+                       if(curve == 1)         {  f[i] = f1[i] * 1.0;    }
+                       else if(curve == 2)    {  f[i] = f5010[i] = f5050[i] * 1.0; }
+ 
+                       d[i] = (i * delta);
                     } 
 
  //  for(i=0; i<35; i++) document.write(f[i] + '  ' + i + '  ' + f1[i] + '  ' + d[i] + '<br>');
@@ -1231,8 +1225,6 @@ function tvfmfs_metric(erp, haat, channel, field, distance, fs_or_dist, curve, f
 function tvfmfs_comment(i)
 {
 
-	var comment;
-	
     if(i==0)       comment = "";
     else if(i==1)  comment = "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Free Space equation used to compute distance.<br>\n ";
     else if(i==2)  comment = "<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Entered distance exceeds maximum curve distance.<br>\n";
@@ -1311,7 +1303,7 @@ function round_power(power_in, error_flag)
       var power_out = 0.0;
       var round_factor = 0.0;
 
-      error_flag = 0;
+      var error_flag = 0;
       power_out = power_in + 0.000000000001;  // to insure a nonzero power_in
 
       if (power_in >= 0.001 && power_in < 0.003)     {  round_factor = 0.00005; }    
@@ -1345,7 +1337,7 @@ function round_power(power_in, error_flag)
       if (power_in > 1000.)  { power_out = Math.floor(power_in); } 
 
       return(power_out);
-}  
+}   
 
 
 function getDistance(req, res) {

@@ -108,6 +108,8 @@
                                     {{#if display}}
                                         {{#if amOnly}}
                                             <div class="js-am-only form-group" style="display: none;">
+                                        {{else if fmOnly}}
+                                            <div class="js-fm-only form-group">
                                         {{else}}
                                             <div class="form-group">
                                         {{/if}}
@@ -117,7 +119,7 @@
                                             <label for="{{name}}">{{label}}</label>
                                         {{/if}}
                                         {{#if enum}}
-                                            <select id="{{name}}" class="form-control" name="{{name}}">
+                                            <select id="{{name}}" class="{{class}} form-control" name="{{name}}">
                                                 {{#enum}}
                                                     <option value="{{this}}">{{this}}</option>
                                                 {{/enum}}

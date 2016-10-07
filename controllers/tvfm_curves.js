@@ -787,10 +787,11 @@ function tvfmfs_metric(erp, haat, channel, field, distance, fs_or_dist, curve, f
   var d_last = 0.0;
   var e_volts_meter = 0.0;
   var n_points = 1001;
+ 
 
-  var erp_copy = erp;
-  var distance_copy = distance;
-  var field_copy = field;
+  //var erp_copy = erp;
+  //var distance_copy = distance;
+  //var field_copy = field;
     
   var i = 0;
   var j = 1;
@@ -809,35 +810,49 @@ function tvfmfs_metric(erp, haat, channel, field, distance, fs_or_dist, curve, f
   var RL = 0.0;
   var RT = 0.0;
 
-
       //var flag = [];
 	  
-	  for(i=0; i < 11;  i++)  flag[i] = 0;
+	  for(i=0; i < 19;  i++)  flag[i] = 0;
+ 
 
       // Input data checks
-	  if (erp < 0.0001)  { flag[6] = 1; if(erp < 0.0001) erp = 0.0001; }
-	  if ((channel < 2 || channel > 300) || (channel > 83 && channel < 200) || channel == '') { flag[3] = 1; }
 
-	  if (curve < 0  || curve > 2 || curve === '')                  { flag[4] = 1;}
-	  if (fs_or_dist < 1 || fs_or_dist > 3 || fs_or_dist == '')    { flag[5] = 1; }
+         if ((channel < 2 || channel > 300) || (channel > 69 && channel < 200) || channel == '') { flag[3] = 1; }
+	  if (erp < 0.0001)  
+             { 
+                flag[6] = 1;
+                if(erp < 0.0001 && erp > 0.00000001) { erp = 0.0001; }
+             }
+
+         if (((channel >= 2 && channel <= 6) || (channel >= 200 && channel <= 300)) && (erp > 400.5)) { flag[12] = 1; }
+         else if ((channel >= 7  && channel <= 13) && (erp > 400.5))    { flag[13] = 1; }
+         else if ((channel >= 14 && channel <= 69) && (erp > 5500.5))   { flag[14] = 1; }
+
+         if     ((curve == 0 || curve == 2) && distance > 300.) { flag[15] = 1; }
+         else if (curve == 1 && distance > 500.) { flag[16] = 1; }
+ 	  
+	   if (curve < 0  || curve > 2 || curve === '')                  { flag[4] = 1; }
+	   if (fs_or_dist < 1 || fs_or_dist > 3 || fs_or_dist == '')    { flag[5] = 1; }
           if (fs_or_dist == 1 && field < 0.0)      { flag[9] = 1; field    = Math.abs(field);    }
           if (fs_or_dist == 2 && distance < 0.0)   { flag[9] = 1; distance = Math.abs(distance); }
-		  
+    
           if (fs_or_dist == 3)  //find FM ERP, given a HAAT and a distance
              {   
-                var field_for_erp = 60.;    // 60 dBu used to determin equivalence
-                erp = 1.0;                 // initial value
-                curve = 0;                 // Service contour only
+                var field_for_erp = 60.;       // 60 dBu used to determin equivalence
+                erp = 1.0;                     // initial value
+                if(channel < 200) flag[17]=1;  // No TV calculations here
+                curve = 0;                     // Service contour only
                 channel = 250;
              }
 
          erp_db = 10.0 * (Math.log(erp)/Math.log(10));  
          // Math.log(x)/Math.log(10) = log10(x) which is not supported in some browsers
          
-         if (haat < 30.0)       { height = 30.0;  flag[7] = 1; }  // All HAAT below 30 meters are set to 30
-         else if (haat > 1600)  { height = 1600.; flag[8] = 1; }  // All HAAT above 1600 are set to 1600
+         if (haat < 30.0)       { haat = 30.0;  flag[7] = 1; }  // All HAAT below 30 meters are set to 30
+         else if (haat > 1600)  { haat = 1600.; flag[8] = 1; }  // All HAAT above 1600 are set to 1600
 
-         if(flag[3]==1 || flag[4]==1 || flag[5]==1) return flag; //need more info
+         if(flag[3]==1 || flag[4]==1 || flag[5]==1) { return flag; } //need more info -- NO CALCULATIONS
+         else if(flag[12]==1 || flag[13]==1 || flag[14]==1 || flag[15]==1 || flag[16]==1 || flag[17]==1) { return flag; } //need more info -- NO CALCULATIONS
 
 /***********************************************************************
 !     FOR fs_or_dist = 1, FIND THE "FIELD" AT THE DISTANCE SPECIFIED IN    *
@@ -845,21 +860,24 @@ function tvfmfs_metric(erp, haat, channel, field, distance, fs_or_dist, curve, f
 !     SPACE EQUATION.                                                  *
 !**********************************************************************/
 
+
   
       if (fs_or_dist == 1 || fs_or_dist == 3) 
 	  {
-	      n_points = 1;
+
+	       n_points = 1;
               j = 1;
               if (distance < 1.5) 
 		  {
                     field = (106.92 - (20.0 * (Math.log(distance)/Math.log(10)))) + erp_db;
-                       // Math.log(x)/Math.log(10) = log10(x) which is not supported in some browsers
+                       // Math.log(x)/Math.log(10) = log10(x) which is not supported in some browsers (Internet Explorer)
 
                     flag[1] = 1;
 
-    
-		  }
-	      else if ((curve == 0 && distance > 300.0) || (curve == 1 && distance > 500.0)) 
+                    return field;
+
+         	  }
+	      if ((curve == 0 && distance > 300.0) || (curve == 1 && distance > 500.0)) 
                   {
 		    flag[2] = 1;
                   }
@@ -943,7 +961,7 @@ function tvfmfs_metric(erp, haat, channel, field, distance, fs_or_dist, curve, f
                         }
 
 	             }
-                  else if (channel >= 14 && channel <= 83) 
+                  else if (channel >= 14 && channel <= 69) 
 	             {
                        if (curve == 0 || (curve == 1 &&  distance < 15.0)) //F(50,50)
 		         { 
@@ -980,8 +998,9 @@ function tvfmfs_metric(erp, haat, channel, field, distance, fs_or_dist, curve, f
                         }
                   }
               }
-
-	     if(curve==0 || curve == 1) 
+             if(flag[1] == 1)
+                {  ;  }  // no changes to field value
+	      if(curve==0 || curve == 1) 
                 { 
                   field = f[0] + erp_db; 
                 } 
@@ -1019,21 +1038,19 @@ function tvfmfs_metric(erp, haat, channel, field, distance, fs_or_dist, curve, f
 
       else if (fs_or_dist == 2)
       {
-             j = n_points;
- 
-             for (i = 0; i <= n_points; i++)   { h[i] = haat; f5050[i] = f5010[i] = f[i] = 0.0; }
+               j = n_points;
 
+               for (i = 0; i <= n_points; i++)   { h[i] = haat; f5050[i] = f5010[i] = f[i] = d[i] = 0.0; }
   
                if (curve == 0 || curve == 2 )
                 {   d_first = 1.5;   d_last  = 300.0;   }
                else if (curve == 1) 
                 {   d_first = 15.0;  d_last  = 500.0;   }
+               var k = Math.floor(d_first/delta);
+               for(i=k; i <= n_points; i++)  { d[i] = (i * delta);  }  // d_first/delta must be an integer
 
-               for(i=0; i < n_points; i++)  { d[i] = d_first + (i * delta);  }
-
-//continue110:
-
-
+ //continue110:
+ 
               if ((channel >= 2 && channel <= 6) || (channel >= 200 && channel <= 300)) 
                 {
                   if (curve == 0) 
@@ -1046,17 +1063,9 @@ function tvfmfs_metric(erp, haat, channel, field, distance, fs_or_dist, curve, f
                    }
                   else if (curve == 2)
                    {
-                     if(distance >= 15)
-                       {
                          itplbv(id50, ih50, D50, H50, F55LV, j, d, h, f5050);
                          itplbv(id10, ih10, D10, H10, F51LV, j, d, h, f5010);
-                       }
-                     else if(distance < 15)
-                       {
-                         itplbv(id50, ih50, D50, H50, F55LV, j, d, h, f5050);
-                         f5010[0] = f5050[0]; // use F5050 curves below 15 km
-                       }
-
+ 
                          // F(50,90) means field strength at 50% of the locations, 90% of the time
                          // Here we can alter the location variability parameter L.  This changes the field strength result.
                          // But since in practice, we never use this, it is commented out.  
@@ -1067,8 +1076,6 @@ function tvfmfs_metric(erp, haat, channel, field, distance, fs_or_dist, curve, f
                          //  ZQ = fzq(L); 
                          //  sigma = 11.88; // > 470 MHz
                          //  RL = ZQ * sigma;
-                         // } 
-
                    } 
 
                 }
@@ -1084,17 +1091,9 @@ function tvfmfs_metric(erp, haat, channel, field, distance, fs_or_dist, curve, f
                    }
                   else if (curve==2)
                    {
-                     if(distance >= 15)
-                       {
                          itplbv(id50, ih50, D50, H50, F55HV, j, d, h, f5050);
-                         itplbv(id10, ih10, D10, H10, F55HV, j, d, h, f5010);
-                       }
-                     else if(distance < 15)
-                       {
-                         itplbv(id50, ih50, D50, H50, F55HV, j, d, h, f5050);
-                         f5010[0] = f5050[0]; // use F5050 curves below 15 km
-                       }
- 
+                         itplbv(id10, ih10, D10, H10, F51HV, j, d, h, f5010);
+
                          // F(50,90) means field strength at 50% of the locations, 90% of the time
                          // Here we can alter the location variability parameter L.  This changes the field strength result.
                          // But since in practice, we never use this, it is commented out.  
@@ -1105,11 +1104,10 @@ function tvfmfs_metric(erp, haat, channel, field, distance, fs_or_dist, curve, f
                          //  ZQ = fzq(L); 
                          //  sigma = 11.88; // > 470 MHz
                          //  RL = ZQ * sigma;
-                         // } 
-                   } 
+                    } 
 
                 }
-              else if (channel >= 14 && channel <= 83)
+              else if (channel >= 14 && channel <= 69)
                {
                   if (curve == 0) 
                    {
@@ -1121,16 +1119,8 @@ function tvfmfs_metric(erp, haat, channel, field, distance, fs_or_dist, curve, f
                    }
                   else if (curve==2)
                    {
-                     if(distance >= 15)
-                       {
-                         itplbv(id50, ih50, D50, H50, F55U, j, d, h, f5050);
-                         itplbv(id10, ih10, D10, H10, F51U, j, d, h, f5010);
-                       }
-                     else if(distance < 15)
-                       {
-                         itplbv(id50, ih50, D50, H50, F55U, j, d, h, f5050);
-                         f5010[0] = f5050[0]; // use F5050 curves below 15 km
-                       }
+                        itplbv(id50, ih50, D50, H50, F55U, j, d, h, f5050);
+                        itplbv(id10, ih10, D10, H10, F51U, j, d, h, f5010);
 
                          // F(50,90) means field strength at 50% of the locations, 90% of the time
                          // Here we can alter the location variability parameter L.  This changes the field strength result.
@@ -1142,77 +1132,92 @@ function tvfmfs_metric(erp, haat, channel, field, distance, fs_or_dist, curve, f
                          //  ZQ = fzq(L); 
                          //  sigma = 11.88; // > 470 MHz
                          //  RL = ZQ * sigma;
-                         // } 
-
-                   }
-               }
-            
- 
-	   for(i=0; i <= n_points; i++) 
-           { 
-              if(curve == 0 ||  curve == 1)
-               {
-                  f[i] = f[i] + erp_db;
-               }
-              else if(curve==2)
-                {
-                  
-                  ZQ = fzq(T);  // T is the time variable in F(50,90) = the 90 
-                  
-                  RT = (f5010[i] - f5050[i]) * (ZQ/1.28155);
-                
-                  f[i] = f5050[i] + RL + RT + erp_db;
-                }
-            
-
-	      
-              if(field > f[0])  // requested field bigger than curves at first point
-              {                 // redo with F(50,50) curves 
-	        
-                  if(curve == 1)
-                  { 
-
-                    alert("XXX");   
-                    if ((channel >= 2 && channel <= 6) || (channel >= 200 && channel <= 300)) 
-                    {
-                      itplbv(id50, ih50, D50, H50, F55LV, j, d, h, f);
                     }
-                    else if (channel >=7 && channel <= 13) 
+               }
+
+              if(curve == 1 || curve == 2)  // add in the 3 to 15 km range to the f field strength array 
+                              // for F(50,10) interfering contours only.  Since the F(50,10) interfering 
+                              // contours start at 15 km, we use the F(50,50) curves in this range.					 
+               {
+                    var d1 = [];
+                    var f1 = [];  //alert(channel);
+  
+                    for(i=0; i < 30; i++) f[i] = 0.0;
+                    for(i=0; i < n_points; i++) {  d1[i] = (i * delta); f1[i] = 0.0; }
+ 
+                    if((channel >= 2 && channel <= 6) || (channel >= 200 && channel <= 300))
+                         {  itplbv(id50, ih50, D50, H50, F55LV, j, d1, h, f1); }
+                    else if(channel >= 7 && channel <= 13)
+                         {  itplbv(id50, ih50, D50, H50, F55HV, j, d1, h, f1); }
+                    else if(channel >= 14 && channel <= 69)
+                         {  itplbv(id50, ih50, D50, H50, F55U,  j, d1, h, f5050); }
+                     
+                   //i=i for FM vhf uhf
+
+                   for(i=0; i < 30; i++)
                     {
-                      itplbv(id50, ih50, D50, H50, F55HV, j, d, h, f);
+                       if(curve == 1)         {  f[i] = f1[i] * 1.0;    }
+                       else if(curve == 2)    {  f[i] = f5010[i] = f5050[i] * 1.0; }
+ 
+                       d[i] = (i * delta);
                     } 
-                    else if (channel >= 14 && channel <= 83)
-                    {
-                      itplbv(id50, ih50, D50, H50, F55U, j, d, h, f);
-                    } 
-              
-                  }  		              
-                  else if(curve == 0) 
-                  { 
-                      flag[1] = 1;
+
+ //  for(i=0; i<35; i++) document.write(f[i] + '  ' + i + '  ' + f1[i] + '  ' + d[i] + '<br>');
+
+
+              }
+
+
+           for(i=3; i > 0; i--)  // i = 2,1 0 (3 points) 1.5, 1, 0.5
+             {
+             if(field > f[i])  // High field strength, very close to transmitter site // Service AND Interfering contours.
+               {               // Use the free space equation to find the field strength and distance
+                      flag[1] = 1; 
                       e_volts_meter =  1.0e-6 * Math.pow(10,(field / 20.));
                       distance = (7.014271e-3 * Math.sqrt(erp * 1000.)) / e_volts_meter;
+                      
+                      // Added 9/2004 to prevent free space distance from exceeding minimum curves distance of 
+                      // 1.5 km (to eliminate the discontinuity between the free space and curves values)
+                        
+                     // if(distance >= 1.5) { distance = 1.5; flag[1] = 0; }
 
-                      // Added 9/2004 to prevent free space distance from exceeding minimum curves distance of 1.5 km (eliminate discontinuity)
-                      if(distance > 1.5) d[i] = distance = 1.5;
-
-                                           
+                      return distance;
                   }
-                 
-              } 
-             
-              if ((field > f[i] && field < f[i-1]) && i > 0)
+             }                
+
+       
+             for(i = 0; i < n_points; i++) // points i=0,1,2 covered by free space equation immediately above
               {
+                  if(curve == 0 || curve == 1)
+                  { 
+                     f[i] = f[i] + erp_db;
+                  }
+                  else if(curve==2)
+                  {
+                    ZQ = fzq(T);  // T is the time variable in F(50,90) = the 90 
+                    RT = (f5010[i] - f5050[i]) * (ZQ/1.28155);
+                
+                    f[i] = f5050[i] + RL + RT + erp_db;
+                  }     
+              } 
+              
+             // Most common, for service and interfering contours             
+  
+             for(i = 1; i < n_points; i++)  // start at 1
+             {
+               if (field > f[i] && field < f[i-1]) 
+               {
+                   // TEST alert(i + '  '  + field +'  ' + f[i-1] + '  ' + f[i] + '  ' + d[i] + '  ' + d[i-1]);   
+                 
                    distance = (((f[i-1] - field) / (f[i-1] - f[i])) * (d[i] - d[i-1])) + d[i-1];
 
-                   if (distance > d_last) flag[2] = 1;
+                   if (distance > d_last) flag[2] = 1;  
 
                    return distance;
-              }
-                   
-	       
-	   } // end for loop
-                        
+               }
+             }
+
+     // should not get here!
 
   } // end distance
 } // end tvfmfs_metric ----------------------------------------------------------------------------------
@@ -1220,21 +1225,27 @@ function tvfmfs_metric(erp, haat, channel, field, distance, fs_or_dist, curve, f
 function tvfmfs_comment(i)
 {
 
-	var comment;
-
-    if(i==0)      comment = "";
-    else if(i==1) comment = "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Free Space equation used to compute distance.<br>\n ";
-    else if(i==2) comment = "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Entered distance exceeds maximum curve distance.<br>\n";
-    else if(i==3) comment = "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Select a channel range.<br>\n";
-    else if(i==4) comment = "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Select a contour type.<br>\n";
-    else if(i==5) comment = "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Select the desired result (Find This).<br>\n";
-    else if(i==6) comment = "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ERP of less than 0.0001 kW (0.1 watt) is changed to 0.0001 kW for calculations.<br>\n";
-    else if(i==7) comment = "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Entered HAAT is less than 30 meters; changed to 30 meters for calculations.<br>\n";
-    else if(i==8) comment = "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Entered HAAT is greater than 1600 meters; changed to 1600 meters for calculations.<br>\n";
-    else if(i==9) comment = "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Entered Field or Distance is less than zero; set to positive for calculations.<br>\n";
+    if(i==0)       comment = "";
+    else if(i==1)  comment = "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Free Space equation used to compute distance.<br>\n ";
+    else if(i==2)  comment = "<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Entered distance exceeds maximum curve distance.<br>\n";
+    else if(i==3)  comment = "<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Select a channel range.<br>\n";
+    else if(i==4)  comment = "<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Select a contour type.<br>\n";
+    else if(i==5)  comment = "<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Select the desired result (Find This).<br>\n";
+    else if(i==6)  comment = "<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ERP of less than 0.0001 kW (0.1 watt) is changed to 0.0001 kW for calculations.<br>\n";
+    else if(i==7)  comment = "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Entered HAAT is less than 30 meters; changed to 30 meters for calculations.<br>\n";
+    else if(i==8)  comment = "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Entered HAAT is greater than 1600 meters; changed to 1600 meters for calculations.<br>\n";
+    else if(i==9)  comment = "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Entered Field or Distance is less than zero; set to positive for calculations.<br>\n";
     else if(i==10) comment ="&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ERP exceeds the maximum of 100 kW permitted for U.S. FM stations. <br>\n";
-    else if(i==11) comment ="&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Non-numeric data entered in a form input. <br>\n";
+    else if(i==11) comment ="<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Non-numeric data entered in a form input. <br>\n";
 
+    else if(i==12) comment ="&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Maximum ERP for VHF, TV Channels 2-6, is 400 kW. <br>\n";
+    else if(i==13) comment ="&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Maximum ERP for VHF, TV Channels 7-13, is 400 kW. <br>\n";
+    else if(i==14) comment ="&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Maximum ERP for UHF, TV Channels 14-69, is 5500 kW. <br>\n";
+
+    else if(i==15) comment ="<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Maximum curve <b>distance</b> for service contours is limited to 300 km. <br>\n";
+    else if(i==16) comment ="<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Maximum curve <b>distance</b> for interfering contours is limited to 500 km.<br>\n";
+    
+    else if(i==17) comment ="<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;The 'Find ERP' calculation is not valid for the TV service.<br>\n";
 
 
     else comment=""; 
@@ -1269,7 +1280,67 @@ function fzq(Q) // for F(50,90) curves prediction
 }   // end fzq  
 
 
-function getDistance2(req, res) {
+function round_power(power_in, error_flag)
+{
+
+/************************************************************************
+*
+*     This subroutine will round the power in accordance with the FCC
+*     Rules section 73.212.
+*
+*     POWER_IN   = Unrounded power in Watts or kilowatts; real; input.
+*     POWER_OUT  = Rounded power in Watts or kilowatts; real; output.
+*     ERROR_FLAG = 0; no errors; integer; output.
+*                = 1; Input power is less than minimum allowed,
+*                     POWER_OUT set equal to POWER_IN.
+*                = 2; Input power greater than maximum allowed,
+*                     POWER_OUT set equal to POWER_IN.
+*
+*                     ...kalagian...11/3/86...
+*
+***********************************************************************/
+
+      var power_out = 0.0;
+      var round_factor = 0.0;
+
+      var error_flag = 0;
+      power_out = power_in + 0.000000000001;  // to insure a nonzero power_in
+
+      if (power_in >= 0.001 && power_in < 0.003)     {  round_factor = 0.00005; }    
+
+      else if (power_in >= 0.003 && power_in < 0.01) {  round_factor = 0.0001;  }
+
+      else if (power_in >= 0.01 && power_in < 0.03)  {  round_factor = 0.0005;  }
+
+      else if (power_in >= 0.03 && power_in < 0.1)   {  round_factor = 0.001;   }    
+
+      else if (power_in >= 0.10 && power_in < 0.3)   {  round_factor = 0.005;   } 
+
+      else if (power_in >= 0.30 && power_in < 1.0)   {  round_factor = 0.01;    } 
+
+      else if (power_in >= 1.0 && power_in < 3.0)    {  round_factor = 0.05;    } 
+
+      else if (power_in >= 3.00 && power_in < 10.)  {  round_factor = 0.1;     }   
+
+      else if (power_in >= 10.0 && power_in < 30.)   {  round_factor = 0.5;     }  
+
+      else if (power_in >= 30. && power_in < 100.)   {  round_factor = 1.;      } 
+
+      else if (power_in >= 100. && power_in < 300.)  {  round_factor = 5.;      }    
+
+      else if (power_in >= 300. && power_in < 1000.) {  round_factor = 10.0;    }
+
+         power_out = power_in / round_factor;
+	  power_out = Math.floor(Math.round(power_out));
+	  power_out = power_out * round_factor;
+
+      if (power_in > 1000.)  { power_out = Math.floor(power_in); } 
+
+      return(power_out);
+}   
+
+
+function getDistance(req, res) {
 
 	console.log('================ Start Distance API ===================');
 
@@ -1280,25 +1351,27 @@ function getDistance2(req, res) {
 		var erp = req.query.erp;
 		var channel = req.query.channel;
 		var curve = req.query.curve;
-		var tv_or_fm = req.query.tv_or_fm;
+		var serviceType = req.query.serviceType;
 		
-		if (tv_or_fm == undefined) {
-		console.log('missing tv_or_fm');
+		if (serviceType == undefined) {
+		console.log('missing serviceType');
 			res.status(400).send({
 			'status': 'error',
 			'statusCode':'400',
-			'statusMessage': 'missing tv_or_fm'
+			'statusMessage': 'missing serviceType'
 			});
 			return;
 		}
 		
+		serviceType = serviceType.toLowerCase();
+		
 		var tv_fm_list = ['tv', 'fm'];
-		if (tv_fm_list.indexOf(tv_or_fm) < 0) {
-			console.log('invalid tv_or_fm value');
+		if (tv_fm_list.indexOf(serviceType) < 0) {
+			console.log('invalid serviceType value');
 			res.status(400).send({
 			'status': 'error',
 			'statusCode':'400',
-			'statusMessage': 'invalid tv_or_fm value'
+			'statusMessage': 'invalid serviceType value'
 			});
 			return;
 		}
@@ -1333,7 +1406,7 @@ function getDistance2(req, res) {
 			return;
 		}
 		
-		if (tv_or_fm.toLowerCase() == 'fm' && channel == undefined) {
+		if (serviceType == 'tv' && channel == undefined) {
 			console.log('missing channel');
 			res.status(400).send({
 			'status': 'error',
@@ -1393,7 +1466,7 @@ function getDistance2(req, res) {
 			return;
 		}
 		
-		if ( tv_or_fm.toLowerCase() == 'fm' && !curve.match(/^\d+$/)) {
+		if ( serviceType.toLowerCase() == 'fm' && !curve.match(/^\d+$/)) {
 			console.log('invalid curve value');
 			res.status(400).send({
 			'status': 'error',
@@ -1435,11 +1508,12 @@ function getDistance2(req, res) {
 		channel = parseFloat(channel);
 		curve = parseFloat(curve);
 		
-		if (tv_or_fm.toLowerCase() == 'tv') {
-			channel = 6;
+		var channel_use = channel;
+		if (serviceType.toLowerCase() == 'fm') {
+			channel_use = 6;
 		}
-
-		var distance = tvfmfs_metric(erp, haat, channel, field, distance, fs_or_dist, curve, flag);
+		
+		var distance = tvfmfs_metric(erp, haat, channel_use, field, distance, fs_or_dist, curve, flag);
 
 		console.log('distance=');
 		console.log(distance);
@@ -1466,9 +1540,7 @@ function getDistance2(req, res) {
 		else {
 		
 			var dist = mathjs.round(distance, 3);
-			if (tv_or_fm.toLowerCase() == 'tv') {
-				channel = '';
-			}
+
 			res.status(200).send({
 				'distance': dist,
 				'distance_unit': 'km',
@@ -1478,7 +1550,7 @@ function getDistance2(req, res) {
 				'erp': erp,
 				'channel': channel,
 				'curve': curve,
-				'tv_or_fm': tv_or_fm
+				'serviceType': serviceType
 			});
 
 		}
@@ -1505,7 +1577,7 @@ function getDistance2(req, res) {
 
 
 module.exports.tvfmfs_metric = tvfmfs_metric;
-module.exports.getDistance2 = getDistance2;
+module.exports.getDistance = getDistance;
 
 
 

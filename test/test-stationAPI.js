@@ -12,23 +12,23 @@ describe('Station API test', function() {
 
         it('should return station data if station type is am, fm, or tv', function(done) {
             request(server)
-                .get('/station.json?service_type=AM')
+                .get('/station.json?service_type=AM&callsign=waam')
                 .expect('Content-Type', /json/)
-                .expect(400)
+                .expect(200)
                 .end(function(err, res) {
                     if (err) {
                         throw err;
                     }
 
-                    res.body.features[0].properties.should.have.property('statusCode').be.equal('400');
-                    res.body.features[0].properties.should.have.property('statusMessage').be.equal('error: invalid service type: gh');
+                    res.body.should.have.property('statusCode').be.equal('200');
+                    
                     done();
                 });
         });
 
         it('should not return station data if station type is not am, fm, or tv', function(done) {
             request(server)
-                .get('/station.json?service_type=GH')
+                .get('/station.json?service_type=')
                 .expect('Content-Type', /json/)
                 .expect(400)
                 .end(function(err, res) {
@@ -36,8 +36,8 @@ describe('Station API test', function() {
                         throw err;
                     }
 
-                    res.body.features[0].properties.should.have.property('statusCode').be.equal('400');
-                    res.body.features[0].properties.should.have.property('statusMessage').be.equal('error: invalid service type: gh');
+                    res.body.should.have.property('statusCode').be.equal('400');
+                    res.body.should.have.property('statusMessage').be.equal('error: invalid service type: GH');
                     done();
                 });
         });
@@ -55,8 +55,8 @@ describe('Station API test', function() {
                         throw err;
                     }
 
-                    res.body.features[0].properties.should.have.property('statusCode').be.equal('400');
-                    res.body.features[0].properties.should.have.property('statusMessage').be.equal('Both callsign and facility_id provided');
+                    res.body.should.have.property('statusCode').be.equal('400');
+                    res.body.should.have.property('statusMessage').be.equal('Both callsign and facility_id provided');
                     done();
                 });
         });
@@ -71,8 +71,8 @@ describe('Station API test', function() {
                         throw err;
                     }
 
-                    res.body.features[0].properties.should.have.property('statusCode').be.equal('400');
-                    res.body.features[0].properties.should.have.property('statusMessage').be.equal('no callsign or facility_id provided');
+                    res.body.should.have.property('statusCode').be.equal('400');
+                    res.body.should.have.property('statusMessage').be.equal('no callsign or facility_id provided');
                     done();
                 });
         });
@@ -87,8 +87,8 @@ describe('Station API test', function() {
                         throw err;
                     }
 
-                    res.body.features[0].properties.should.have.property('statusCode').be.equal('400');
-                    res.body.features[0].properties.should.have.property('statusMessage').be.equal('invalid facility_id value');
+                    res.body.should.have.property('statusCode').be.equal('400');
+                    res.body.should.have.property('statusMessage').be.equal('invalid facility_id value');
                     done();
                 });
         });

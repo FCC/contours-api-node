@@ -270,7 +270,7 @@ app.get('/contours.json', function(req, res){
 });
 
 app.get('/distance.json', function(req, res){
-    tvfm_curves.getDistance2(req, res);
+    tvfm_curves.getDistance(req, res);
 });
 
 

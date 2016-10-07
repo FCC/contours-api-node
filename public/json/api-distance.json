@@ -53,7 +53,7 @@
                     "in": "query",
                     "description": "Required for TV.",
                     "required": false,
-                    "type": "number",
+                    "type": "integer",
                     "defaultValue": ""
                 }, {
                     "name": "erp",

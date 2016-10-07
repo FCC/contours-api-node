@@ -16,14 +16,18 @@
                 "summary": "Get Distance",
                 "description": "Get Distance data based on dBu, HAAT, and curve type. Response returned in JSON format.",
                 "parameters": [{
-                    "name": "dbu",
-                    "label": "dBu",
+                    "name": "serviceType",
+                    "label": "Service Type",
                     "display": true,
                     "in": "query",
-                    "description": "Decibel unit",
+                    "description": "Type of broadcast service. <br /><br />Valid values: tv or fm",
                     "required": true,
-                    "type": "number",
-                    "defaultValue": ""
+                    "type": "string",
+                    "defaultValue": "tv",
+                    "enum": [
+                        "tv",
+                        "fm"
+                    ]
                 }, {
                     "name": "haat",
                     "label": "HAAT",
@@ -34,21 +38,45 @@
                     "type": "number",
                     "defaultValue": ""
                 }, {
-                    "name": "curve_type",
-                    "label": "Curve Type",
+                    "name": "field",
+                    "label": "field",
                     "display": true,
                     "in": "query",
-                    "description": "<b>F55LV</b> - use F(50, 50) for FM and NTSC TV channels 2 to 6.<br /><br /><b>F51LV</b> - use F(50, 10) for FM and NTSC TV channels 2 to 6.<br /><br /><b>F55HV</b> - use F(50, 50) for NTSC TV channels 7 to 13.<br /><br /><b>F51HV</b> - use F(50, 10) for NTSC TV channels 7 to 13.<br /><br /><b>F55U</b> - use F(50, 50) for NTSC TV channels 14 to 69.<br /><br /><b>F51U</b> - use F(50, 10) for NTSC TV channels 14 to 69.",
+                    "description": "Field strength (e.g. 28 dBu).",
+                    "required": true,
+                    "type": "number",
+                    "defaultValue": ""
+                }, {
+                    "name": "channel",
+                    "label": "Channel",
+                    "display": true,
+                    "in": "query",
+                    "description": "Required for FM.",
+                    "required": true,
+                    "type": "number",
+                    "defaultValue": ""
+                }, {
+                    "name": "erp",
+                    "label": "ERP",
+                    "display": true,
+                    "in": "query",
+                    "description": "Effective Radiation Power (example: 1 kW)",
+                    "required": true,
+                    "type": "number",
+                    "defaultValue": ""
+                }, {
+                    "name": "curve",
+                    "label": "Curve",
+                    "display": true,
+                    "in": "query",
+                    "description": "Type of propagation curve, range is 0-2.<br /><br /><b>0:</b> use F(50, 50) curve<br /><br /><b>1:</b>  use F(50, 10) curve<br /><br /><b>2:</b> use F(50, 90) curve",
                     "required": true,
                     "type": "string",
-                    "defaultValue": "ned",
+                    "defaultValue": "0",
                     "enum": [
-                        "F55LV",
-                        "F51LV",
-                        "F55HV",
-                        "F51HV",
-                        "F55U",
-                        "F51U"
+                        "0",
+                        "1",
+                        "2"
                     ]
                 }],
                 "responses": {

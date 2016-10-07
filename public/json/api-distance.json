@@ -51,8 +51,8 @@
                     "label": "Channel",
                     "display": true,
                     "in": "query",
-                    "description": "Required for FM.",
-                    "required": true,
+                    "description": "Required for TV.",
+                    "required": false,
                     "type": "number",
                     "defaultValue": ""
                 }, {

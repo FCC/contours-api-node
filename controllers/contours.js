@@ -24,6 +24,8 @@ var EFS_ELEVATION_DATASET = configEnv[NODE_ENV].EFS_ELEVATION_DATASET;
 
 var fs = require('fs');
 var request = require('request');
+
+var GeoJSON = require('geojson');
 var math = require('mathjs');
 
 var distance = require('./distance.js');
@@ -36,12 +38,15 @@ var startTime;
 
 
 
-function getContours(req, res) {
+function getContours(req, res, callback) {
 	try {
 		console.log('\n================== start contours process ==============');
 		console.log(new Date());
+
+		var startTime, endTime;
 		
 		startTime = new Date().getTime();	
+
 		var src = req.query.src;
 		var lat = req.query.lat;
 		var lon = req.query.lon;
@@ -55,28 +60,34 @@ function getContours(req, res) {
 		var channel = req.query.channel;
 		var curve = req.query.curve;
 		var serviceType = req.query.serviceType;
+
+		var dataObj = new Object;		
+		dataObj['status'] = 'error';
+		dataObj['statusCode'] = '400';
+		dataObj['statusMessage'] = '';
+
+		GeoJSON.defaults = {Point: ['lat', 'lon'], include: ['status','statusCode','statusMessage']};
 		
 		if (serviceType == undefined) {
 			console.log('missing serviceType');
-			res.status(400).send({
-			'status': 'error',
-			'statusCode':'400',
-			'statusMessage': 'missing serviceType'
-			});
-			return;
+			dataObj.statusMessage = 'missing serviceType';
+			returnError(dataObj, function(ret){
+                 //res.status(400).send(GeoJSON.parse(ret, {}));                                         
+                 returnJson = GeoJSON.parse(ret, {});
+            });
+            return callback(returnJson);			
 		}
 		
 		serviceType = serviceType.toLowerCase();
 		
 		var tv_fm_list = ['tv', 'fm'];
 		if (tv_fm_list.indexOf(serviceType) < 0) {
-			console.log('invalid serviceType value');
-			res.status(400).send({
-			'status': 'error',
-			'statusCode':'400',
-			'statusMessage': 'invalid serviceType value'
-			});
-			return;
+			console.log('invalid serviceType value');			
+			dataObj.statusMessage = 'invalid serviceType value';
+			returnError(dataObj, function(ret){                                                       
+                 returnJson = GeoJSON.parse(ret, {});
+            });
+            return callback(returnJson);
 		}
 		
 		if (src == undefined) {
@@ -86,80 +97,76 @@ function getContours(req, res) {
 			unit = 'm';
 		}
 		
-		if (lat == undefined) {
-			res.status(400).send({
-			'status': 'error',
-			'statusCode':'400',
-			'statusMessage': 'missing lat'
-			});
-			return;
+		if (lat == undefined) {			
+			dataObj.statusMessage = 'missing lat';
+			returnError(dataObj, function(ret){                                                       
+                 returnJson = GeoJSON.parse(ret, {});
+            });
+            return callback(returnJson);
 		}
 		
 		if (lon == undefined) {
-			res.status(400).send({
-			'status': 'error',
-			'statusCode':'400',
-			'statusMessage': 'missing lon'
-			});
-			return;
+			dataObj.statusMessage = 'missing lon';
+			returnError(dataObj, function(ret){                                                       
+                 returnJson = GeoJSON.parse(ret, {});
+            });
+            return callback(returnJson);
 		}
 		
 		if (nradial == undefined) {
-			res.status(400).send({
-			'status': 'error',
-			'statusCode':'400',
-			'statusMessage': 'missing nradial'
-			});
-			return;
+			dataObj.statusMessage = 'missing nradial';
+			returnError(dataObj, function(ret){                                                       
+                 returnJson = GeoJSON.parse(ret, {});
+            });
+            return callback(returnJson);
 		}
 		
 		if (rcamsl == undefined) {
-			res.status(400).send({
-			'status': 'error',
-			'statusCode':'400',
-			'statusMessage': 'missing rcamsl'
-			});
-			return;
+			dataObj.statusMessage = 'missing rcamsl';
+			returnError(dataObj, function(ret){                                                       
+                 returnJson = GeoJSON.parse(ret, {});
+            });
+            return callback(returnJson);
 		}
 		
 		if (field == undefined) {
-			res.status(400).send({
-			'status': 'error',
-			'statusCode':'400',
-			'statusMessage': 'missing field'
-			});
-			return;
+			dataObj.statusMessage = 'missing field';
+			returnError(dataObj, function(ret){                                                       
+                 returnJson = GeoJSON.parse(ret, {});
+            });
+            return callback(returnJson);
 		}
 		
 		if (erp == undefined) {
-			res.status(400).send({
-			'status': 'error',
-			'statusCode':'400',
-			'statusMessage': 'missing erp'
-			});
-			return;
+			dataObj.statusMessage = 'missing erp';
+			returnError(dataObj, function(ret){                                                       
+                 returnJson = GeoJSON.parse(ret, {});
+            });
+            return callback(returnJson);			
 		}
 		
 		if (serviceType == 'tv' && (channel == undefined || channel == '')) {
-			console.log('missing channel');
-			res.status(400).send({
-			'status': 'error',
-			'statusCode':'400',
-			'statusMessage': 'missing channel'
-			});
-			return;
+			dataObj.statusMessage = 'missing channel';
+			returnError(dataObj, function(ret){                                                       
+                 returnJson = GeoJSON.parse(ret, {});
+            });
+            return callback(returnJson);			
 		}
 		
 		if (curve == undefined) {
-			res.status(400).send({
-			'status': 'error',
-			'statusCode':'400',
-			'statusMessage': 'missing curve'
-			});
-			return;
+			dataObj.statusMessage = 'missing curve';
+			returnError(dataObj, function(ret){                                                       
+                 returnJson = GeoJSON.parse(ret, {});
+            });
+            return callback(returnJson);
 		}
 		
 		if ( !lat.match(/^-?\d+\.?\d*$/)) {
+			dataObj.statusMessage = 'invalid lat value';
+			returnError(dataObj, function(ret){                                                       
+                 returnJson = GeoJSON.parse(ret, {});
+            });
+            return callback(returnJson);
 			res.status(400).send({
 			'status': 'error',
 			'statusCode':'400',
@@ -169,122 +176,108 @@ function getContours(req, res) {
 		}
 		
 		if ( !lon.match(/^-?\d+\.?\d*$/)) {
-			res.status(400).send({
-			'status': 'error',
-			'statusCode':'400',
-			'statusMessage': 'invalid lon value'
-			});
-			return;
+			dataObj.statusMessage = 'invalid lon value';
+			returnError(dataObj, function(ret){                                                       
+                 returnJson = GeoJSON.parse(ret, {});
+            });
+            return callback(returnJson);
 		}
 		
 		if ( !field.match(/^-?\d+\.?\d*$/)) {
-			res.status(400).send({
-			'status': 'error',
-			'statusCode':'400',
-			'statusMessage': 'invalid dbu value'
-			});
-			return;
+			dataObj.statusMessage = 'invalid dbu value';
+			returnError(dataObj, function(ret){                                                       
+                 returnJson = GeoJSON.parse(ret, {});
+            });
+            return callback(returnJson);
 		}
 			
 		if ( !rcamsl.match(/^\d+\.?\d*$/)) {
-			res.status(400).send({
-			'status': 'error',
-			'statusCode':'400',
-			'statusMessage': 'invalid rcamsl value'
-			});
-			return;
+			dataObj.statusMessage = 'invalid rcamsl value';
+			returnError(dataObj, function(ret){                                                       
+                 returnJson = GeoJSON.parse(ret, {});
+            });
+            return callback(returnJson);
 		}	
 			
 		if ( !nradial.match(/^\d+$/)) {
-			res.status(400).send({
-			'status': 'error',
-			'statusCode':'400',
-			'statusMessage': 'invalid nradial value'
-			});
-			return;
+			dataObj.statusMessage = 'invalid nradial value';
+			returnError(dataObj, function(ret){                                                       
+                 returnJson = GeoJSON.parse(ret, {});
+            });
+            return callback(returnJson);
 		}
 		
 		if ( !erp.match(/^\d+\.?\d*$/)) {
-			res.status(400).send({
-			'status': 'error',
-			'statusCode':'400',
-			'statusMessage': 'invalid erp value'
-			});
-			return;
+			dataObj.statusMessage = 'invalid erp value';
+			returnError(dataObj, function(ret){                                                       
+                 returnJson = GeoJSON.parse(ret, {});
+            });
+            return callback(returnJson);
 		}
 		
 		if (channel && !channel.match(/^\d+$/)) {
-			res.status(400).send({
-			'status': 'error',
-			'statusCode':'400',
-			'statusMessage': 'invalid channel value'
-			});
-			return;
+			dataObj.statusMessage = 'invalid channel value';
+			returnError(dataObj, function(ret){                                                       
+                 returnJson = GeoJSON.parse(ret, {});
+            });
+            return callback(returnJson);
 		}
 		
 		if ( !curve.match(/^\d$/)) {
-			res.status(400).send({
-			'status': 'error',
-			'statusCode':'400',
-			'statusMessage': 'invalid curve value'
-			});
-			return;
+			dataObj.statusMessage = 'invalid curve value';
+			returnError(dataObj, function(ret){                                                       
+                 returnJson = GeoJSON.parse(ret, {});
+            });
+            return callback(returnJson);
 		}
 		
 		
 		if ( parseFloat(lat) > 90 || parseFloat(lat) < -90 ) {
-			res.status(400).send({
-			'status': 'error',
-			'statusCode':'400',
-			'statusMessage': 'lat value out of range'
-			});
-			return;		
+			dataObj.statusMessage = 'lat value out of range';
+			returnError(dataObj, function(ret){                                                       
+                 returnJson = GeoJSON.parse(ret, {});
+            });
+            return callback(returnJson);
 		}
 		
 		if ( parseFloat(lon) > 180 || parseFloat(lon) < -180 ) {
-			res.status(400).send({
-			'status': 'error',
-			'statusCode':'400',
-			'statusMessage': 'lon value out of range'
-			});
-			return;
+			dataObj.statusMessage = 'lon value out of range';
+			returnError(dataObj, function(ret){                                                       
+                 returnJson = GeoJSON.parse(ret, {});
+            });
+            return callback(returnJson);
 		}
 		
 		if ( parseFloat(nradial) <3 || parseFloat(nradial) > 360 ) {
-			res.status(400).send({
-			'status': 'error',
-			'statusCode':'400',
-			'statusMessage': 'nradial value out of range [3, 360]'
-			});
-			return;		
+			dataObj.statusMessage = 'nradial value out of range [3, 360]';
+			returnError(dataObj, function(ret){                                                       
+                 returnJson = GeoJSON.parse(ret, {});
+            });
+            return callback(returnJson);
 		}
 				
 		if ( parseFloat(curve) < 0 || parseFloat(curve) > 2) {
-			console.log('curve value out of range [0, 2]');
-			res.status(400).send({
-			'status': 'error',
-			'statusCode':'400',
-			'statusMessage': 'curve value out of range [0, 2]'
-			});
-			return;
+			dataObj.statusMessage = 'curve value out of range [0, 2]';
+			returnError(dataObj, function(ret){                                                       
+                 returnJson = GeoJSON.parse(ret, {});
+            });
+            return callback(returnJson);
 		}
 		
 		if (getNumDecimal(lat) > 10) {
-			res.status(400).send({
-			'status': 'error',
-			'statusCode':'400',
-			'statusMessage': 'number of decimal places for lat is larger than 10'
-			});
-			return;
+			dataObj.statusMessage = 'number of decimal places for lat is larger than 10';
+			returnError(dataObj, function(ret){                                                       
+                 returnJson = GeoJSON.parse(ret, {});
+            });
+            return callback(returnJson);
 		}
 		
 		if (getNumDecimal(lon) > 10) {
-			res.status(400).send({
-			'status': 'error',
-			'statusCode':'400',
-			'statusMessage': 'number of decimal places for lon is larger than 10'
-			});
-			return;
+			dataObj.statusMessage = 'number of decimal places for lon is larger than 10';
+			returnError(dataObj, function(ret){                                                       
+                 returnJson = GeoJSON.parse(ret, {});
+            });
+            return callback(returnJson);
 		}
 		
 		lat = parseFloat(lat);
@@ -313,26 +306,23 @@ function getContours(req, res) {
 		
 		request(url, function (error, response, body) {
 			if(error){
-				console.log('Error:', error);
-				res.status(400).send({
-				'status': 'error',
-				'statusCode':'400',
-				'statusMessage': error
-				});
-				return;
-
+				console.log('HAAT call error:', error);
+				dataObj.statusMessage = error;
+				returnError(dataObj, function(ret){                                                       
+	                 returnJson = GeoJSON.parse(ret, {});
+	            });
+	            return callback(returnJson);
 			}
 
 			body = JSON.parse(body);
 			
 			if (body.features[0].properties.statusCode + '' != "200"){
-				console.log('HAAT error: ' + body.features[0].properties.statusMessage);
-				res.status(400).send({
-				'status': 'error',
-				'statusCode':'400',
-				'statusMessage': 'HAAT error: ' + body.features[0].properties.statusMessage
-				});
-				return;
+				console.log('HAAT error: ' + body.features[0].properties.statusMessage);				
+				dataObj.statusMessage = body.features[0].properties.statusMessage;
+				returnError(dataObj, function(ret){                                                       
+	                 returnJson = GeoJSON.parse(ret, {});
+	            });
+	            return callback(returnJson);
 			}
 			
 			var dist_arr = [];
@@ -360,13 +350,11 @@ function getContours(req, res) {
 				dist = tvfm_curves.tvfmfs_metric(erp, haat, channel_use, field, distance_tmp, fs_or_dist, curve, flag);
 				if (isNaN(dist)) {
 					console.log('error in distance calculation');
-					res.status(400).send({
-					'status': 'error',
-					'statusCode':'400',
-					'statusMessage': 'error in distance calculation'
-					});
-					return;
-				
+					dataObj.statusMessage = 'error in distance calculation';
+					returnError(dataObj, function(ret){                                                       
+		                 returnJson = GeoJSON.parse(ret, {});
+		            });
+		            return callback(returnJson);				
 				}
 				
 				if (dist < 0) {
@@ -381,57 +369,93 @@ function getContours(req, res) {
 			}
 			coordinates.push([math.round(latlon_1st[1], 10), math.round(latlon_1st[0], 10)]);
 			
-			coordinates = [[coordinates]];
-			
-			//console.log(coordinates.toString())
+			console.log('output coordinates size='+coordinates.length);
 
-			var output = {"type": "FeatureCollection",
-							"features": [
-								{
-									"type": "Feature",
-									"geometry": {
-									"type": "MultiPolygon",
-									"coordinates": coordinates
-									},
+			coordinates = [[coordinates]];
+
+			endTime = new Date().getTime();			
+			
+			if(coordinates.length > 0 ){
+
+				dataObj.status = 'success';
+				dataObj.statusCode = '200';		
+				dataObj.statusMessage = 'ok';
+
+				dataObj.coordinates = coordinates;
+				dataObj.antenna_lat = lat;
+				dataObj.antenna_lon = lon;
+				dataObj.field = field;
+				dataObj.erp = erp;
+				dataObj.serviceType = serviceType;
+				dataObj.curve = curve;
+				dataObj.channel = channel;
+				dataObj.rcamsl = rcamsl;
+				dataObj.nradial = nradial;
+				dataObj.unit = unit;
+				dataObj.elevation_data_source = body.features[0].properties.elevation_data_source;
+				dataObj.elapsed_time = endTime - startTime;	
+
+				/*dataObj.crs = {"type": "EPSG",
 									"properties": {
-										"antenna_lat": lat,
-										"antenna_lon": lon,
-										"field": field,
-										"erp": erp,
-										"serviceType": serviceType,
-										"curve": curve,
-										"channel": channel,
-										"rcamsl": rcamsl,
-										"nradial": nradial,
-										"unit": unit,
-										"elevation_data_source": body.features[0].properties.elevation_data_source,
-										"create_time": new Date()
+										"code": "4326"
+								}};*/
+
+				console.log('output dataObj='+dataObj);
+
+				var return_data = [dataObj];
+				
+				GeoJSON.defaults = {MultiPolygon: coordinates, include: ['status','statusCode','statusMessage']};
+				
+				var return_json = GeoJSON.parse(return_data, {MultiPolygon: 'coordinates', include: ['status','statusCode','statusMessage', 
+				'antenna_lat','antenna_lon','field','erp','serviceType','curve','channel','rcamsl','nradial','unit','elevation_data_source','elapsed_time']}); 
+				
+				callback(return_json);
+				
+				/*var output = {"type": "FeatureCollection",
+								"features": [
+									{
+										"type": "Feature",
+										"geometry": {
+										"type": "MultiPolygon",
+										"coordinates": coordinates
+										},
+										"properties": {
+											"antenna_lat": lat,
+											"antenna_lon": lon,
+											"field": field,
+											"erp": erp,
+											"serviceType": serviceType,
+											"curve": curve,
+											"channel": channel,
+											"rcamsl": rcamsl,
+											"nradial": nradial,
+											"unit": unit,
+											"elevation_data_source": body.features[0].properties.elevation_data_source,
+											"create_time": new Date()
+										}
 									}
-								}
-							
-							],
-							"crs": {
-								"type": "EPSG",
-								"properties": {
-								"code": "4326"
-								}
-							},
-						};
+								
+								],
+								"crs": {
+									"type": "EPSG",
+									"properties": {
+									"code": "4326"
+									}
+								},
+							};*/
+				
+			}
 			
-			
-			res.send(output);
 
 		});
 	}
 	catch(err) {
-		console.log(err);
-		res.status(400).send({
-			'status': 'error',
-        	'statusCode':'400',
-        	'statusMessage': 'Error occurred',
-			'error': err.stack
+		console.log('catch err='+err);
+		dataObj.statusMessage = 'contours error occurred';
+		returnError(dataObj, function(ret){                                                       
+             returnJson = GeoJSON.parse(ret, {});
         });
-	
+        return callback(returnJson);
 	}
 
 }
@@ -463,7 +487,15 @@ function getLatLonFromDist(lat1, lon1, az, d) {
     return [lat2, lon2]
 }
 
-
+function returnError(data, callback) {             
+    console.log('returnError');
+    var ret = [{ 
+        status: 'error',
+        statusCode: '400',
+        statusMessage: data.statusMessage
+        }];
+    return callback(ret);
+}
 
 //module.exports.elevation = elevation;
 module.exports.getContours = getContours;

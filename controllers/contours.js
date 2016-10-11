@@ -47,6 +47,7 @@ function getContours(req, res, callback) {
 		
 		startTime = new Date().getTime();	
 
+		var returnJson;
 		var src = req.query.src;
 		var lat = req.query.lat;
 		var lon = req.query.lon;
@@ -167,12 +168,6 @@ function getContours(req, res, callback) {
                  returnJson = GeoJSON.parse(ret, {});
             });
             return callback(returnJson);
-			res.status(400).send({
-			'status': 'error',
-			'statusCode':'400',
-			'statusMessage': 'invalid lat value'
-			});
-			return;
 		}
 		
 		if ( !lon.match(/^-?\d+\.?\d*$/)) {

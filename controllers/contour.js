@@ -30,7 +30,7 @@ process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
 function getContour(req, res) {
 	
-	console.log('\n\n getContour ' );
+    console.log('\n\n getContour ' );
 	
 	var serviceType = req.params.serviceType.toLowerCase();
 	var idType = req.params.idType.toLowerCase();
@@ -207,7 +207,7 @@ function getContour(req, res) {
 				console.log('filename_attach ' + filename_attach);
 				
 				res.set({
-					'Content-Disposition': ''+ content_disp +'; filename=\''+filename_attach+'\'',
+					'Content-Disposition': ''+ content_disp +'; filename='+filename_attach+',
 					'Content-Type': content_type,
 					'Content-Length': body.length
 				});

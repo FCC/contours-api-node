@@ -207,7 +207,7 @@ function getContour(req, res) {
 				console.log('filename_attach ' + filename_attach);
 				
 				res.set({
-					'Content-Disposition': ''+ content_disp +'; filename='+filename_attach+',
+					'Content-Disposition': ''+ content_disp +'; filename='+filename_attach,
 					'Content-Type': content_type,
 					'Content-Length': body.length
 				});

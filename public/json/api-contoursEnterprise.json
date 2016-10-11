@@ -10,7 +10,7 @@
         "description": "FCC Enterprise Contours API"
     }],
     "paths": {
-        "/contours.{format}": {
+        "/coverage.{format}": {
             "get": {
                 "tags": ["enterprise contours"],
                 "summary": "Get Contour by Service Type",

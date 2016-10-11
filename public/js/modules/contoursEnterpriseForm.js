@@ -39,7 +39,7 @@
                 type: "GET",
                 dataType: "json",
                 success: function(data) {
-                    var paramsData = data.paths['/contours.{format}'].get.parameters;
+                    var paramsData = data.paths['/coverage.{format}'].get.parameters;
 
                     EntrpContourForm.createTemplate(paramsData);
                 }

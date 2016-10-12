@@ -61,7 +61,9 @@ function getContours(req, res, callback) {
 		var channel = req.query.channel;
 		var curve = req.query.curve;
 		var serviceType = req.query.serviceType;
-
+		
+		var pattern = req.query.pattern;
+		
 		var dataObj = new Object;		
 		dataObj['status'] = 'error';
 		dataObj['statusCode'] = '400';
@@ -286,6 +288,11 @@ function getContours(req, res, callback) {
 		nradial = parseInt(nradial);
 		curve = parseInt(curve);
 		
+		var full_pattern = getFullAntennaPattern(nradial, pattern);
+		
+		console.log(full_pattern)
+		//res.send(full_pattern)
+		
 		var hostname = req.hostname;
 		if (hostname == "localhost" || hostname == "127.0.0.1") {
 			hostname = hostname + ":" + NODE_PORT;
@@ -342,7 +349,8 @@ function getContours(req, res, callback) {
 					haat = 30;
 				}
 				//dist = distance.calTvFmDist(body.features[0].properties.haat_azimuth[i], dbu_curve, curve_type);
-				dist = tvfm_curves.tvfmfs_metric(erp, haat, channel_use, field, distance_tmp, fs_or_dist, curve, flag);
+				
+				dist = tvfm_curves.tvfmfs_metric(erp*full_pattern[i], haat, channel_use, field, distance_tmp, fs_or_dist, curve, flag);
 				if (isNaN(dist)) {
 					console.log('error in distance calculation');
 					dataObj.statusMessage = 'error in distance calculation';
@@ -490,6 +498,66 @@ function returnError(data, callback) {
         statusMessage: data.statusMessage
         }];
     return callback(ret);
+}
+
+function getFullAntennaPattern(nradial, pattern) {
+	var i, j, j1, j2, az, az1, az2, field, field1, field2;
+	
+	var full_pattern = [];
+	if (pattern == undefined) {
+		for (i = 0; i < nradial; i++) {
+			full_pattern.push(1);
+		}
+		return full_pattern;
+	}
+	
+	
+	var azimuths = [];
+	var fields = [];
+	var dum = pattern.split(';');
+	for (i = 0; i < dum.length; i++) {
+		azimuths.push(parseFloat(dum[i].split(',')[0]));
+		fields.push(parseFloat(dum[i].split(',')[1]));
+	}
+	
+	for (i = 0; i < nradial; i++) {
+		az = i * 360.0/nradial;
+		j1 = -1;
+		j2 = -1;
+		for (j = 0; j < azimuths.length-1; j++) {
+			az1 = azimuths[j];
+			field1 = fields[j];
+			az2 = azimuths[j+1];
+			field2 = fields[j+1];
+			if (az >= az1 && az <= az2) {
+				j1 = j;
+				j2 = j + 1;
+			}
+		}
+		if (j1 == -1) {
+			j1 = azimuths.length-1;
+			j2 = 0;
+		}
+		
+		az1 = azimuths[j1];
+		field1 = fields[j1];
+		az2 = azimuths[j2];
+		field2 = fields[j2];
+		
+		if (az2 < az1) {
+			az2 += 360;
+			if (az < az1) {az += 360;}
+		}
+		
+		field = field1 + (field2 - field1) * (az - az1)/(az2 - az1)
+		
+		full_pattern.push(field);
+		
+	
+	}
+	
+	return full_pattern;
+	
 }
 
 //module.exports.elevation = elevation;

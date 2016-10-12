@@ -290,9 +290,6 @@ function getContours(req, res, callback) {
 		
 		var full_pattern = getFullAntennaPattern(nradial, pattern);
 		
-		console.log(full_pattern)
-		//res.send(full_pattern)
-		
 		var hostname = req.hostname;
 		if (hostname == "localhost" || hostname == "127.0.0.1") {
 			hostname = hostname + ":" + NODE_PORT;

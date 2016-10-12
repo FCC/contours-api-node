@@ -307,7 +307,42 @@ app.get('/coverage.json', function(req, res){
 });
 
 app.get('/distance.json', function(req, res){
-    tvfm_curves.getDistance(req, res);
+    //tvfm_curves.getDistance(req, res);
+    var req_url = req.url;
+    var req_key = removeVariableFromURL(req_url, cached_param);
+    console.log('------------ Distance API ------------------')
+    console.log('request url:'+req_url);    
+   
+    getCachedData(req, req_key, function(err, data) {
+        if(err){
+            console.error('callback getCachedData err: '+err);
+            return;            
+        }
+        if(data){
+            console.log('response from ElastiCache');
+            console.log('--------- Distance API return complete -----------');
+            res.status(data.statusCode).send(data);
+            return;
+        }
+        else {
+            getDistanceData(req, res, function(err, data) {
+                if(err){
+                    console.error('getCoverageData err: '+err);
+                    return;            
+                }                                
+                memcached.set(req_key, data, memcached_lifetime, function( err, result ){
+                    if( err ) console.error( 'memcached set err='+err );
+                    
+                    console.log('memcached.set result='+result );
+                    memcached.end(); // as we are 100% certain we are not going to use the connection again, we are going to end it
+                });
+                console.log('response processed from code');
+                console.log('--------- Distance API return complete -----------');
+                res.status(data.statusCode).send(data);
+                return;     
+            });
+        }        
+    });   
 });
 
 //app.get('/facility.json', function(req, res){
@@ -441,6 +476,23 @@ function getCoverageData(req, res, success) {
     try {
         contours.getContours(req, res, function(data){
             console.log('app getCoverageData data='+data);
+            if(data){
+                return success(null, data);    
+            }
+            return success(null, null);           
+        });
+    }
+    catch(err){
+        console.error('\n\n getCoverageData err '+err);  
+        return success(err, null);
+    }  
+};
+
+function getDistanceData(req, res, success) {
+    console.log('app getDistanceData');
+    try {
+        tvfm_curves.getDistance(req, res, function(data){
+            console.log('app getDistanceData data='+data);
             if(data){
                 return success(null, data);    
             }

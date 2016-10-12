@@ -1340,7 +1340,7 @@ function round_power(power_in, error_flag)
 }   
 
 
-function getDistance(req, res) {
+function getDistance(req, res, callback) {
 
 	console.log('================ Start Distance API ===================');
 
@@ -1352,15 +1352,16 @@ function getDistance(req, res) {
 		var channel = req.query.channel;
 		var curve = req.query.curve;
 		var serviceType = req.query.serviceType;
+
+		var dataObj = new Object;		
+		dataObj['status'] = 'error';
+		dataObj['statusCode'] = '400';
+		dataObj['statusMessage'] = '';
 		
 		if (serviceType == undefined) {
-		console.log('missing serviceType');
-			res.status(400).send({
-			'status': 'error',
-			'statusCode':'400',
-			'statusMessage': 'missing serviceType'
-			});
-			return;
+			console.log('missing serviceType');
+			dataObj.statusMessage = 'missing serviceType';
+			return callback(dataObj);
 		}
 		
 		serviceType = serviceType.toLowerCase();
@@ -1368,133 +1369,80 @@ function getDistance(req, res) {
 		var tv_fm_list = ['tv', 'fm'];
 		if (tv_fm_list.indexOf(serviceType) < 0) {
 			console.log('invalid serviceType value');
-			res.status(400).send({
-			'status': 'error',
-			'statusCode':'400',
-			'statusMessage': 'invalid serviceType value'
-			});
-			return;
+			dataObj.statusMessage = 'invalid serviceType value';
+			return callback(dataObj);
 		}
 		
 		if (haat == undefined) {
 			console.log('missing haat');
-			res.status(400).send({
-			'status': 'error',
-			'statusCode':'400',
-			'statusMessage': 'missing haat'
-			});
-			return;
+			dataObj.statusMessage = 'missing haat';
+			return callback(dataObj);
 		}
 		
 		if (field == undefined) {
 			console.log('missing field');
-			res.status(400).send({
-			'status': 'error',
-			'statusCode':'400',
-			'statusMessage': 'missing field'
-			});
-			return;
+			dataObj.statusMessage = 'missing field';
+			return callback(dataObj);
 		}
 		
 		if (erp == undefined) {
 			console.log('missing erp');
-			res.status(400).send({
-			'status': 'error',
-			'statusCode':'400',
-			'statusMessage': 'missing erp'
-			});
-			return;
+			dataObj.statusMessage = 'missing erp';
+			return callback(dataObj);
 		}
 		
 		if (serviceType == 'tv' && channel == undefined) {
 			console.log('missing channel');
-			res.status(400).send({
-			'status': 'error',
-			'statusCode':'400',
-			'statusMessage': 'missing channel'
-			});
-			return;
+			dataObj.statusMessage = 'missing channel';
+			return callback(dataObj);
 		}
 		
 		if (curve == undefined) {
 			console.log('missing curve');
-			res.status(400).send({
-			'status': 'error',
-			'statusCode':'400',
-			'statusMessage': 'missing curve'
-			});
-			return;
+			dataObj.statusMessage = 'missing curve';
+			return callback(dataObj);
 		}
 		
 		if ( !haat.match(/^\d+\.?\d*$/)) {
 			console.log('invalid haat value');
-			res.status(400).send({
-			'status': 'error',
-			'statusCode':'400',
-			'statusMessage': 'invalid haat value'
-			});
-			return;
+			dataObj.statusMessage = 'invalid haat value';
+			return callback(dataObj);
 		}
 		
 		if ( !field.match(/^-?\d+\.?\d*$/)) {
 			console.log('invalid field value');
-			res.status(400).send({
-			'status': 'error',
-			'statusCode':'400',
-			'statusMessage': 'invalid field value'
-			});
-			return;
+			dataObj.statusMessage = 'invalid field value';
+			return callback(dataObj);
 		}
 		
 		if ( !erp.match(/^\d+\.?\d*$/)) {
 			console.log('invalid erp value');
-			res.status(400).send({
-			'status': 'error',
-			'statusCode':'400',
-			'statusMessage': 'invalid erp value'
-			});
-			return;
+			dataObj.statusMessage = 'invalid erp value';
+			return callback(dataObj);
 		}
 		
 		if ( !channel.match(/\d+$/)) {
 			console.log('invalid channel value');
-			res.status(400).send({
-			'status': 'error',
-			'statusCode':'400',
-			'statusMessage': 'invalid channel value'
-			});
-			return;
+			dataObj.statusMessage = 'invalid channel value';
+			return callback(dataObj);
 		}
 		
 		if ( serviceType.toLowerCase() == 'fm' && !curve.match(/^\d+$/)) {
 			console.log('invalid curve value');
-			res.status(400).send({
-			'status': 'error',
-			'statusCode':'400',
-			'statusMessage': 'invalid curve value'
-			});
-			return;
+			dataObj.statusMessage = 'invalid curve value';
+			return callback(dataObj);
 		}
 		
 		if ( parseFloat(haat) < 30 || parseFloat(haat) > 1600) {
 			console.log('haat value out of range [30, 1600]');
-			res.status(400).send({
-			'status': 'error',
-			'statusCode':'400',
-			'statusMessage': 'haat value out of range [30, 1600]'
-			});
-			return;
-
-			}
+			dataObj.statusMessage = 'haat value out of range [30, 1600]';
+			return callback(dataObj);
+		}
 		
 		if ( parseFloat(curve) < 0 || parseFloat(curve) > 2) {
 			console.log('curve value out of range [0, 2]');
-			res.status(400).send({
-			'status': 'error',
-			'statusCode':'400',
-			'statusMessage': 'curve value out of range [0, 2]'
-			});
-			return;
+			dataObj.statusMessage = 'curve value out of range [0, 2]';
+			return callback(dataObj);
 		}
 		
 
@@ -1528,53 +1476,38 @@ function getDistance(req, res) {
 			}
 			
 			comments = comments.replace(/;$/, '');
-			
-			res.status(400).send({
-				'status': 'error',
-				'statusCode':'400',
-				'statusMessage': comments
-			});
-			
+			dataObj.statusMessage = comments;
+			return callback(dataObj);
 
 		}
 		else {
 		
 			var dist = mathjs.round(distance, 3);
 
-			res.status(200).send({
-				'distance': dist,
-				'distance_unit': 'km',
-				'haat': haat,
-				'haat_unit': 'm',
-				'field': field,
-				'erp': erp,
-				'channel': channel,
-				'curve': curve,
-				'serviceType': serviceType
-			});
+			dataObj.status = 'success';
+			dataObj.statusCode = '200';
+			dataObj.statusMessage = 'ok';
+			dataObj.distance = dist;
+			dataObj.distance_unit = 'km';
+			dataObj.haat = haat;
+			dataObj.haat_unit = 'm';
+			dataObj.field = field;
+			dataObj.erp = erp;
+			dataObj.channel = channel;
+			dataObj.curve = curve;
+			dataObj.serviceType = serviceType;
 
+			return callback(dataObj);
 		}
 	
 	}
 	catch(err) {
-		console.log(err);
-		res.status(400).send({
-			'status': 'error',
-        	'statusCode':'400',
-        	'statusMessage': 'Error occurred',
-			'error': err.stack
-        });
-	
+		console.log('err='+err);
+		dataObj.error = err.stack;
+		dataObj.statusMessage = 'distance error occurred';
+		return callback(dataObj);
 	}
-
-
-
-
 }
-
-
-
-
 
 module.exports.tvfmfs_metric = tvfmfs_metric;
 module.exports.getDistance = getDistance;

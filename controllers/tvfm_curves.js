@@ -1224,7 +1224,7 @@ function tvfmfs_metric(erp, haat, channel, field, distance, fs_or_dist, curve, f
 
 function tvfmfs_comment(i)
 {
-
+	var comment;
     if(i==0)       comment = "";
     else if(i==1)  comment = "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Free Space equation used to compute distance.<br>\n ";
     else if(i==2)  comment = "<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Entered distance exceeds maximum curve distance.<br>\n";
@@ -1470,6 +1470,7 @@ function getDistance(req, res, callback) {
 			var comments = "";
 			for (var i = 0; i < distance.length; i++) {
 				if (distance[i] == 1) {
+					console.log('comment for item='+i)					
 					var comment = tvfmfs_comment(i).replace(/^.*;/, '').replace(/\..*\n/, '');
 					comments += comment + ";";
 				}

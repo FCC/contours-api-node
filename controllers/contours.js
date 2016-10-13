@@ -63,6 +63,9 @@ function getContours(req, res, callback) {
 		var serviceType = req.query.serviceType;
 		
 		var pattern = req.query.pattern;
+		if (pattern != undefined) {
+			pattern = decodeURIComponent(pattern);
+		}
 		
 		var dataObj = new Object;		
 		dataObj['status'] = 'error';

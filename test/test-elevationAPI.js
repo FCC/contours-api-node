@@ -107,7 +107,7 @@ describe('Elevation API test', function() {
         }
 
         it('should return elevation data if src = ned_2', function(done) {
-            var url = '/elevation.json?lat=62.67414334669093&lon=-146.42578125&src=ned_2&unit=m&outputcache=';
+            var url = '/elevation.json?lat=62.67414334669093&lon=-146.42578125&src=ned_2&unit=m&outputcache=false';
 
             request(server)
                 .get(url)
@@ -124,7 +124,7 @@ describe('Elevation API test', function() {
         });
 
         it('should return elevation data if src = ned_13', function(done) {
-            var url = '/elevation.json?lat=39.095962936305476&lon=-103.9306640625&src=ned_13&unit=m&outputcache=';
+            var url = '/elevation.json?lat=39.095962936305476&lon=-103.9306640625&src=ned_13&unit=m&outputcache=false';
 
             request(server)
                 .get(url)

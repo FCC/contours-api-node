@@ -22,6 +22,11 @@ var geo_space = configEnv[NODE_ENV].GEO_SPACE;
 //var CDBS_PASSWD = configEnv[NODE_ENV].CDBS_PASSWD;
 var EFS_ELEVATION_DATASET = configEnv[NODE_ENV].EFS_ELEVATION_DATASET;
 
+var CONTEXT_PATH = configEnv[NODE_ENV].CONTEXT_PATH || 'api/contours/';
+if (NODE_ENV == 'DEV' || NODE_ENV == 'LOCAL') {
+	var CONTEXT_PATH = '';
+}
+
 var fs = require('fs');
 var request = require('request');
 
@@ -305,7 +310,7 @@ function getContours(req, res, callback) {
 		var root_url = req.protocol + "://" + hostname;
 		
 		//get haat
-		var url = root_url + "/haat.json?lat=" + lat + "&lon=" + lon + "&rcamsl=" + rcamsl + "&nradial=" + nradial + "&src=" + src + "&unit=" + unit + '&outputcache=false';
+		var url = root_url + "/" + CONTEXT_PATH + "haat.json?lat=" + lat + "&lon=" + lon + "&rcamsl=" + rcamsl + "&nradial=" + nradial + "&src=" + src + "&unit=" + unit + '&outputcache=false';
 		
 		console.log(url);
 		

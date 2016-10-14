@@ -459,7 +459,7 @@ function getCachedData(req, req_key, success){
     else {
         memcached.get( req_key, function( err, result ){
             if( err ) console.error('memcached.get err='+err );        
-            console.log('getCachedData memcached.get='+result.length);
+            console.log('getCachedData memcached.get='+result);
             memcached.end(); // as we are 100% certain we are not going to use the connection again, we are going to end it
             return success(null, result);
         });   

@@ -6,6 +6,7 @@
             this.map = undefined;
             this.contourJSON = undefined;
             this.stationMarker = undefined;
+            this.imageURL = window.location.pathname.search('api/contours') === 1 ? 'images' : '/images';
 
             Map.create();
         },
@@ -39,8 +40,8 @@
 
             Map.markerIcon = {
                 icon: new L.Icon({
-                    iconUrl: '../images/marker-icon-2x-blue.png',
-                    shadowUrl: '../images/marker-shadow.png',
+                    iconUrl: Map.imageURL + '/marker-icon-2x-blue.png',
+                    shadowUrl: Map.imageURL + '/marker-shadow.png',
                     iconSize: [25, 41],
                     iconAnchor: [12, 41],
                     popupAnchor: [1, -34],
@@ -64,7 +65,7 @@
             var latField = fields.find('input[name="lat"]');
             var lonField = fields.find('input[name="lon"]');
             var coordMeta = '<dl class="dl-coords dl-horizontal">';
-            var imageURL = window.location.pathname.search('api/contours') === 1 ? 'images' : '/images';
+            //var imageURL = window.location.pathname.search('api/contours') === 1 ? 'images' : '/images';
 
             coordMeta += '<dt>Latitude:</dt>';
             coordMeta += '<dd>' + lat + '</dd>';
@@ -91,8 +92,8 @@
 
             Map.tempMarker = new L.marker(event.latlng, {
                     icon: new L.Icon({
-                        iconUrl: imageURL + '/marker-icon-2x-green.png',
-                        shadowUrl: imageURL + '/marker-shadow.png',
+                        iconUrl: Map.imageURL + '/marker-icon-2x-green.png',
+                        shadowUrl: Map.imageURL + '/marker-shadow.png',
                         iconSize: [25, 41],
                         iconAnchor: [12, 41],
                         popupAnchor: [1, -34],

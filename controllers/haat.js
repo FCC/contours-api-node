@@ -279,7 +279,7 @@ function getHAAT(req, res, callback) {
 		else {
 			src = 'globe30';
 			useGlobeData(res, dataObj, filenames_globe, function(data){
-            	if(data){
+           	if(data){
                 	return callback(data);    
             	}
             	return callback(null);
@@ -702,47 +702,29 @@ function useGlobeData(res, dataObj, filenames_globe, callbackGlobe) {
 	var filenames_no = getNonExistingFiles(filenames_globe);
 	var i, filepath;
 	
-	//if (filenames_no.length > 0) {
-			//fetch data from S3
-
-		var asyncTasks = [];
+	for (i = 0; i < filenames_globe.length; i++) {
+		filepath = data_dir + 'globe30/' + filenames_globe[i];
+		readDataFile(i, filepath, latlon);
+	}
+	
+	output_data = output_data.sort(comparator);
+	var output_haat = formatHAAT(dataObj);
+	
+	endTime = new Date().getTime();
+	var elapsed_time = endTime - startTime;
+	
+	if (format == 'json') {
+		output_haat['elapsed_time'] = elapsed_time + ' ms';
+	}
 		
-		for (i = 0; i < filenames_no.length; i++) {
-			asyncTasks.push(getFileFromS3(filenames_no[i]));
-		}
-		async.parallel(asyncTasks, function() {
-			console.log("all done getting globe");
-			filenames_no = getNonExistingFiles(filenames_globe);
-			for (i = 0; i < filenames_globe.length; i++) {
-				filepath = data_dir + 'globe30/' + filenames_globe[i];
-				readDataFile(i, filepath, latlon);
-			}
-			
-			output_data = output_data.sort(comparator);
-			var output_haat = formatHAAT(dataObj);
-			
-			endTime = new Date().getTime();
-			var elapsed_time = endTime - startTime;
-			
-			if (format == 'json') {
-				output_haat['elapsed_time'] = elapsed_time + ' ms';
-			}
-				
-			//console.log(output_haat);
-			
-			//res.send(output_haat);
+	var return_data = [output_haat];
 
-			var return_data = [output_haat];
+	var return_json = GeoJSON.parse(return_data, {Point: ['lat', 'lon'], include: ['status','statusCode','statusMessage',
+		'elevation_data_source','lat','lon', 'rcamsl', 'nradial', 'azimuth','haat_azimuth','haat_average','unit', 'elapsed_time']}); 
 
-	        var return_json = GeoJSON.parse(return_data, {Point: ['lat', 'lon'], include: ['status','statusCode','statusMessage',
-	            'elevation_data_source','lat','lon', 'rcamsl', 'nradial', 'azimuth','haat_azimuth','haat_average','unit', 'elapsed_time']}); 
-
-			console.log('useGlobeData Done');
-	        callbackGlobe(return_json);			
-		});
-			
-	//res.send({"status": "globe"});
-
+	console.log('useGlobeData Done');
+	callbackGlobe(return_json);			
+		
 }
 
 function checkS3(filenames, src) {

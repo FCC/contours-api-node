@@ -2,7 +2,7 @@
     "swagger": "2.0",
     "info": {
         "version": "1.5.0",
-        "title": "FCC Enterprise Contours API"
+        "title": "FCC Coverage API"
     },
     "basePath": "/api/contours",
     "tags": [{
@@ -10,7 +10,7 @@
         "description": "FCC Enterprise Contours API"
     }],
     "paths": {
-        "/contours.{format}": {
+        "/coverage.{format}": {
             "get": {
                 "tags": ["enterprise contours"],
                 "summary": "Get Contour by Service Type",
@@ -106,6 +106,15 @@
                         "1",
                         "2"
                     ]
+                }, {
+                    "name": "pattern",
+                    "label": "Pattern",
+                    "display": true,
+                    "in": "query",
+                    "description": "Specify the radiation strength at various azimuths for stations with directional antenna. Provide a list of (azimuth, radiation strength) values separated by a semi-colon. Example: 0,0.63;10,0.57;20,0.58;30,0.595;",
+                    "required": false,
+                    "type": "string",
+                    "defaultValue": ""                    
                 }, {
                     "name": "src",
                     "label": "Source",

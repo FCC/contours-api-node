@@ -20,7 +20,7 @@
 
                 contourAPI = apiURL.slice(0, 3).join('/') + '.json';
             } else {
-                contourAPI = './contours.json?';
+                contourAPI = './coverage.json?';
                 contourAPI += $('.fields-contoursEnterprise').find('input, select').serialize();
             }
 

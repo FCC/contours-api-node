@@ -305,7 +305,7 @@ function getContours(req, res, callback) {
 		var root_url = req.protocol + "://" + hostname;
 		
 		//get haat
-		var url = root_url + "/haat.json?lat=" + lat + "&lon=" + lon + "&rcamsl=" + rcamsl + "&nradial=" + nradial + "&src=" + src + "&unit=" + unit;
+		var url = root_url + "/haat.json?lat=" + lat + "&lon=" + lon + "&rcamsl=" + rcamsl + "&nradial=" + nradial + "&src=" + src + "&unit=" + unit + '&outputcache=false';
 		
 		console.log(url);
 		

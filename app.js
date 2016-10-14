@@ -164,11 +164,57 @@ app.get('/elevation.json', function(req, res){
 });
 
 app.get('/:serviceType/:idType/:id.:ext', function(req, res){
-    contour.getContour(req, res);
+    console.log('contour ext: '+req.params.ext);
+    var ext = req.params.ext;
+    if(ext.toLowerCase().startsWith('json')){
+        getContourJson(req, res);
+    }
+    else {
+        //contour.getContour(req, res);    
+        console.log('NON-JSON flow');
+        getContourData(req, res, function(err, ret_obj, data) {
+            if(err){
+                console.error('getContourData err: '+err);
+                return;            
+            }            
+            console.log('ret_obj = '+JSON.stringify(ret_obj));
+            
+            var content_disp = '';
+            var content_length = 0;
+            var content_type;
+
+            if(data){
+                content_disp = ret_obj['Content-Disposition'];
+                content_length = ret_obj['Content-Length'];
+                content_type = ret_obj['Content-Type'];
+            }
+            else{
+                content_type = 'application/json; charset=utf-8';
+                content_length = ret_obj.length;
+            }
+
+            res.set({
+                    'Content-Disposition': content_disp,
+                    'Content-Type': content_type,
+                    'Content-Length': content_length
+                });
+
+            console.log('--------- Contour API return complete -----------');
+            var resp_status = 500;
+            if(data){
+                resp_status = 200;
+                res.status(resp_status).send(data);   
+            }            
+            else {
+                res.status(resp_status).send(ret_obj);
+            }     
+            return;     
+        });
+    }    
 });
 
 app.get('/:serviceType/:idType/:id', function(req, res){
-    contour.getContour(req, res);
+    getContourJson(req, res);
 });
 
 app.get('/haat.json', function(req, res){    
@@ -253,7 +299,7 @@ app.get('/profile.json', function(req, res){
     });    
 });
 
-app.get('/profile.csv', function(req, res){
+/*app.get('/profile.csv', function(req, res){
     profile.getProfile(req, res);
 });
 
@@ -261,7 +307,7 @@ app.get('/profile.csv', function(req, res){
 app.get('/station.json', function(req, res){
     station.getStation(req, res);
 });
-
+*/
 //app.get('/distance_nci.json', function(req, res){
 //    distance.getDistance(req, res);
 //});
@@ -413,7 +459,7 @@ function getCachedData(req, req_key, success){
     else {
         memcached.get( req_key, function( err, result ){
             if( err ) console.error('memcached.get err='+err );        
-            console.log('getCachedData memcached.get='+result);
+            console.log('getCachedData memcached.get='+result.length);
             memcached.end(); // as we are 100% certain we are not going to use the connection again, we are going to end it
             return success(null, result);
         });   
@@ -504,6 +550,80 @@ function getDistanceData(req, res, success) {
         return success(err, null);
     }  
 };
+
+function getContourData(req, res, success) {
+    console.log('app getContourData');
+    try {
+        contour.getContour(req, res, function(ret_obj, data){            
+            console.log('ret_obj= '+JSON.stringify(ret_obj));
+            console.log('app getContourData data received');
+            if(data){
+                return success(null, ret_obj, data);    
+            }
+            return success(null, ret_obj, null);           
+        });
+    }
+    catch(err){
+        console.error('\n\n getContourData err '+err);  
+        return success(err, null, null);
+    }  
+}
+
+function getContourJson(req, res){    
+    var req_url = req.url;
+    var req_key = removeVariableFromURL(req_url, cached_param);
+    console.log('------------ Contour API ------------------')
+    console.log('request url:'+req_url);    
+   
+    getCachedData(req, req_key, function(err, data) {
+        if(err){
+            console.error('callback getCachedData err: '+err);
+            return;            
+        }
+        if(data){
+            console.log('response from ElastiCache');
+            console.log('--------- Contour API return complete -----------');
+            var resp_status = 500;
+            var dataJson = JSON.parse(data);
+            if(dataJson.totalFeatures && dataJson.totalFeatures > 0){
+                resp_status = 200;    
+            }             
+            res.status(resp_status).send(dataJson);    
+            return;
+        }
+        else {
+            getContourData(req, res, function(err, ret_obj, data) {
+                if(err){
+                    console.error('getElevationData err: '+err);
+                    return;            
+                } 
+                if(data){
+                    memcached.set(req_key, data, memcached_lifetime, function( err, result ){
+                    if( err ) console.error( 'memcached set err='+err );
+                    
+                        console.log('memcached.set result='+result );
+                        memcached.end(); // as we are 100% certain we are not going to use the connection again, we are going to end it
+                    });
+                    
+                    var resp_status = 500;
+                    var dataJson = JSON.parse(data);
+                    if(dataJson.totalFeatures && dataJson.totalFeatures > 0){
+                        resp_status = 200;    
+                    }  
+                    console.log('response processed from code');
+                    console.log('--------- Contour API return complete -----------');          
+                    res.status(resp_status).send(dataJson);        
+                }                               
+                else {
+                    console.log('response processed from code');
+                    console.log('--------- Contour API return complete -----------');
+                    res.status(500).send(ret_obj);  
+                }            
+                return;     
+            });
+        }        
+    });
+}
 
 function removeVariableFromURL(url_string, variable_name) {
     var URL = String(url_string);

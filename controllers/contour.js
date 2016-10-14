@@ -28,7 +28,7 @@ process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
 // **********************************************************
 
-function getContour(req, res) {
+function getContour(req, res, callback) {
 	
     console.log('\n\n getContour ' );
 	
@@ -141,16 +141,12 @@ function getContour(req, res) {
 			console.error('err.name : ' + err.name);
 			console.error('err.message : ' + err.message);
 		
-			var err_res = {};       
-			err_res.responseStatus = {
+			var ret_obj = {
 				'status': 500,
 				'type': 'Internal Server Error',
 				'err': err.name +': '+ err.message      
 			};  
-				
-			res.status(500);
-			res.send(err_res);				
-			
+			return callback(ret_obj, null);
 		}
 		else {
 		
@@ -164,31 +160,22 @@ function getContour(req, res) {
 			
 				console.error('response.statusCode : ' + response.statusCode);
 			
-				var err_res = {};       
-				err_res.responseStatus = {
+				var ret_obj = {
 					'status': 500,
-					'type': 'Internal Server Error',
-					'err': 'Response: '+ response.statusCode      
+					'type': 'Internal Server Error'    
 				};  
-					
-				res.status(500);
-				res.send(err_res);	
+				return callback(ret_obj, null);
 			
 			}
 			else if (content_type == 'text/xml;charset=UTF-8')  {			
 			
 				console.error('content_type : ' + content_type);
 			
-				var err_res = {};       
-				err_res.responseStatus = {
+				var ret_obj = {
 					'status': 500,
-					'type': 'Internal Server Error',
-					'err': 'Content: '+ content_type      
+					'type': 'Internal Server Error'       
 				};  
-					
-				res.status(500);
-				res.send(err_res);	
-			
+				return callback(ret_obj, null);
 			}
 			else {
 				
@@ -206,15 +193,15 @@ function getContour(req, res) {
 				console.log('content_ext ' + content_ext);
 				console.log('filename_attach ' + filename_attach);
 				
-				res.set({
+				var ret_obj = {
 					'Content-Disposition': ''+ content_disp +'; filename='+filename_attach,
 					'Content-Type': content_type,
 					'Content-Length': body.length
-				});
+				};
 		
-				console.log(body);
+				console.log('geoserver response returned with totalFeatures: '+body.totalFeatures);
 				
-				res.send(body);
+				return callback(ret_obj, body);
 			
 			}
 		}		

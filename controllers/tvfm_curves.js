@@ -1421,7 +1421,7 @@ function getDistance(req, res, callback) {
 			return callback(dataObj);
 		}
 		
-		if ( !channel.match(/\d+$/)) {
+		if ( channel && !channel.match(/\d+$/)) {
 			console.log('invalid channel value');
 			dataObj.statusMessage = 'invalid channel value';
 			return callback(dataObj);

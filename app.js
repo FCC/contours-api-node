@@ -28,7 +28,8 @@ var station = require('./controllers/station.js');
 var distance = require('./controllers/distance.js');
 var contours = require('./controllers/contours.js');
 var tvfm_curves = require('./controllers/tvfm_curves.js');
-//var facility = require('./controllers/facility.js');
+var entity = require('./controllers/entity.js');
+
 
 // **********************************************************
 // config
@@ -391,9 +392,9 @@ app.get('/distance.json', function(req, res){
     });   
 });
 
-//app.get('/facility.json', function(req, res){
-//    facility.getFacility(req, res);
-//});
+app.get('/entity.json', function(req, res){
+    entity.getEntity(req, res);
+});
 
 
 // **********************************************************

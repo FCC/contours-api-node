@@ -14,27 +14,12 @@ var geo_space = configEnv[NODE_ENV].GEO_SPACE;
 var AWS_ACCESS_KEY =  configEnv[NODE_ENV].AWS_ACCESS_KEY;
 var AWS_SECRET_KEY = configEnv[NODE_ENV].AWS_SECRET_KEY;
 var AWS_REGION = configEnv[NODE_ENV].AWS_REGION;
-var S3_BUCKET = configEnv[NODE_ENV].S3_BUCKET;
-var S3_NED_LOCATION;
-var S3_ELEV_LOCATION = configEnv[NODE_ENV].S3_ELEV_LOCATION;
 var EFS_ELEVATION_DATASET = configEnv[NODE_ENV].EFS_ELEVATION_DATASET;
 
 var fs = require('fs');
 var async = require('async');
 //var AWS = require('aws-sdk');
 var GeoJSON = require('geojson');
-
-//AWS.config.update({
-//        accessKeyId: AWS_ACCESS_KEY,
-//        secretAccessKey: AWS_SECRET_KEY,
-//        region: AWS_REGION,
-//        apiVersions: {
-//                s3: '2006-03-01',
-//                // other service API versions
-//                }
-//});
-
-//var s3 = new AWS.S3();
 
 var data_dir = EFS_ELEVATION_DATASET;
 
@@ -297,49 +282,6 @@ function getHAAT(req, res, callback) {
         return callback(returnJson);
 	}
 }
-
-var getFileFromS3 = function(filename) { return function(callback) {
-	console.log('getting ' + filename + ' src=' + src);
-		
-	var params = {
-		Bucket: S3_BUCKET,
-		Key : S3_ELEV_LOCATION + src + '/' + filename
-	};
-	
-	s3.getObject(params, function(err, data) {
-		if (err) {
-				//console.log(err, err.stack);
-				console.log('S3 error - no file');
-				callback();
-		}
-		else {
-				//write to disk
-			var filepath = data_dir + '/' + src + '/' + filename;
-			console.log('writing filepath=' + filepath);
-			//res.send({'msg': 's3 writeting ' + filepath});
-			
-			fs.writeFile(filepath, data.Body, 'binary', function(err) {
-				if(err) {
-				console.log('write error');
-						callback();
-						//return console.log(err);
-				}
-
-				var endTime = new Date().getTime();
-				var dt = endTime - startTime;
-				console.log(filename + ', time to get file from S3: ' + dt);
-
-				callback();
-				
-			});
-
-		}
-	});
-	
-
-}
-}
-
 
 function processDataFiles(res, dataObj, filenames, callbackDataFiles) {
 
@@ -725,32 +667,6 @@ function useGlobeData(res, dataObj, filenames_globe, callbackGlobe) {
 	console.log('useGlobeData Done');
 	callbackGlobe(return_json);			
 		
-}
-
-function checkS3(filenames, src) {
-
-	var files = [];
-	for (var i = 0; i < filenames.length; i++) {
-		if (src == 'ned_1') {
-			for (var key in ned_1_files) {
-				if (ned_1_files[key].file == filenames[i]) {
-					files.push(filenames[i]);
-					break;
-				}
-			}
-		}
-		else {
-			for (var key in ned_2_files) {
-				if (ned_2_files[key].file == filenames[i]) {
-					files.push(filenames[i]);
-					break;
-				}
-			}
-		
-		}
-	}
-	
-	return files;
 }
 
 function prepareDataObject(dataObj){

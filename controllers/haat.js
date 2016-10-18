@@ -27,14 +27,15 @@ var ned_1_files = require('../data/ned_1_files.json');
 var ned_2_files = require('../data/ned_2_files.json');
 var globe_files = require('../data/globe_files.json');
 
-var src, lat, lon, rcamsl, nradial, format, unit;
-var  output_data;
-var azimuths, filenames, latlon, startTime, endTime;
-var filename_ned_1, filename_ned_2, filename_globe;
-var filenames_ned_1, filenames_ned_2, filenames_globe;
-
 
 function getHAAT(req, res, callback) {
+
+	var src, lat, lon, rcamsl, nradial, format, unit;
+	var  output_data;
+	var azimuths, filenames, latlon, startTime;
+	var filename_ned_1, filename_ned_2, filename_globe;
+	var filenames_ned_1, filenames_ned_2, filenames_globe;
+
 	try {
 	
 		console.log('\n- start HAAT process -');
@@ -229,11 +230,21 @@ function getHAAT(req, res, callback) {
 		}
 			
 
-		console.log('filenames_ned_1='+filenames_ned_1+', filenames_ned_2='+filenames_ned_2+', filenames_no_ned_1='+filenames_no_ned_1+', filenames_no_ned_2='+filenames_no_ned_2);
+		console.log('resolved filenames_ned_1='+filenames_ned_1+', filenames_ned_2='+filenames_ned_2+', filenames_no_ned_1='+filenames_no_ned_1+', filenames_no_ned_2='+filenames_no_ned_2);
+
+		var inputData = {};		
+		inputData['lat'] = lat;
+		inputData['lon'] = lon;
+		inputData['src'] = src;
+		inputData['latlon'] = latlon;
+		inputData['nradial'] = nradial;
+		inputData['rcamsl'] = rcamsl;
+		inputData['unit'] = unit;
+		inputData['format'] = format;
 		
 		if (src == 'globe30') {
 			console.log('use globe data');	
-            useGlobeData(res, dataObj, filenames_globe, function(data){
+            useGlobeData(res, dataObj, inputData, output_data, filenames_globe, function(data){
             	if(data){
                 	return callback(data);    
             	}
@@ -244,7 +255,7 @@ function getHAAT(req, res, callback) {
 		
 		
 		if (filenames_no_ned_1.length == 0) {
-			processDataFiles(res, dataObj, filenames_ned_1, function(data){
+			processDataFiles(res, dataObj, inputData, output_data, filenames_ned_1, startTime, function(data){
             	if(data){
                 	return callback(data);    
             	}
@@ -253,7 +264,8 @@ function getHAAT(req, res, callback) {
 		}
 		else if (filenames_no_ned_2.length == 0) {
 			src = 'ned_2';
-			processDataFiles(res, dataObj, filenames_ned_2, function(data){
+			inputData.src = src;
+			processDataFiles(res, dataObj, inputData, output_data, filenames_ned_2, startTime, function(data){
             	if(data){
                 	return callback(data);    
             	}
@@ -263,7 +275,8 @@ function getHAAT(req, res, callback) {
 		}
 		else {
 			src = 'globe30';
-			useGlobeData(res, dataObj, filenames_globe, function(data){
+			inputData.src = src;
+			useGlobeData(res, dataObj, inputData, output_data, filenames_globe, startTime, function(data){
            	if(data){
                 	return callback(data);    
             	}
@@ -273,7 +286,7 @@ function getHAAT(req, res, callback) {
 		
 		
 	}
-	catch(err) {		
+	catch(err) {			
         console.error('--- HAAT processing error ---'+err);
         dataObj.statusMessage = 'processing error occured';
         returnError(dataObj, function(ret){
@@ -283,21 +296,23 @@ function getHAAT(req, res, callback) {
 	}
 }
 
-function processDataFiles(res, dataObj, filenames, callbackDataFiles) {
-
+function processDataFiles(res, dataObj, inputData, output_data, filenames, startTime, callbackDataFiles) {
+		console.log('Inside processDataFiles with latlon= '+latlon);
 		var i, filepath;
 		for (i = 0; i < filenames.length; i++) {
 			filepath = data_dir + src + '/' + filenames[i];
-			readDataFile(i, filepath, latlon);
+			readDataFile(i, filepath, inputData.src, inputData.latlon, output_data);
 		}
 		
 		output_data = output_data.sort(comparator);
-		var output_haat = formatHAAT(dataObj);
+		var output_haat = formatHAAT(dataObj, inputData, output_data);
+
+		console.log('output_haat='+JSON.stringify(output_haat));
 		
-		endTime = new Date().getTime();
+		var endTime = new Date().getTime();
 		var elapsed_time = endTime - startTime;
 		
-		if (format == 'json') {
+		if (inputData.format == 'json') {
 			output_haat['elapsed_time'] = elapsed_time + ' ms';
 		}
 		
@@ -314,16 +329,15 @@ function processDataFiles(res, dataObj, filenames, callbackDataFiles) {
 }
 
 
-function readDataFile(n, filepath, latlon) {
+function readDataFile(n, filepath, src, latlon, output_data) {
+			console.log('Inside readDataFile with filepath= '+filepath+', src='+src);
 			var i, j, lat, lon, az, npoint;
 			//res.send({'status': 'read', 'filepath': filepath, 'filenames_no': filenames_no});;
 			
 			var data = fs.readFileSync(filepath);
 
 			var filename = filepath.replace(/^.*\//, '');
-			
-			console.log('reading file: ' + filepath)
-			
+						
 			var lat_ul, lon_ul, lat_lr, lon_lr;
 			if (src.match(/ned_/)) {
 				var latlon_ul = getLatLonFromFileName(filename);
@@ -340,7 +354,7 @@ function readDataFile(n, filepath, latlon) {
 			
 			var elev;
 	
-			for (i = 0; i < latlon.length; i++) {
+			for (i = 0; i < latlon.length; i++) {				
 				if (latlon[i][4] == filename || latlon[i][5] == filename || latlon[i][6] == filename) {
 					az = latlon[i][0];
 					npoint = latlon[i][1];
@@ -376,7 +390,8 @@ function readDataFile(n, filepath, latlon) {
 						var position = (row-1) * ncol * 4 + (col - 1) * 4 ;
 						elev = Math.round(100*data.slice(position, position+4).readFloatLE(0))/100;
 						
-						//console.log('row=' + row + ' col=' + col + ' pos=' + position + ' elev=' + elev);
+						//console.log('ned row=' + row + ' col=' + col + ' pos=' + position + ' elev=' + elev);
+
 						output_data.push([latlon[i][0], latlon[i][1], latlon[i][2], latlon[i][3], elev]);
 					
 					}
@@ -392,14 +407,16 @@ function readDataFile(n, filepath, latlon) {
 
 						var length = 2;
 						var position = row * ncol0 * length + col * length ;
-						//console.log(lat + ' ' + lon + ' ' + row + ' ' + col + ' ' + position)
+
+						//console.log('globe30 row=' + row + ' col=' + col + ' pos=' + position + ' elev=' + elev);
+
 						elev = Math.round(100*data.slice(position, position+length).readInt16LE(0))/100;
 						output_data.push([latlon[i][0], latlon[i][1], latlon[i][2], latlon[i][3], elev]);
 					}
 				}
 			}
 			
-			//console.log('total row=' + output_data.length);
+			console.log('total rows=' + output_data.length);
 }
 
 		
@@ -416,78 +433,82 @@ function comparator(a, b) {
 	}
 	}
 	
-function formatHAAT(dataObj) {
-
-	var haat_av = [];
-	var i, j, elevs;
-	for (i = 0; i < nradial; i++) {
-		elevs = [];
-		for (j = 0; j < output_data.length; j++) {
-		
-			if (output_data[j][0] == i) {
-				elevs.push(output_data[j][4]);
-				
+function formatHAAT(dataObj, inputData, output_data) {
+	console.log('Inside formatHAAT');
+	try{
+		var haat_av = [];
+		var i, j, elevs;
+		for (i = 0; i < inputData.nradial; i++) {
+			elevs = [];
+			for (j = 0; j < output_data.length; j++) {
+			
+				if (output_data[j][0] == i) {
+					elevs.push(output_data[j][4]);
+					
+				}
 			}
-		}
-		haat_av.push(Math.round( 100*(rcamsl - arrMean(elevs)) ) / 100.0);
-		//console.log(i + ' ' + azimuths[i] + ' ' + haat_av[i] + ' elevs=' + elevs);
-	}
-	
-	var haat_total = Math.round(100*arrMean(haat_av))/100;
-	
-	//unit conversion
-	
-	var feet_per_meter = 3.28084;
-	var miles_per_meter = 0.000621371;
-	if (unit != "m") {
-		for (i = 0; i < haat_av.length; i++) {
-			if (unit == "ft") {
-				haat_av[i] = Math.round(100 * haat_av[i] * feet_per_meter) / 100;
-			}
-			else if (unit == "mi") {
-				haat_av[i] = Math.round(100000 * haat_av[i] * miles_per_meter) / 100000;
-			}
-		}
-		if (unit == "ft") {
-			haat_total = Math.round(100 * haat_total * feet_per_meter) / 100;
-		}
-		else if (unit == "mi") {
-			haat_total = Math.round(100000 * haat_total * miles_per_meter) / 100000;
+			haat_av.push(Math.round( 100*(inputData.rcamsl - arrMean(elevs)) ) / 100.0);
+			//console.log(i + ' ' + azimuths[i] + ' ' + haat_av[i] + ' elevs=' + elevs);
 		}
 		
-	}
-	
-	//console.log('format=' + format);
-	
-	if (format == 'csv') {
-		var content = 'azimuth,haat\n'
-		for (i = 0; i < nradial; i++) {
-			content += azimuths[i] + ',' + haat_av[i] + '\n';
+		var haat_total = Math.round(100*arrMean(haat_av))/100;
+		console.log('haat_total='+haat_total);
+		//unit conversion
+		
+		var feet_per_meter = 3.28084;
+		var miles_per_meter = 0.000621371;
+		if (inputData.unit != "m") {
+			for (i = 0; i < haat_av.length; i++) {
+				if (inputData.unit == "ft") {
+					haat_av[i] = Math.round(100 * haat_av[i] * feet_per_meter) / 100;
+				}
+				else if (inputData.unit == "mi") {
+					haat_av[i] = Math.round(100000 * haat_av[i] * miles_per_meter) / 100000;
+				}
+			}
+			if (inputData.unit == "ft") {
+				haat_total = Math.round(100 * haat_total * feet_per_meter) / 100;
+			}
+			else if (inputData.unit == "mi") {
+				haat_total = Math.round(100000 * haat_total * miles_per_meter) / 100000;
+			}
+			
 		}
-		return content;
-	}
-	else if (format == 'json') {
+		
+		if (inputData.format == 'csv') {
+			var content = 'azimuth,haat\n'
+			for (i = 0; i < inputData.nradial; i++) {
+				content += inputData.azimuths[i] + ',' + haat_av[i] + '\n';
+			}
+			return content;
+		}
+		else if (inputData.format == 'json') {
 
-        dataObj.status = 'success';
-        dataObj.statusCode = '200';        
-        dataObj.statusMessage = 'ok';
-        dataObj.elevation_data_source = src;
-        dataObj.lat = lat;
-        dataObj.lon = lon; 
-        dataObj.rcamsl = rcamsl;
-        dataObj.nradial = nradial;
-        dataObj.azimuth = azimuths;
-        dataObj.haat_azimuth = haat_av;
-        dataObj.haat_average = haat_total;        
-        dataObj.unit = unit;
+	        dataObj.status = 'success';
+	        dataObj.statusCode = '200';        
+	        dataObj.statusMessage = 'ok';
+	        dataObj.elevation_data_source = inputData.src;
+	        dataObj.lat = inputData.lat;
+	        dataObj.lon = inputData.lon; 
+	        dataObj.rcamsl = inputData.rcamsl;
+	        dataObj.nradial = inputData.nradial;
+	        dataObj.azimuth = inputData.azimuths;
+	        dataObj.haat_azimuth = haat_av;
+	        dataObj.haat_average = haat_total;        
+	        dataObj.unit = inputData.unit;
 
-        return dataObj;    
-	}
-	else {
-		var content = {"status": "error", "msg": "unknown format"};
-		return content;
-	}
+	        //console.log('formatHAAT return='+JSON.stringify(dataObj));
 
+	        return dataObj;    
+		}
+		else {
+			var content = {"status": "error", "msg": "unknown format"};
+			return content;
+		}
+	}
+	catch(err){
+		console.log('formatHAAT err='+err);
+	}
 }
 
 
@@ -639,23 +660,24 @@ function getGlobeFileName(lat, lon) {
 	}
 }
 
-function useGlobeData(res, dataObj, filenames_globe, callbackGlobe) {
-
+function useGlobeData(res, dataObj, inputData, output_data, filenames_globe, startTime, callbackGlobe) {
+	console.log('Inside useGlobeData');
 	var filenames_no = getNonExistingFiles(filenames_globe);
 	var i, filepath;
 	
 	for (i = 0; i < filenames_globe.length; i++) {
 		filepath = data_dir + 'globe30/' + filenames_globe[i];
-		readDataFile(i, filepath, latlon);
+		readDataFile(i, filepath, inputData.src, inputData.latlon, output_data);
 	}
 	
 	output_data = output_data.sort(comparator);
-	var output_haat = formatHAAT(dataObj);
+
+	var output_haat = formatHAAT(dataObj, inputData, output_data);
 	
-	endTime = new Date().getTime();
+	var endTime = new Date().getTime();
 	var elapsed_time = endTime - startTime;
 	
-	if (format == 'json') {
+	if (inputData.format == 'json') {
 		output_haat['elapsed_time'] = elapsed_time + ' ms';
 	}
 		

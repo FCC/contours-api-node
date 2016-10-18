@@ -319,6 +319,8 @@ function getProfile(req, res, callback) {
 		var filenames_no_ned_1 = getNonExistingFiles(filenames_ned_1); //ned_1 files that do not exist on EFS
 		var filenames_no_ned_2 = getNonExistingFiles(filenames_ned_2); //ned_2 files that do not exist on EFS
 
+		console.log('file to be used: filenames_ned_1='+filenames_ned_1+', filenames_ned_2='+filenames_ned_2+', filenames_no_ned_1='+filenames_no_ned_1+', filenames_no_ned_2='+filenames_no_ned_2);
+
 		if (filenames_no_ned_1.length == 0) {
 			src = 'ned_1';			
 			processDataFiles(res, dataObj, filenames_ned_1, function(data){

@@ -80,15 +80,19 @@
                             <div class="form-group">
                                 <label for="apiType" required>API</label>
                                 <select id="apiType" class="form-control" name="apiType">
-                                    <option value="contour">Contour</option>
+                                    <option value="contoursEnterprise">Coverage</option>
+                                    <option value="contoursOPIF">OPIF Contour</option>
                                     <option value="elevation">Elevation</option>
                                     <option value="haat">HAAT</option>
                                     <option value="profile">Profile</option>
                                 </select>
                             </div>
                         </fieldset>
-                        <fieldset id="frm-contour" class="fields fields-contour">
-                            <legend>Contour API</legend>                            
+                        <fieldset id="frm-contoursEnterprise" class="fields fields-contoursEnterprise">
+                            <legend>Coverage API</legend>                            
+                        </fieldset>
+                        <fieldset id="frm-contoursOPIF" class="fields fields-contoursOPIF" style="display: none;">
+                            <legend>OPIF Contour API</legend>                            
                         </fieldset>
                         <fieldset id="frm-elevation" class="fields fields-elevation" style="display: none;">
                             <legend>Elevation API</legend>                            
@@ -104,6 +108,8 @@
                                     {{#if display}}
                                         {{#if amOnly}}
                                             <div class="js-am-only form-group" style="display: none;">
+                                        {{else if fmOnly}}
+                                            <div class="js-fm-only form-group">
                                         {{else}}
                                             <div class="form-group">
                                         {{/if}}
@@ -113,7 +119,7 @@
                                             <label for="{{name}}">{{label}}</label>
                                         {{/if}}
                                         {{#if enum}}
-                                            <select id="{{name}}" class="form-control" name="{{name}}">
+                                            <select id="{{name}}" class="{{class}} form-control" name="{{name}}">
                                                 {{#enum}}
                                                     <option value="{{this}}">{{this}}</option>
                                                 {{/enum}}
@@ -125,7 +131,7 @@
                                     {{/if}}
                                 {{/each}}
                             </script>
-                        <button id="btn-getAPI" class="btn btn-primary" type="button" data-api="contour" data-toggle="modal" data-target="#modal-loading">View</button>
+                        <button id="btn-getAPI" class="btn btn-primary" type="button" data-api="contoursEnterprise" data-toggle="modal" data-target="#modal-loading">View</button>
                     </form>
                     <br>
                     <br>

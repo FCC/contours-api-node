@@ -31,9 +31,11 @@
 
             $('#btn-getAPI').attr('data-api', selectedAPI);
 
+            $('.js-am-only').slideUp();
             $('#form-params')[0].reset();
 
             $('label[for="idValue"]').text('Facility ID');
+            $('label[for="channel"]').attr('required', true);
 
             $('#apiType').val(selectedAPI);           
 
@@ -47,10 +49,7 @@
             $('.alert').hide('fast');
             $('.alert').slideDown();
 
-            APIResponse.clear();
-
-            Map.clearLayers();
-            Map.resetView();
+            APIResponse.clear();                     
         }
     };
 

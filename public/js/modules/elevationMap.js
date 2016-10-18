@@ -8,7 +8,7 @@
         getData: function() {
             var elevationAPI = './elevation.json?';
 
-            elevationAPI += $('.fields-elevation').serialize();
+            elevationAPI += $('.fields-elevation').find('input, select').serialize();
 
             APIMap.getTooltipMeta = ElevationMap.getTooltipMeta;
 

@@ -4,8 +4,6 @@ var ned_1_files = require('../data/ned_1_files.json');
 var ned_2_files = require('../data/ned_2_files.json');
 var ned_13_files = require('../data/ned_13_files.json');
 var globe_files = require('../data/globe_files.json');
-var S3_BUCKET = configEnv[NODE_ENV].S3_BUCKET;
-var S3_ELEV_LOCATION = configEnv[NODE_ENV].S3_ELEV_LOCATION;
 
 var AWS = require('aws-sdk');
 var AWS_ACCESS_KEY =  configEnv[NODE_ENV].AWS_ACCESS_KEY;
@@ -25,8 +23,7 @@ function getElvFileInfo(type, coordName, callback) {
 
 	var result = [];
 	var file_type = type;
-	var file_name = '';
-	var file_path;
+	var file_name = '';	
 	try{
 		if(type == 'ned'){
 			if(ned_1_files[coordName]){	
@@ -54,16 +51,14 @@ function getElvFileInfo(type, coordName, callback) {
 		}	
 
 		if(file_name != ''){
-			file_path =  S3_ELEV_LOCATION + file_type + '/';
 			console.log('elevation file found!');
 			result[0] = file_type;
-			result[1] = file_name;
-			result[2] = file_path;
+			result[1] = file_name;			
 		}
 		else {
 			throw 'elevation file error';	
 		}
-		console.log('file_name='+file_name+', file_path='+file_path);
+		console.log('file_name='+file_name+', file_type='+file_type);
 		console.log('result ='+result.length);	
 		callback(null, result);
 	}
@@ -80,53 +75,6 @@ function getGlobeFileName(lat, lon) {
 		if (lat <= globe_files.files[i].ullat && lat > globe_files.files[i].lrlat && lon >= globe_files.files[i].ullon && lon < globe_files.files[i].lrlon) {
 			return globe_files.files[i].filename;
 		} 
-	}
-}
-
-function getFileFromS3(type, filepath, s3_filepath, s3_filename, callback) { 
-	
-	try{
-		console.log('getting type=' + type + ', filepath='+filepath+', s3_filepath = '+s3_filepath+', s3_filename=' + s3_filename);
-		var startTime = new Date().getTime();
-		var s3 = new AWS.S3();
-		var params = {
-			Bucket: S3_BUCKET,
-			Key : s3_filepath + s3_filename
-		};
-	
-		s3.getObject(params, function(err, data) {
-			if (err) {
-				console.log(err, err.stack);
-				console.log('S3 error - no file');
-				callback(err, null);
-			}
-			else {
-				//write to disk
-				//var filepath = path + filename;
-				console.log('writing filepath=' + filepath);
-				//res.send({'msg': 's3 writeting ' + filepath});
-				
-				fs.writeFile(filepath, data.Body, 'binary', function(err) {
-					if(err) {
-						console.log('write error');
-						callback(err, null);
-							//return console.log(err);
-					}
-
-					var endTime = new Date().getTime();
-					var dt = endTime - startTime;
-					console.log(s3_filename + ', time to get file from S3: ' + dt);
-
-					callback(null, 'success');
-					
-				});
-
-			}
-		});
-	}
-	catch(err){
-		console.error('err= '+err);
-		callback(err, null);
 	}
 }
 
@@ -175,6 +123,7 @@ function getElevFromFile(src, filepath, lat, lon) {
 
 		var length = 4;
 		var position = (row-1) * ncol * 4 + (col - 1) * 4 ;
+		console.log('getElevFromFile row=' + row + ' col=' + col + ' pos=' + position);
 		elev = Math.round(100*data.slice(position, position+4).readFloatLE(0))/100;
 		
 	}
@@ -217,4 +166,3 @@ function getLatLonFromFileNameGlobe(filename) {
 module.exports.getElvFileInfo = getElvFileInfo;
 module.exports.getGlobeFileName = getGlobeFileName;
 module.exports.getElevFromFile = getElevFromFile;
-module.exports.getFileFromS3 = getFileFromS3;

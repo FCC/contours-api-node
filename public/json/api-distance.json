@@ -1,0 +1,93 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "version": "1.5.0",
+        "title": "FCC Distance API"
+    },
+    "basePath": "/api/contours",
+    "tags": [{
+        "name": "Distance",
+        "description": "FCC Distance API"
+    }],
+    "paths": {
+        "/distance.{format}": {
+            "get": {
+                "tags": ["Distance"],
+                "summary": "Get Distance",
+                "description": "Get Distance data based on dBu, HAAT, and curve type. Response returned in JSON format.",
+                "parameters": [{
+                    "name": "serviceType",
+                    "label": "Service Type",
+                    "display": true,
+                    "in": "query",
+                    "description": "Type of broadcast service. <br /><br />Valid values: tv or fm",
+                    "required": true,
+                    "type": "string",
+                    "defaultValue": "tv",
+                    "enum": [
+                        "tv",
+                        "fm"
+                    ]
+                }, {
+                    "name": "haat",
+                    "label": "HAAT",
+                    "display": true,
+                    "in": "query",
+                    "description": "Height Above Average Terrain<br /><br />Values must be between 30-1600 meters.",
+                    "required": true,
+                    "type": "number",
+                    "defaultValue": ""
+                }, {
+                    "name": "field",
+                    "label": "field",
+                    "display": true,
+                    "in": "query",
+                    "description": "Field strength (e.g. 28 dBu).",
+                    "required": true,
+                    "type": "number",
+                    "defaultValue": ""
+                }, {
+                    "name": "channel",
+                    "label": "Channel",
+                    "display": true,
+                    "in": "query",
+                    "description": "Required for TV.",
+                    "required": false,
+                    "type": "integer",
+                    "defaultValue": ""
+                }, {
+                    "name": "erp",
+                    "label": "ERP",
+                    "display": true,
+                    "in": "query",
+                    "description": "Effective Radiation Power (example: 1 kW)",
+                    "required": true,
+                    "type": "number",
+                    "defaultValue": ""
+                }, {
+                    "name": "curve",
+                    "label": "Curve",
+                    "display": true,
+                    "in": "query",
+                    "description": "Type of propagation curve, range is 0-2.<br /><br /><b>0:</b> use F(50, 50) curve<br /><br /><b>1:</b>  use F(50, 10) curve<br /><br /><b>2:</b> use F(50, 90) curve",
+                    "required": true,
+                    "type": "string",
+                    "defaultValue": "0",
+                    "enum": [
+                        "0",
+                        "1",
+                        "2"
+                    ]
+                }],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                },
+                "produces": [
+                    "application/json"
+                ]
+            }
+        }
+    }
+}

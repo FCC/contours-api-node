@@ -3,7 +3,7 @@
 
     var ContourMap = require('./contourMap.js');   
 
-    var ContourForm = {
+    var OPIFContourForm = {
         bindEvents: function() {
             var idTypes = {
                 facilityid: 'Facility ID',
@@ -19,8 +19,14 @@
                 am: ['facilityid', 'callsign', 'antennaid']
             };
 
+            var opifForm = $('#frm-contoursOPIF');
+            var serviceSel = opifForm.find('select').eq(0);
+            
+            serviceSel.addClass('js-opif');
+            
             // display optional fields based on Service Type
-            $('#serviceType').on('change', function() {
+            $(opifForm).on('change', '.js-opif', function() {
+                var serviceVal = this.value;
 
                 $('#idType')
                     .val('facilityid')
@@ -29,11 +35,11 @@
                 $('label[for="idValue"]').text('Facility ID');
                 $('#idValue').val('');
 
-                $(serviceTypes[this.value]).each(function(index, value) {
+                $(serviceTypes[serviceVal]).each(function(index, value) {
                     $('option[value="' + value + '"]').show();
                 });
 
-                if (this.value === 'am') {
+                if (serviceVal === 'am') {
                     $('.js-am-only').slideDown();
                 } else {
                     $('.js-am-only').slideUp();
@@ -46,24 +52,24 @@
                 $('label[for="idValue"]').text(idTypes[this.value]);
             });
 
-            $('#form-params').on('click.contourAPI', '[data-api="contour"]', ContourMap.getContour);
+            $('#form-params').on('click.contoursOPIFAPI', '[data-api="contoursOPIF"]', ContourMap.getContour);
             
         },
-        getParams: function() {
+        getParams: function() { 
             // get parameters (form fields) from Swagger JSON
             $.ajax({
-                url: 'json/api-contour.json',
+                url: 'json/api-contoursOPIF.json',
                 async: true,
                 type: "GET",
                 dataType: "json",
                 success: function(data) {
                     var paramsData = data.paths['/{serviceType}/{idType}/{idValue}.{format}'].get.parameters;
 
-                    ContourForm.createTemplate(paramsData);
+                    OPIFContourForm.createTemplate(paramsData);
                 }
             });
         },
-        createTemplate: function(data) {
+        createTemplate: function(data) { 
             var fields = {};
             var source = $('#apiForm-template').html();
             var template, fieldsetHTML;
@@ -72,12 +78,13 @@
 
             fields.params = data;
             fieldsetHTML = template(fields);
-            $('#frm-contour').append(fieldsetHTML);
+    
+            $('#frm-contoursOPIF').append(fieldsetHTML);
             
-            ContourForm.bindEvents();
+            OPIFContourForm.bindEvents();
         }
     };
 
-    module.exports = ContourForm;
+    module.exports = OPIFContourForm;
 
 }());

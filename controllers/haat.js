@@ -14,33 +14,14 @@ var geo_space = configEnv[NODE_ENV].GEO_SPACE;
 var AWS_ACCESS_KEY =  configEnv[NODE_ENV].AWS_ACCESS_KEY;
 var AWS_SECRET_KEY = configEnv[NODE_ENV].AWS_SECRET_KEY;
 var AWS_REGION = configEnv[NODE_ENV].AWS_REGION;
-var S3_BUCKET = configEnv[NODE_ENV].S3_BUCKET;
-var S3_NED_LOCATION;
-var S3_ELEV_LOCATION = configEnv[NODE_ENV].S3_ELEV_LOCATION;
+var EFS_ELEVATION_DATASET = configEnv[NODE_ENV].EFS_ELEVATION_DATASET;
 
 var fs = require('fs');
 var async = require('async');
-var AWS = require('aws-sdk');
+//var AWS = require('aws-sdk');
 var GeoJSON = require('geojson');
 
-AWS.config.update({
-        accessKeyId: AWS_ACCESS_KEY,
-        secretAccessKey: AWS_SECRET_KEY,
-        region: AWS_REGION,
-        apiVersions: {
-                s3: '2006-03-01',
-                // other service API versions
-                }
-});
-
-var s3 = new AWS.S3();
-
-if (NODE_ENV == 'LOCAL') {
-	var data_dir = 'data';
-}
-else {
-	var data_dir = '/var/data';
-}
+var data_dir = EFS_ELEVATION_DATASET;
 
 var ned_1_files = require('../data/ned_1_files.json');
 var ned_2_files = require('../data/ned_2_files.json');
@@ -53,25 +34,26 @@ var filename_ned_1, filename_ned_2, filename_globe;
 var filenames_ned_1, filenames_ned_2, filenames_globe;
 
 
-function getHAAT(req, res) {
+function getHAAT(req, res, callback) {
 	try {
 	
-		console.log('\n================== start HAAT process ==============');
+		console.log('\n- start HAAT process -');
 		console.log(new Date());
 		
 		azimuths = [];
 		output_data = [];
 		
 		var url = req.url;
+		var returnJson;
 
 		var dataObj = new Object;		
 		dataObj['status'] = 'error';
 		dataObj['statusCode'] = '400';
 		dataObj['statusMessage'] = '';
-		dataObj['latitude'] = '';
-		dataObj['longitude'] = '';
+		dataObj['lat'] = '';
+		dataObj['lon'] = '';
 
-		GeoJSON.defaults = {Point: ['latitude', 'longitude'], include: ['status','statusCode','statusMessage']};
+		GeoJSON.defaults = {Point: ['lat', 'lon'], include: ['status','statusCode','statusMessage']};
 		
 		startTime = new Date().getTime();
 
@@ -80,35 +62,36 @@ function getHAAT(req, res) {
 
 			dataObj.statusMessage = 'missing lat value';
 			returnError(dataObj, function(ret){
-                 res.status(400).send(GeoJSON.parse(ret, {}));                                         
+                 //res.status(400).send(GeoJSON.parse(ret, {}));                                         
+                 returnJson = GeoJSON.parse(ret, {});
             });
-            return;
+            return callback(returnJson);
 		}
 		if (!url.match(/lon=/i)) {
 			dataObj.statusMessage = 'missing lon value';
 			returnError(dataObj, function(ret){
-                 res.status(400).send(GeoJSON.parse(ret, {}));                                         
+                 returnJson = GeoJSON.parse(ret, {});
             });
-            return;			
+            return callback(returnJson);
 		}
 		if (!url.match(/rcamsl=/i)) {
 			dataObj.statusMessage = 'missing rcamsl value';
 			returnError(dataObj, function(ret){
-                 res.status(400).send(GeoJSON.parse(ret, {}));                                         
+                 returnJson = GeoJSON.parse(ret, {});
             });
-            return;
+            return callback(returnJson);
 		}
 		if (!url.match(/nradial=/i)) {
 			dataObj.statusMessage = 'missing nradial value';
 			returnError(dataObj, function(ret){
-                 res.status(400).send(GeoJSON.parse(ret, {}));                                         
+                 returnJson = GeoJSON.parse(ret, {});
             });
-            return;
+            return callback(returnJson);
 		}
 
 		src = url.replace(/^.*src=/i, '').replace(/&.*$/, '').toLowerCase();
 		src = src.toLowerCase();
-		if (src != "ned_1" && src != "ned_2" && src != "ned_13" && src != "gtopo30" && src != "globe30") {
+		if (src != "ned_1" && src != "globe30") {
 			src = "ned_1";
 		}
 		
@@ -124,52 +107,52 @@ function getHAAT(req, res) {
 		}
 		
 		var i, j;
-		dataObj.latitude = lat;
-        dataObj.longitude = lon;
+		dataObj.lat = lat;
+        dataObj.lon = lon;
 
         if ( !lat.match(/^-?\d+\.?\d*$/) || !lon.match(/^-?\d+\.?\d*$/) ) {            
             
             dataObj.statusMessage = 'invalid lat/lon value';
             returnError(dataObj, function(ret){
-                 res.status(400).send(GeoJSON.parse(ret, {}));                                         
+            	 returnJson = GeoJSON.parse(ret, {});
             });
-            return;
+            return callback(returnJson);
         }
 		
-		if ( !rcamsl.match(/^\d*$/) ) {
+		if ( !rcamsl.match(/^\d+\.?\d*$/) ) {
 			dataObj.statusMessage = 'invalid rcamsl value';
             returnError(dataObj, function(ret){
-                 res.status(400).send(GeoJSON.parse(ret, {}));                                         
+                 returnJson = GeoJSON.parse(ret, {});
             });
-            return;
+            return callback(returnJson);
 		}
 		if ( !nradial.match(/^\d*$/) ) {
 			dataObj.statusMessage = 'invalid nradial value';
             returnError(dataObj, function(ret){
-                 res.status(400).send(GeoJSON.parse(ret, {}));                                         
+                 returnJson = GeoJSON.parse(ret, {});
             });
-            return;
+            return callback(returnJson);
 		}
 		if ( parseFloat(lat) > 90 || parseFloat(lat) < -90 ) {
 			dataObj.statusMessage = 'lat value out of range';
             returnError(dataObj, function(ret){
-                 res.status(400).send(GeoJSON.parse(ret, {}));                                         
+                 returnJson = GeoJSON.parse(ret, {});
             });
-            return;			
+            return callback(returnJson);
 		}
 		if ( parseFloat(lon) > 180 || parseFloat(lon) < -180 ) {
 			dataObj.statusMessage = 'lon value out of range';
             returnError(dataObj, function(ret){
-                 res.status(400).send(GeoJSON.parse(ret, {}));                                         
+                 returnJson = GeoJSON.parse(ret, {});
             });
-            return;
+            return callback(returnJson);
 		}
 		if ( parseFloat(nradial) <1 || parseFloat(nradial) > 360 ) {
 			dataObj.statusMessage = 'nradial value out of range';
             returnError(dataObj, function(ret){
-                 res.status(400).send(GeoJSON.parse(ret, {}));                                         
+                 returnJson = GeoJSON.parse(ret, {});
             });
-            return;			
+            return callback(returnJson);			
 		}
 
 		lat = parseFloat(lat);
@@ -228,129 +211,85 @@ function getHAAT(req, res) {
 		filenames_ned_2 = uniqArray(filenames_ned_2);
 		filenames_globe = uniqArray(filenames_globe);
 
-		dataObj = prepareDataObject(dataObj);        
+		dataObj = prepareDataObject(dataObj);
+		
+		//check if file exists locally
+		var filenames_no_ned_1 = getNonExistingFiles(filenames_ned_1); //ned_1 files not exist locally
+		var filenames_no_ned_2 = getNonExistingFiles(filenames_ned_2); //ned_2 files not exist locally
+		var filenames_no_globe30 = getNonExistingFiles(filenames_globe); //globe30 files not exist locally
+			
+		if (filenames_no_ned_1.length != 0 && filenames_no_ned_2.length != 0 && filenames_no_globe30.length != 0) {
+			console.error('elevation data file missing');
+			dataObj.statusMessage = 'elevation data file missing';
+			returnError(dataObj, function(ret){
+                 //res.status(400).send(GeoJSON.parse(ret, {}));                                         
+                 returnJson = GeoJSON.parse(ret, {});
+            });
+            return callback(returnJson);
+		}
+			
 
+		console.log('filenames_ned_1='+filenames_ned_1+', filenames_ned_2='+filenames_ned_2+', filenames_no_ned_1='+filenames_no_ned_1+', filenames_no_ned_2='+filenames_no_ned_2);
 		
 		if (src == 'globe30') {
 			console.log('use globe data');	
-            useGlobeData(res, dataObj, filenames_globe);
+            useGlobeData(res, dataObj, filenames_globe, function(data){
+            	if(data){
+                	return callback(data);    
+            	}
+            	return callback(null);
+            });
+			//return callback(null);
 		}
 		
-		//check if file exists locally and on S3
-		var filenames_no_ned_1 = getNonExistingFiles(filenames_ned_1); //ned_1 files not exist locally
-		var filenames_no_ned_2 = getNonExistingFiles(filenames_ned_2); //ned_2 files not exist locally
-		var filenames_ned_1_s3 = checkS3(filenames_no_ned_1, 'ned_1'); //ned_1 files that exist on S3
-		var filenames_ned_2_s3 = checkS3(filenames_no_ned_2, 'ned_2'); //ned_2 files that exist on S3
 		
-		if (filenames_ned_1_s3.sort().join() == filenames_no_ned_1.sort().join()) {
-			//use ned_1
-			src = 'ned_1';
-			console.log('use ned_1')
-			if (filenames_ned_1_s3.length > 0) {
-				//get files from S3
-				var asyncTasks = [];
-				for (i = 0; i < filenames_ned_1_s3.length; i++) {
-					asyncTasks.push(getFileFromS3(filenames_ned_1_s3[i]));
-				}
-				async.parallel(asyncTasks, function() {
-					console.log("all done getting ned_1 from S3");
-					processDataFiles(res, dataObj, filenames_ned_1);
-					});	
-			}
-			else {
-				processDataFiles(res, dataObj, filenames_ned_1);
-			}
-			
+		if (filenames_no_ned_1.length == 0) {
+			processDataFiles(res, dataObj, filenames_ned_1, function(data){
+            	if(data){
+                	return callback(data);    
+            	}
+            	return callback(null);
+            });			
 		}
-		else if (filenames_ned_2_s3.sort().join() == filenames_no_ned_2.sort().join()) {
-			//use ned_2
+		else if (filenames_no_ned_2.length == 0) {
 			src = 'ned_2';
-			console.log('use ned_2')
-			if (filenames_ned_2_s3.length > 0) {
-				//get files from S3
-				var asyncTasks = [];
-				for (i = 0; i < filenames_ned_2_s3.length; i++) {
-					asyncTasks.push(getFileFromS3(filenames_ned_2_s3[i]));
-				}
-				async.parallel(asyncTasks, function() {
-					console.log("all done getting ned_2");
-					processDataFiles(res, dataObj, filenames_ned_2);
-					});	
-			}
-			else {
-				processDataFiles(res, dataObj, filenames_ned_2);
-			}
+			processDataFiles(res, dataObj, filenames_ned_2, function(data){
+            	if(data){
+                	return callback(data);    
+            	}
+            	return callback(null);
+            });
+			
 		}
 		else {
 			src = 'globe30';
-			console.log('use globe30');
-			useGlobeData(res, dataObj, filenames_globe);
+			useGlobeData(res, dataObj, filenames_globe, function(data){
+           	if(data){
+                	return callback(data);    
+            	}
+            	return callback(null);
+            });			
 		}
+		
+		
 	}
 	catch(err) {		
         console.error('--- HAAT processing error ---'+err);
         dataObj.statusMessage = 'processing error occured';
         returnError(dataObj, function(ret){
-             res.status(400).send(GeoJSON.parse(ret, {}));                                         
+             returnJson = GeoJSON.parse(ret, {});
         });
-        return;
+        return callback(returnJson);
 	}
-	
-	console.log('Done');
-	
-	
 }
 
-var getFileFromS3 = function(filename) { return function(callback) {
-	console.log('getting ' + filename + ' src=' + src);
-		
-	var params = {
-		Bucket: S3_BUCKET,
-		Key : S3_ELEV_LOCATION + src + '/' + filename
-	};
-	
-	s3.getObject(params, function(err, data) {
-		if (err) {
-				//console.log(err, err.stack);
-				console.log('S3 error - no file');
-				callback();
+function processDataFiles(res, dataObj, filenames, callbackDataFiles) {
+
+		var i, filepath;
+		for (i = 0; i < filenames.length; i++) {
+			filepath = data_dir + src + '/' + filenames[i];
+			readDataFile(i, filepath, latlon);
 		}
-		else {
-				//write to disk
-			var filepath = data_dir + '/' + src + '/' + filename;
-			console.log('writing filepath=' + filepath);
-			//res.send({'msg': 's3 writeting ' + filepath});
-			
-			fs.writeFile(filepath, data.Body, 'binary', function(err) {
-				if(err) {
-				console.log('write error');
-						callback();
-						//return console.log(err);
-				}
-
-				var endTime = new Date().getTime();
-				var dt = endTime - startTime;
-				console.log(filename + ', time to get file from S3: ' + dt);
-
-				callback();
-				
-			});
-
-		}
-	});
-	
-
-}
-}
-
-
-function processDataFiles(res, dataObj, filenames) {
-
-	var i, filepath;
-			for (i = 0; i < filenames.length; i++) {
-				filepath = data_dir + '/' + src + '/' + filenames[i];
-				readDataFile(i, filepath, latlon);
-			}
 		
 		output_data = output_data.sort(comparator);
 		var output_haat = formatHAAT(dataObj);
@@ -365,8 +304,10 @@ function processDataFiles(res, dataObj, filenames) {
 		//res.send(output_haat);
 		var return_data = [output_haat];
 
-        res.status(200).send(GeoJSON.parse(return_data, {Point: ['lat', 'lon'], include: ['status','statusCode','statusMessage','about',            
-        	'elevation_data_source','lat','lon', 'rcamsl', 'nradial', 'azimuth','haat_azimuth','haat_average','unit', 'elapsed_time']})); 
+        var return_json = GeoJSON.parse(return_data, {Point: ['lat', 'lon'], include: ['status','statusCode','statusMessage','about',            
+        	'elevation_data_source','lat','lon', 'rcamsl', 'nradial', 'azimuth','haat_azimuth','haat_average','unit', 'elapsed_time']}); 
+
+        callbackDataFiles(return_json);
 
         console.log('processDataFiles Done');
 
@@ -698,90 +639,38 @@ function getGlobeFileName(lat, lon) {
 	}
 }
 
-function useGlobeData(res, dataObj, filenames_globe) {
+function useGlobeData(res, dataObj, filenames_globe, callbackGlobe) {
 
 	var filenames_no = getNonExistingFiles(filenames_globe);
 	var i, filepath;
 	
-	//if (filenames_no.length > 0) {
-			//fetch data from S3
-
-		var asyncTasks = [];
-		
-		for (i = 0; i < filenames_no.length; i++) {
-		asyncTasks.push(getFileFromS3(filenames_no[i]));
-		}
-		async.parallel(asyncTasks, function() {
-			console.log("all done getting globe");
-			filenames_no = getNonExistingFiles(filenames_globe);
-			for (i = 0; i < filenames_globe.length; i++) {
-				filepath = data_dir + '/globe30/' + filenames_globe[i];
-				readDataFile(i, filepath, latlon);
-			}
-			
-		output_data = output_data.sort(comparator);
-		var output_haat = formatHAAT(dataObj);
-		
-		endTime = new Date().getTime();
-		var elapsed_time = endTime - startTime;
-		
-		if (format == 'json') {
-			output_haat['elapsed_time'] = elapsed_time + ' ms';
-		}
-			
-		console.log(output_haat);
-		
-		//res.send(output_haat);
-
-		var return_data = [output_haat];
-
-        res.status(200).send(GeoJSON.parse(return_data, {Point: ['lat', 'lon'], include: ['status','statusCode','statusMessage','about',
-            'elevation_data_source','lat','lon', 'rcamsl', 'nradial', 'azimuth','haat_azimuth','haat_average','unit', 'elapsed_time']})); 
-
-        console.log('useGlobeData Done');
-			
-		});
-			
-	//res.send({"status": "globe"});
-
-}
-
-function checkS3(filenames, src) {
-
-	var files = [];
-	for (var i = 0; i < filenames.length; i++) {
-		if (src == 'ned_1') {
-			for (var key in ned_1_files) {
-				if (ned_1_files[key].file == filenames[i]) {
-					files.push(filenames[i]);
-					break;
-				}
-			}
-		}
-		else {
-			for (var key in ned_2_files) {
-				if (ned_2_files[key].file == filenames[i]) {
-					files.push(filenames[i]);
-					break;
-				}
-			}
-		
-		}
+	for (i = 0; i < filenames_globe.length; i++) {
+		filepath = data_dir + 'globe30/' + filenames_globe[i];
+		readDataFile(i, filepath, latlon);
 	}
 	
-	return files;
+	output_data = output_data.sort(comparator);
+	var output_haat = formatHAAT(dataObj);
+	
+	endTime = new Date().getTime();
+	var elapsed_time = endTime - startTime;
+	
+	if (format == 'json') {
+		output_haat['elapsed_time'] = elapsed_time + ' ms';
+	}
+		
+	var return_data = [output_haat];
+
+	var return_json = GeoJSON.parse(return_data, {Point: ['lat', 'lon'], include: ['status','statusCode','statusMessage',
+		'elevation_data_source','lat','lon', 'rcamsl', 'nradial', 'azimuth','haat_azimuth','haat_average','unit', 'elapsed_time']}); 
+
+	console.log('useGlobeData Done');
+	callbackGlobe(return_json);			
+		
 }
 
 function prepareDataObject(dataObj){
-	dataObj['about'] = {
-							'elevation_data_source': 'ned_1, ned_2 are 1-, 2- arc second NED, globe30 is GLOBE 1km data',
-							'nradial': 'number of radials',
-							'rcamsl': 'radiation center above mean sea level',
-							'azimuth': 'an array containing the azimuth of the radials',
-							'haat_azimuth': 'an array containing the HAAT values corresponding to the radials',
-							'haat_average': 'average of the HAATs of all the radials',
-							'elapsed_time': 'time taken by the system to process this request'
-						};	
+	
 	dataObj['elevation_data_source'] = '';
 	dataObj['lat'] = '';
 	dataObj['lon'] = '';
@@ -801,8 +690,8 @@ function returnError(data, callback) {
         status: 'error',
         statusCode: '400',
         statusMessage: data.statusMessage,
-        latitude: data.latitude,
-        longitude: data.longitude
+        lat: data.lat,
+        lon: data.lon
         }];
     return callback(ret);
 }

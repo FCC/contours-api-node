@@ -392,10 +392,10 @@ app.get('/distance.json', function(req, res){
     });   
 });
 
-app.get('/entity.json', function(req, res){
+/*app.get('/entity.json', function(req, res){
     entity.getEntity(req, res);
 });
-
+*/
 
 // **********************************************************
 // error

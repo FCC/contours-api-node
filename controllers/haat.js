@@ -241,6 +241,7 @@ function getHAAT(req, res, callback) {
 		inputData['rcamsl'] = rcamsl;
 		inputData['unit'] = unit;
 		inputData['format'] = format;
+		inputData['azimuths'] = azimuths;
 		
 		if (src == 'globe30') {
 			console.log('use globe data');	
@@ -297,17 +298,17 @@ function getHAAT(req, res, callback) {
 }
 
 function processDataFiles(res, dataObj, inputData, output_data, filenames, startTime, callbackDataFiles) {
-		console.log('Inside processDataFiles with latlon= '+latlon);
+		console.log('Inside processDataFiles');
 		var i, filepath;
 		for (i = 0; i < filenames.length; i++) {
-			filepath = data_dir + src + '/' + filenames[i];
+			filepath = data_dir + inputData.src + '/' + filenames[i];
 			readDataFile(i, filepath, inputData.src, inputData.latlon, output_data);
 		}
 		
 		output_data = output_data.sort(comparator);
 		var output_haat = formatHAAT(dataObj, inputData, output_data);
 
-		console.log('output_haat='+JSON.stringify(output_haat));
+		//console.log('output_haat='+JSON.stringify(output_haat));
 		
 		var endTime = new Date().getTime();
 		var elapsed_time = endTime - startTime;
@@ -322,9 +323,8 @@ function processDataFiles(res, dataObj, inputData, output_data, filenames, start
         var return_json = GeoJSON.parse(return_data, {Point: ['lat', 'lon'], include: ['status','statusCode','statusMessage','about',            
         	'elevation_data_source','lat','lon', 'rcamsl', 'nradial', 'azimuth','haat_azimuth','haat_average','unit', 'elapsed_time']}); 
 
-        callbackDataFiles(return_json);
-
         console.log('processDataFiles Done');
+        callbackDataFiles(return_json);
 
 }
 
@@ -416,7 +416,7 @@ function readDataFile(n, filepath, src, latlon, output_data) {
 				}
 			}
 			
-			console.log('total rows=' + output_data.length);
+			console.log('readDataFile total rows=' + output_data.length);
 }
 
 		
@@ -483,7 +483,7 @@ function formatHAAT(dataObj, inputData, output_data) {
 			return content;
 		}
 		else if (inputData.format == 'json') {
-
+			
 	        dataObj.status = 'success';
 	        dataObj.statusCode = '200';        
 	        dataObj.statusMessage = 'ok';

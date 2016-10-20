@@ -2,17 +2,17 @@
     "swagger": "2.0",
     "info": {
         "version": "1.5.0",
-        "title": "FCC Distance API"
+        "title": "Distance API"
     },
     "basePath": "/api/contours",
     "tags": [{
-        "name": "Distance",
-        "description": "FCC Distance API"
+        "name": "distance",
+        "description": "get distance data"
     }],
     "paths": {
         "/distance.{format}": {
             "get": {
-                "tags": ["Distance"],
+                "tags": ["distance"],
                 "summary": "Get Distance",
                 "description": "Get Distance data based on dBu, HAAT, and curve type. Response returned in JSON format.",
                 "parameters": [{

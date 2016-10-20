@@ -2,18 +2,18 @@
     "swagger": "2.0",
     "info": {
         "version": "1.5.0",
-        "title": "FCC OPIF Contours API"
+        "title": "Entity API"
     },
     "basePath": "/api/contours",
     "tags": [{
-        "name": "OPIF contours",
-        "description": "FCC OPIF Contours API"
+        "name": "entity",
+        "description": "get service contour for TV, FM, and AM"
     }],
     "paths": {
 
         "/{serviceType}/{idType}/{idValue}.{format}": {
             "get": {
-                "tags": ["OPIF contours"],
+                "tags": ["entity"],
                 "summary": "Get Contour by Service Type",
                 "description": "Get contour based on serviceType (AM, FM, TV), idType (callsign, applicationid, fileNumber, antennaid), and idValue. Response returned in GeoJSON, JSONP, Shapefile, KML, GML, CSV.",
                 "parameters": [{

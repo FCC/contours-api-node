@@ -34,7 +34,7 @@
         getParams: function() {
             // get parameters (form fields) from Swagger JSON
             $.ajax({
-                url: 'json/api-contoursEnterprise.json',
+                url: 'json/api-coverage.json',
                 async: true,
                 type: "GET",
                 dataType: "json",

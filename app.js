@@ -16,6 +16,7 @@ var morgan = require('morgan');
 var cors = require('cors');
 var Memcached = require('memcached');
 var async = require('async');
+var helmet = require('helmet');
 
 var bodyparser = require('body-parser');
 var package_json = require('./package.json');
@@ -58,6 +59,7 @@ console.log('ElastiCache EndPoint: '+configEnv[NODE_ENV].ELASTICACHE_ENDPOINT);
 var app = express();
 
 app.use(cors());
+app.use(helmet());
 
 var memcached = new Memcached(configEnv[NODE_ENV].ELASTICACHE_ENDPOINT);
 var memcached_lifetime = Number(configEnv[NODE_ENV].ELASTICACHE_LIFETIME);

@@ -102,7 +102,7 @@ function getContour(req, res, callback) {
 	
 	// **********************************************************
 	
-	var typeName = 'contour:' + serviceType + '_contours';
+	var typeName = geo_space +':' + serviceType + '_contours';
 	var filter;
 	
 	if (idType == 'applicationid') {

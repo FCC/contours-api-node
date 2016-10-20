@@ -2,12 +2,12 @@
     "swagger": "2.0",
     "info": {
         "version": "1.5.0",
-        "title": "FCC HAAT API"
+        "title": "HAAT API"
     },
     "basePath": "/api/contours",
     "tags": [{
         "name": "HAAT",
-        "description": "FCC HAAT API"
+        "description": "get HAAT data"
     }],
     "paths": {
         "/haat.{format}": {

@@ -33,6 +33,7 @@ var request = require('request');
 var GeoJSON = require('geojson');
 var math = require('mathjs');
 
+var haat = require('./haat.js');
 var distance = require('./distance.js');
 var tvfm_curves = require('./tvfm_curves.js');
 
@@ -310,153 +311,129 @@ function getContours(req, res, callback) {
 		var root_url = req.protocol + "://" + hostname;
 		
 		//get haat
-		var url = root_url + "/" + CONTEXT_PATH + "haat.json?lat=" + lat + "&lon=" + lon + "&rcamsl=" + rcamsl + "&nradial=" + nradial + "&src=" + src + "&unit=" + unit + '&outputcache=false';
+		//var url = root_url + "/" + CONTEXT_PATH + "haat.json?lat=" + lat + "&lon=" + lon + "&rcamsl=" + rcamsl + "&nradial=" + nradial + "&src=" + src + "&unit=" + unit + '&outputcache=false';
+		var haat_url = "haat.json?lat=" + lat + "&lon=" + lon + "&rcamsl=" + rcamsl + "&nradial=" + nradial + "&src=" + src + "&unit=" + unit + '&outputcache=false';
 		
-		console.log(url);
-		
-		request(url, function (error, response, body) {
-			if(error){
-				console.log('HAAT call error:', error);
-				dataObj.statusMessage = error;
-				returnError(dataObj, function(ret){                                                       
-	                 returnJson = GeoJSON.parse(ret, {});
-	            });
-	            return callback(returnJson);
-			}
+		console.log('calling HAAT with req='+haat_url);
 
-			body = JSON.parse(body);
-			
-			if (body.features[0].properties.statusCode + '' != "200"){
-				console.log('HAAT error: ' + body.features[0].properties.statusMessage);				
-				dataObj.statusMessage = body.features[0].properties.statusMessage;
-				returnError(dataObj, function(ret){                                                       
-	                 returnJson = GeoJSON.parse(ret, {});
-	            });
-	            return callback(returnJson);
-			}
-			
-			var dist_arr = [];
-			var dist;
-			var haat;
-			var latlon;
-			var latlon_1st;
-			var coordinates = [];
-			var distance_tmp = 0;
-			var fs_or_dist = 2;
-			var flag = [];
-			var channel_use = channel;
-			if (serviceType == 'fm') {
-				channel_use = 6;
-			}
-			for (var i = 0; i < body.features[0].properties.haat_azimuth.length; i++) {
-				haat = body.features[0].properties.haat_azimuth[i];
-				if (haat > 1600) {
-					haat = 1600;
-				}
-				if (haat < 30) {
-					haat = 30;
-				}
-				//dist = distance.calTvFmDist(body.features[0].properties.haat_azimuth[i], dbu_curve, curve_type);
-				
-				dist = tvfm_curves.tvfmfs_metric(erp*full_pattern[i], haat, channel_use, field, distance_tmp, fs_or_dist, curve, flag);
-				if (isNaN(dist)) {
-					console.log('error in distance calculation');
-					dataObj.statusMessage = 'error in distance calculation';
+		var haat_req = new Object;
+		haat_req['url'] = haat_url;
+		
+		haat.getHAAT(haat_req, res, function(haat_data){
+            console.log('getHAAT data='+haat_data);
+
+			if(haat_data){
+				console.log('data returned from HAAT');
+				console.log('statusCode='+haat_data.features[0].properties.statusCode);
+
+				if (haat_data.features[0].properties.statusCode + '' != "200"){
+					console.log('HAAT error: ' + haat_data.features[0].properties.statusMessage);				
+					dataObj.statusMessage = haat_data.features[0].properties.statusMessage;
 					returnError(dataObj, function(ret){                                                       
 		                 returnJson = GeoJSON.parse(ret, {});
 		            });
-		            return callback(returnJson);				
+		            return callback(returnJson);
 				}
+
+				console.log('after status check');
 				
-				if (dist < 0) {
-					dist = 1;
+				var dist_arr = [];
+				var dist;
+				var haat;
+				var latlon;
+				var latlon_1st;
+				var coordinates = [];
+				var distance_tmp = 0;
+				var fs_or_dist = 2;
+				var flag = [];
+				var channel_use = channel;
+				if (serviceType == 'fm') {
+					channel_use = 6;
 				}
-				latlon = getLatLonFromDist(lat, lon, body.features[0].properties.azimuth[i], dist);
-				if (i == 0) {
-					latlon_1st = latlon;
+				for (var i = 0; i < haat_data.features[0].properties.haat_azimuth.length; i++) {
+					haat = haat_data.features[0].properties.haat_azimuth[i];
+					if (haat > 1600) {
+						haat = 1600;
+					}
+					if (haat < 30) {
+						haat = 30;
+					}
+					//dist = distance.calTvFmDist(haat_data.features[0].properties.haat_azimuth[i], dbu_curve, curve_type);
+					
+					dist = tvfm_curves.tvfmfs_metric(erp*full_pattern[i], haat, channel_use, field, distance_tmp, fs_or_dist, curve, flag);
+					if (isNaN(dist)) {
+						console.log('error in distance calculation');
+						dataObj.statusMessage = 'error in distance calculation';
+						returnError(dataObj, function(ret){                                                       
+			                 returnJson = GeoJSON.parse(ret, {});
+			            });
+			            return callback(returnJson);				
+					}
+					
+					if (dist < 0) {
+						dist = 1;
+					}
+					latlon = getLatLonFromDist(lat, lon, haat_data.features[0].properties.azimuth[i], dist);
+					if (i == 0) {
+						latlon_1st = latlon;
+					}
+		
+					coordinates.push([math.round(latlon[1], 10), math.round(latlon[0],10)]);
 				}
-	
-				coordinates.push([math.round(latlon[1], 10), math.round(latlon[0],10)]);
-			}
-			coordinates.push([math.round(latlon_1st[1], 10), math.round(latlon_1st[0], 10)]);
-			
-			console.log('output coordinates size='+coordinates.length);
-
-			coordinates = [[coordinates]];
-
-			endTime = new Date().getTime();			
-			
-			if(coordinates.length > 0 ){
-
-				dataObj.status = 'success';
-				dataObj.statusCode = '200';		
-				dataObj.statusMessage = 'ok';
-
-				dataObj.coordinates = coordinates;
-				dataObj.antenna_lat = lat;
-				dataObj.antenna_lon = lon;
-				dataObj.field = field;
-				dataObj.erp = erp;
-				dataObj.serviceType = serviceType;
-				dataObj.curve = curve;
-				dataObj.channel = channel;
-				dataObj.rcamsl = rcamsl;
-				dataObj.nradial = nradial;
-				dataObj.unit = unit;
-				dataObj.elevation_data_source = body.features[0].properties.elevation_data_source;
-				dataObj.elapsed_time = endTime - startTime;	
-
-				/*dataObj.crs = {"type": "EPSG",
-									"properties": {
-										"code": "4326"
-								}};*/
-
-				console.log('output dataObj='+dataObj);
-
-				var return_data = [dataObj];
+				coordinates.push([math.round(latlon_1st[1], 10), math.round(latlon_1st[0], 10)]);
 				
-				GeoJSON.defaults = {MultiPolygon: coordinates, include: ['status','statusCode','statusMessage']};
+				console.log('output coordinates size='+coordinates.length);
+
+				coordinates = [[coordinates]];
+
+				endTime = new Date().getTime();			
 				
-				var return_json = GeoJSON.parse(return_data, {MultiPolygon: 'coordinates', include: ['status','statusCode','statusMessage', 
-				'antenna_lat','antenna_lon','field','erp','serviceType','curve','channel','rcamsl','nradial','unit','elevation_data_source','elapsed_time']}); 
-				
-				callback(return_json);
-				
-				/*var output = {"type": "FeatureCollection",
-								"features": [
-									{
-										"type": "Feature",
-										"geometry": {
-										"type": "MultiPolygon",
-										"coordinates": coordinates
-										},
+				if(coordinates.length > 0 ){
+
+					dataObj.status = 'success';
+					dataObj.statusCode = '200';		
+					dataObj.statusMessage = 'ok';
+
+					dataObj.coordinates = coordinates;
+					dataObj.antenna_lat = lat;
+					dataObj.antenna_lon = lon;
+					dataObj.field = field;
+					dataObj.erp = erp;
+					dataObj.serviceType = serviceType;
+					dataObj.curve = curve;
+					dataObj.channel = channel;
+					dataObj.rcamsl = rcamsl;
+					dataObj.nradial = nradial;
+					dataObj.unit = unit;
+					dataObj.elevation_data_source = haat_data.features[0].properties.elevation_data_source;
+					dataObj.elapsed_time = endTime - startTime;	
+
+					/*dataObj.crs = {"type": "EPSG",
 										"properties": {
-											"antenna_lat": lat,
-											"antenna_lon": lon,
-											"field": field,
-											"erp": erp,
-											"serviceType": serviceType,
-											"curve": curve,
-											"channel": channel,
-											"rcamsl": rcamsl,
-											"nradial": nradial,
-											"unit": unit,
-											"elevation_data_source": body.features[0].properties.elevation_data_source,
-											"create_time": new Date()
-										}
-									}
-								
-								],
-								"crs": {
-									"type": "EPSG",
-									"properties": {
-									"code": "4326"
-									}
-								},
-							};*/
-				
+											"code": "4326"
+									}};*/
+
+					console.log('output dataObj='+dataObj);
+
+					var return_data = [dataObj];
+					
+					GeoJSON.defaults = {MultiPolygon: coordinates, include: ['status','statusCode','statusMessage']};
+					
+					var return_json = GeoJSON.parse(return_data, {MultiPolygon: 'coordinates', include: ['status','statusCode','statusMessage', 
+					'antenna_lat','antenna_lon','field','erp','serviceType','curve','channel','rcamsl','nradial','unit','elevation_data_source','elapsed_time']}); 
+					
+					callback(return_json);
+					
+				}
 			}
-			
+			else {				
+				console.log('HAAT response error:');
+				dataObj.statusMessage = 'HAAT error';
+				returnError(dataObj, function(ret){                                                       
+	                 returnJson = GeoJSON.parse(ret, {});
+	            });
+	            return callback(returnJson);				
+			}	
 
 		});
 	}

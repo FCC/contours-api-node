@@ -2,17 +2,17 @@
     "swagger": "2.0",
     "info": {
         "version": "1.5.0",
-        "title": "FCC Profile API"
+        "title": "Profile API"
     },
     "basePath": "/api/contours",
     "tags": [{
-        "name": "Profile",
-        "description": "FCC Profile API"
+        "name": "profile",
+        "description": "get profile data"
     }],
     "paths": {
         "/profile.{format}": {
             "get": {
-                "tags": ["Profile"],
+                "tags": ["profile"],
                 "summary": "Get Profile",
                 "description": "Get Profile data based on latitude, longitude, azimuth, data source and unit of measurement. Response returned in JSON format.",
                 "parameters": [{

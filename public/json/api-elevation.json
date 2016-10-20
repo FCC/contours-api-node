@@ -2,12 +2,12 @@
     "swagger": "2.0",
     "info": {
         "version": "1.5.0",
-        "title": "FCC Elevation API"
+        "title": "Elevation API"
     },
     "basePath": "/api/contours",
     "tags": [{
         "name": "elevation",
-        "description": "FCC Elevation API"
+        "description": "get elevation data"
     }],
     "paths": {
         "/elevation.{format}": {

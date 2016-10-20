@@ -373,7 +373,7 @@ function getContours(req, res, callback) {
 					if (dist < 0) {
 						dist = 1;
 					}
-					latlon = getLatLonFromDist(lat, lon, haat_data.features[0].properties.haat_azimuth[i], dist);
+					latlon = getLatLonFromDist(lat, lon, haat_data.features[0].properties.azimuth[i], dist);
 					if (i == 0) {
 						latlon_1st = latlon;
 					}

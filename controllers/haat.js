@@ -241,6 +241,7 @@ function getHAAT(req, res, callback) {
 		inputData['rcamsl'] = rcamsl;
 		inputData['unit'] = unit;
 		inputData['format'] = format;
+		inputData['azimuths'] = azimuths;
 		
 		if (src == 'globe30') {
 			console.log('use globe data');	
@@ -482,7 +483,7 @@ function formatHAAT(dataObj, inputData, output_data) {
 			return content;
 		}
 		else if (inputData.format == 'json') {
-
+			
 	        dataObj.status = 'success';
 	        dataObj.statusCode = '200';        
 	        dataObj.statusMessage = 'ok';

@@ -314,24 +314,28 @@ function getContours(req, res, callback) {
 		//var url = root_url + "/" + CONTEXT_PATH + "haat.json?lat=" + lat + "&lon=" + lon + "&rcamsl=" + rcamsl + "&nradial=" + nradial + "&src=" + src + "&unit=" + unit + '&outputcache=false';
 		var haat_url = "haat.json?lat=" + lat + "&lon=" + lon + "&rcamsl=" + rcamsl + "&nradial=" + nradial + "&src=" + src + "&unit=" + unit + '&outputcache=false';
 		
-		//console.log('calling haat:'+url);
+		console.log('calling HAAT with req='+haat_url);
 
 		var haat_req = new Object;
 		haat_req['url'] = haat_url;
 		
-		haat.getHAAT(haat_req, res, function(data){
-            console.log('getHAAT data='+data);
+		haat.getHAAT(haat_req, res, function(haat_data){
+            console.log('getHAAT data='+haat_data);
 
-			if(data){
-				
-				if (data.features[0].properties.statusCode + '' != "200"){
-					console.log('HAAT error: ' + data.features[0].properties.statusMessage);				
-					dataObj.statusMessage = data.features[0].properties.statusMessage;
+			if(haat_data){
+				console.log('data returned from HAAT');
+				console.log('statusCode='+haat_data.features[0].properties.statusCode);
+
+				if (haat_data.features[0].properties.statusCode + '' != "200"){
+					console.log('HAAT error: ' + haat_data.features[0].properties.statusMessage);				
+					dataObj.statusMessage = haat_data.features[0].properties.statusMessage;
 					returnError(dataObj, function(ret){                                                       
 		                 returnJson = GeoJSON.parse(ret, {});
 		            });
 		            return callback(returnJson);
 				}
+
+				console.log('after status check');
 				
 				var dist_arr = [];
 				var dist;
@@ -346,15 +350,15 @@ function getContours(req, res, callback) {
 				if (serviceType == 'fm') {
 					channel_use = 6;
 				}
-				for (var i = 0; i < data.features[0].properties.haat_azimuth.length; i++) {
-					haat = data.features[0].properties.haat_azimuth[i];
+				for (var i = 0; i < haat_data.features[0].properties.haat_azimuth.length; i++) {
+					haat = haat_data.features[0].properties.haat_azimuth[i];
 					if (haat > 1600) {
 						haat = 1600;
 					}
 					if (haat < 30) {
 						haat = 30;
 					}
-					//dist = distance.calTvFmDist(data.features[0].properties.haat_azimuth[i], dbu_curve, curve_type);
+					//dist = distance.calTvFmDist(haat_data.features[0].properties.haat_azimuth[i], dbu_curve, curve_type);
 					
 					dist = tvfm_curves.tvfmfs_metric(erp*full_pattern[i], haat, channel_use, field, distance_tmp, fs_or_dist, curve, flag);
 					if (isNaN(dist)) {
@@ -369,7 +373,7 @@ function getContours(req, res, callback) {
 					if (dist < 0) {
 						dist = 1;
 					}
-					latlon = getLatLonFromDist(lat, lon, data.features[0].properties.azimuth[i], dist);
+					latlon = getLatLonFromDist(lat, lon, haat_data.features[0].properties.haat_azimuth[i], dist);
 					if (i == 0) {
 						latlon_1st = latlon;
 					}
@@ -401,7 +405,7 @@ function getContours(req, res, callback) {
 					dataObj.rcamsl = rcamsl;
 					dataObj.nradial = nradial;
 					dataObj.unit = unit;
-					dataObj.elevation_data_source = data.features[0].properties.elevation_data_source;
+					dataObj.elevation_data_source = haat_data.features[0].properties.elevation_data_source;
 					dataObj.elapsed_time = endTime - startTime;	
 
 					/*dataObj.crs = {"type": "EPSG",

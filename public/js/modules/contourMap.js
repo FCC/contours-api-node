@@ -5,6 +5,7 @@
     var Map = require('./map.js');
     var APIResponse = require('./apiResponse.js');
 
+    // used to create Coverage and Entity maps
     var ContourMap = {
         getContour: function() {
             var contourAPI = '';
@@ -46,12 +47,16 @@
                     if (data.features.length > 0) {
                         $('.alert').hide('fast');
                         ContourMap.createContour(data);
-                        APIResponse.display(data);
                     } else {
                         APIForm.showError();
                     }
+
+                    APIResponse.display(data);
                 },
-                error: APIForm.showError
+                error: function(data) {
+                    APIForm.showError();
+                    APIResponse.display(data);
+                }
             });
         },
         createContour: function(data) {

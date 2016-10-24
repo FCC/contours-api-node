@@ -61,7 +61,7 @@
 
             // update selected ID Type label text
             $('#ent-idType').on('change', function() {
-                $('#idValue').val('');
+                $('#ent-idValue').val('');
                 $('label[for="ent-idValue"]').text(idTypes[this.value]);
             });
 

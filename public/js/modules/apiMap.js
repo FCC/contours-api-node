@@ -5,6 +5,7 @@
     var Map = require('./map.js');
     var APIResponse = require('./apiResponse.js');
 
+    // used to create Elevation, HAAT, Profile maps
     var APIMap = {
 
         getData: function(apiURL, apiSuccess) {
@@ -12,11 +13,12 @@
             var ajaxSuccess = function(data) {
                 if (data.features[0].properties.status === 'success') {
                     $('.alert').hide('fast');
-                    APIMap.createMarker(data);
-                    APIResponse.display(data);
+                    APIMap.createMarker(data);                    
                 } else {
-                    APIForm.showError();
+                    APIForm.showError();                    
                 }
+
+                APIResponse.display(data);
             };
 
             APIResponse.url = apiURL;
@@ -27,7 +29,10 @@
                 type: 'GET',
                 dataType: 'json',
                 success: apiSuccess ? apiSuccess : ajaxSuccess,
-                error: APIForm.showError
+                error: function(data) {
+                    APIForm.showError();
+                    APIResponse.display(data);
+                }
             });
         },
 

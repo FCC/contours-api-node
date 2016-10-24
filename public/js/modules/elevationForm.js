@@ -6,6 +6,20 @@
     var ElevationForm = {
         bindEvents: function() {
             $('#form-params').on('click.elevationAPI', '[data-api="elevation"]', ElevationMap.getData);
+
+            // create custom field ID and for attribute values
+            $('#frm-elevation')
+                .find('label').each(function(index, el) {
+                    var attrVal = $(el).attr('for');
+
+                    $(el).attr('for', 'elev-' + attrVal);
+                })
+                .end()
+                .find('[id]').each(function(index, el) {
+                    var idVal = $(el).attr('id');
+
+                    $(el).attr('id', 'elev-' + idVal);
+                });
         },
         getParams: function() {
         	// get parameters (form fields) from Swagger JSON

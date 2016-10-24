@@ -78,7 +78,7 @@
                         <fieldset>
                             <legend>Select API</legend>
                             <div class="form-group">
-                                <label for="apiType" required>API</label>
+                                <label for="apiType" class="required">API</label>
                                 <select id="apiType" class="form-control" name="apiType">
                                     <option value="contoursEnterprise">Coverage</option>
                                     <option value="contoursOPIF">Entity</option>
@@ -114,7 +114,7 @@
                                             <div class="form-group">
                                         {{/if}}
                                         {{#if required}}
-                                            <label for="{{name}}" required>{{label}}</label>
+                                            <label for="{{name}}" class="required">{{label}}</label>
                                         {{else}}
                                             <label for="{{name}}">{{label}}</label>
                                         {{/if}}

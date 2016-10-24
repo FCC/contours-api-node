@@ -121,16 +121,7 @@ describe('TV Service', function() {
                 request(server)
                     .get('/tv/callsign/errr-tv.json')
                     .expect('Content-Type', /json/)
-                    .expect(200)
-                    .end(function(err, res) {
-                        if (err) {
-                            throw err;
-                        }
-
-                        res.body.totalFeatures.should.equal(0);
-                        res.body.features.length.should.equal(0);
-                        done();
-                    });
+                    .expect(500, done);
             });
 
             it('should not return contour data for invalid facilityid value', function(done) {
@@ -138,16 +129,7 @@ describe('TV Service', function() {
                 request(server)
                     .get('/tv/facilityid/9.json')
                     .expect('Content-Type', /json/)
-                    .expect(200)
-                    .end(function(err, res) {
-                        if (err) {
-                            throw err;
-                        }
-
-                        res.body.totalFeatures.should.equal(0);
-                        res.body.features.length.should.equal(0);
-                        done();
-                    });
+                    .expect(500, done);
             });
 
             it('should not return contour data for invalid filenumber value', function(done) {
@@ -155,16 +137,7 @@ describe('TV Service', function() {
                 request(server)
                     .get('/tv/filenumber/9.json')
                     .expect('Content-Type', /json/)
-                    .expect(200)
-                    .end(function(err, res) {
-                        if (err) {
-                            throw err;
-                        }
-
-                        res.body.totalFeatures.should.equal(0);
-                        res.body.features.length.should.equal(0);
-                        done();
-                    });
+                    .expect(500, done);                    
             });
 
             it('should not return contour data for invalid applicationid value', function(done) {
@@ -172,16 +145,7 @@ describe('TV Service', function() {
                 request(server)
                     .get('/tv/applicationid/9.json')
                     .expect('Content-Type', /json/)
-                    .expect(200)
-                    .end(function(err, res) {
-                        if (err) {
-                            throw err;
-                        }
-
-                        res.body.totalFeatures.should.equal(0);
-                        res.body.features.length.should.equal(0);
-                        done();
-                    });
+                    .expect(500, done);
             });
         });
 

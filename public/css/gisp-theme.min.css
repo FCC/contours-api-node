@@ -2173,9 +2173,6 @@ label {
 textarea {
   resize: none;
 }
-.form-group {
-  margin-bottom: 8px;
-}
 .form-group-heading {
   border-bottom: 1px solid #eee;
   margin-top: 27px;

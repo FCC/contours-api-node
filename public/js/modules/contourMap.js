@@ -18,7 +18,12 @@
                     apiURL.push(this.value);
                 });
 
-                contourAPI = apiURL.slice(0, 3).join('/') + '.json';
+                contourAPI = apiURL.slice(0, 3).join('/') + '.json';    
+
+                if ($('#ent-serviceType').val() === 'am') {
+                    contourAPI += '?stationClass=' + apiURL[3] + '&timePeriod=' + apiURL[4];    
+                }                
+
             } else {
                 contourAPI = './coverage.json?';
                 contourAPI += $('.fields-contoursEnterprise').find('input, select').serialize();

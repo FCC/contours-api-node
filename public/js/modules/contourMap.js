@@ -54,7 +54,7 @@
                     APIResponse.display(data);
                 },
                 error: function(data) {
-                    APIForm.showError();
+                    APIForm.showError(data);
                     APIResponse.display(data);
                 }
             });

@@ -70,8 +70,8 @@ function getProfile(req, res, callback) {
 		}
 		
 		if (lat == undefined) {
-			console.log('missing lat');
-			dataObj.statusMessage = 'missing lat';
+			console.log('Missing lat');
+			dataObj.statusMessage = 'Missing lat.';
 			returnError(dataObj, function(ret){                                         
                  returnJson = GeoJSON.parse(ret, {});
             });
@@ -79,8 +79,8 @@ function getProfile(req, res, callback) {
 		}
 		
 		if (lon == undefined) {
-			console.log('missing lon');
-			dataObj.statusMessage = 'missing lon';
+			console.log('Missing lon');
+			dataObj.statusMessage = 'Missing lon.';
 			returnError(dataObj, function(ret){
                  returnJson = GeoJSON.parse(ret, {});
             });
@@ -88,8 +88,8 @@ function getProfile(req, res, callback) {
 		}
 		
 		if (azimuth == undefined) {
-			console.log('missing azimuth');
-			dataObj.statusMessage = 'missing azimuth';
+			console.log('Missing azimuth');
+			dataObj.statusMessage = 'Missing azimuth.';
 			returnError(dataObj, function(ret){
                  returnJson = GeoJSON.parse(ret, {});
             });
@@ -97,8 +97,8 @@ function getProfile(req, res, callback) {
 		}
 		
 		if (start == undefined) {
-			console.log('missing start');
-			dataObj.statusMessage = 'missing start';
+			console.log('Missing start');
+			dataObj.statusMessage = 'Missing start.';
 			returnError(dataObj, function(ret){
                  returnJson = GeoJSON.parse(ret, {});
             });
@@ -106,16 +106,16 @@ function getProfile(req, res, callback) {
 		}
 		
 		if (end == undefined) {
-			console.log('missing end');
-			dataObj.statusMessage = 'missing end';
+			console.log('Missing end');
+			dataObj.statusMessage = 'Missing end.';
 			returnError(dataObj, function(ret){
                  returnJson = GeoJSON.parse(ret, {});
             });
             return callback(returnJson);
 		}
 		if (num_points == undefined) {
-			console.log('missing num_points');
-			dataObj.statusMessage = 'missing num_points';
+			console.log('Missing num_points');
+			dataObj.statusMessage = 'Missing num_points.';
 			returnError(dataObj, function(ret){
                  returnJson = GeoJSON.parse(ret, {});
             });
@@ -124,7 +124,7 @@ function getProfile(req, res, callback) {
 		
 		if (src && src != 'ned_1' && src != 'globe30') {
 			console.log('invalid src - must be ned_1 or globe30');
-			dataObj.statusMessage = 'invalid src - must be ned_1 or globe30';
+			dataObj.statusMessage = 'Invalid src - must be ned_1 or globe30.';
 			returnError(dataObj, function(ret){
                  returnJson = GeoJSON.parse(ret, {});
             });
@@ -134,7 +134,7 @@ function getProfile(req, res, callback) {
 		var unit_list = ['m', 'mi', 'ft'];
 		if (unit_list.indexOf(unit) < 0) {
 			console.log('invalid unit - must be m, ft, or mi');
-			dataObj.statusMessage = 'invalid unit - must be m, ft, or mi';
+			dataObj.statusMessage = 'Invalid unit - must be m, ft, or mi.';
 			returnError(dataObj, function(ret){
                  returnJson = GeoJSON.parse(ret, {});
             });
@@ -142,7 +142,7 @@ function getProfile(req, res, callback) {
 		}
 		
 		if ( !lat.match(/^-?\d+\.?\d*$/)) {
-			dataObj.statusMessage = 'invalid lat value';
+			dataObj.statusMessage = 'Invalid lat value.';
 			returnError(dataObj, function(ret){
                  returnJson = GeoJSON.parse(ret, {});
             });
@@ -150,7 +150,7 @@ function getProfile(req, res, callback) {
 		}
 		
 		if ( !lon.match(/^-?\d+\.?\d*$/)) {
-			dataObj.statusMessage = 'invalid lon value';
+			dataObj.statusMessage = 'Invalid lon value.';
 			returnError(dataObj, function(ret){
                  returnJson = GeoJSON.parse(ret, {});
             });
@@ -158,7 +158,7 @@ function getProfile(req, res, callback) {
 		}
 		
 		if ( !azimuth.match(/^\d+\.?\d*$/)) {
-			dataObj.statusMessage = 'invalid azimuth value';
+			dataObj.statusMessage = 'Invalid azimuth value.';
 			returnError(dataObj, function(ret){
                  returnJson = GeoJSON.parse(ret, {});
             });
@@ -166,7 +166,7 @@ function getProfile(req, res, callback) {
 		}
 		
 		if ( !start.match(/^\d+\.?\d*$/)) {
-			dataObj.statusMessage = 'invalid start value';
+			dataObj.statusMessage = 'Invalid start value.';
 			returnError(dataObj, function(ret){
                  returnJson = GeoJSON.parse(ret, {});
             });
@@ -174,7 +174,7 @@ function getProfile(req, res, callback) {
 		}
 		
 		if ( !end.match(/^\d+\.?\d*$/)) {
-			dataObj.statusMessage = 'invalid end value';
+			dataObj.statusMessage = 'Invalid end value.';
 			returnError(dataObj, function(ret){
                  returnJson = GeoJSON.parse(ret, {});
             });
@@ -182,7 +182,7 @@ function getProfile(req, res, callback) {
 		}	
 		
 		if ( !num_points.match(/^\d+$/)) {
-			dataObj.statusMessage = 'invalid num_points value';
+			dataObj.statusMessage = 'Invalid num_points value.';
 			returnError(dataObj, function(ret){
                  returnJson = GeoJSON.parse(ret, {});
             });
@@ -190,7 +190,7 @@ function getProfile(req, res, callback) {
 		}
 		
 		if ( parseFloat(lat) > 90 || parseFloat(lat) < -90 ) {
-			dataObj.statusMessage = 'lat value out of range';
+			dataObj.statusMessage = 'lat value out of range.';
 			returnError(dataObj, function(ret){
                  returnJson = GeoJSON.parse(ret, {});
             });
@@ -206,7 +206,7 @@ function getProfile(req, res, callback) {
 		}
 		
 		if ( parseFloat(azimuth) < 0 || parseFloat(azimuth) > 360 ) {
-			dataObj.statusMessage = 'azimuth value out of range';
+			dataObj.statusMessage = 'Azimuth value out of range.';
 			returnError(dataObj, function(ret){
                  returnJson = GeoJSON.parse(ret, {});
             });
@@ -214,7 +214,7 @@ function getProfile(req, res, callback) {
 		}
 		
 		if ( parseFloat(end) <= parseFloat(start)) {
-			dataObj.statusMessage = 'end is not larger than start';
+			dataObj.statusMessage = 'End is not larger than start.';
 			returnError(dataObj, function(ret){
                  returnJson = GeoJSON.parse(ret, {});
             });
@@ -222,7 +222,7 @@ function getProfile(req, res, callback) {
 		}
 		
 		if ( parseFloat(num_points) < 2) {
-			dataObj.statusMessage = 'num_points is smaller than 2';
+			dataObj.statusMessage = 'num_points is smaller than 2.';
 			returnError(dataObj, function(ret){
                  returnJson = GeoJSON.parse(ret, {});
             });

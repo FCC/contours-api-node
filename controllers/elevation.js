@@ -84,7 +84,7 @@ function getElevation(req, res, callback) {
 		
 		if(!datatype || !unit || !latitude || !longitude){
 			
-        	dataObj.statusMessage = 'invalid parameters';
+        	dataObj.statusMessage = 'Invalid parameters.';
 			returnError(dataObj, function(ret){
                  //res.status(400).send(GeoJSON.parse(ret, {}));                                         
                  returnJson = GeoJSON.parse(ret, {});  
@@ -95,7 +95,7 @@ function getElevation(req, res, callback) {
 
 		if ( !latitude.match(/^-?\d+\.?\d*$/) || !longitude.match(/^-?\d+\.?\d*$/) ) {
 			
-        	dataObj.statusMessage = 'invalid input - latitude/longitude';
+        	dataObj.statusMessage = 'Invalid latitude or longitude value.';
 			returnError(dataObj, function(ret){
                  returnJson = GeoJSON.parse(ret, {});
             });
@@ -107,7 +107,7 @@ function getElevation(req, res, callback) {
 		
 		if (lat <= -90 || lat > 90 || lon < -180 || lon > 180) {
 			
-        	dataObj.statusMessage = 'invalid input - latitude/longitude';
+        	dataObj.statusMessage = 'Invalid latitude or longitude value.';
 			returnError(dataObj, function(ret){
                  returnJson = GeoJSON.parse(ret, {});
             });
@@ -116,7 +116,7 @@ function getElevation(req, res, callback) {
 
 		if (datatype != 'ned' && datatype != 'ned_1' && datatype != 'ned_2' && datatype != 'ned_13' && datatype != 'globe30' && datatype != 'usgs') {
 			
-			dataObj.statusMessage = 'invalid input - source';        	
+			dataObj.statusMessage = 'Invalid source value.';        	
 			returnError(dataObj, function(ret){
                  returnJson = GeoJSON.parse(ret, {});
             });
@@ -125,7 +125,7 @@ function getElevation(req, res, callback) {
 
 		if (unit != 'm' && unit != 'mi' && unit != 'ft') {
 			
-			dataObj.statusMessage = 'invalid input - unit';
+			dataObj.statusMessage = 'Invalid unit value.';
         	returnError(dataObj, function(ret){
                  returnJson = GeoJSON.parse(ret, {});
             });
@@ -160,7 +160,7 @@ function getElevation(req, res, callback) {
 			utility.getElvFileInfo(datatype, coordName, function(err, result){
 				if(err){
 					console.error('getElvFileInfo call error');
-					dataObj.statusMessage = 'elevation data not found';
+					dataObj.statusMessage = 'Elevation data not found.';
 					returnError(dataObj, function(ret){
 		                 returnJson = GeoJSON.parse(ret, {});
 		            });
@@ -254,7 +254,7 @@ function getElevation(req, res, callback) {
 			else { // file not available in file system
 				console.log(datatype +' file not exist in file system');
 				
-				dataObj.statusMessage = 'elevation data not found';	
+				dataObj.statusMessage = 'Elevation data not found.';	
 				returnError(dataObj, function(ret){
 		             returnJson = GeoJSON.parse(ret, {});
 		        });
@@ -267,7 +267,7 @@ function getElevation(req, res, callback) {
 	}
 	catch(err) {
 		console.error('elevation err='+err);
-		dataObj.statusMessage = 'error while processing elevation data';
+		dataObj.statusMessage = 'Error while processing elevation data.';
 		returnError(dataObj, function(ret){
              returnJson = GeoJSON.parse(ret, {});
         });

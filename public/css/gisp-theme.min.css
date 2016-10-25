@@ -5903,5 +5903,8 @@ legend {
     width: 350px;
   }
 }
+#txt-error .icon-remove {
+  margin-right: 5px;
+}
 
 /*# sourceMappingURL=gisp-theme.min.css.map */

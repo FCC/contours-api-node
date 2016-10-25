@@ -84,8 +84,8 @@ function getContours(req, res, callback) {
 		GeoJSON.defaults = {Point: ['lat', 'lon'], include: ['status','statusCode','statusMessage']};
 		
 		if (serviceType == undefined) {
-			console.log('missing serviceType');
-			dataObj.statusMessage = 'missing serviceType';
+			console.log('Missing serviceType');
+			dataObj.statusMessage = 'Missing serviceType.';
 			returnError(dataObj, function(ret){
                  //res.status(400).send(GeoJSON.parse(ret, {}));                                         
                  returnJson = GeoJSON.parse(ret, {});
@@ -98,7 +98,7 @@ function getContours(req, res, callback) {
 		var tv_fm_list = ['tv', 'fm'];
 		if (tv_fm_list.indexOf(serviceType) < 0) {
 			console.log('invalid serviceType value');			
-			dataObj.statusMessage = 'invalid serviceType value';
+			dataObj.statusMessage = 'Invalid serviceType value.';
 			returnError(dataObj, function(ret){                                                       
                  returnJson = GeoJSON.parse(ret, {});
             });
@@ -113,7 +113,7 @@ function getContours(req, res, callback) {
 		}
 		
 		if (lat == undefined) {			
-			dataObj.statusMessage = 'missing lat';
+			dataObj.statusMessage = 'Missing lat parameter.';
 			returnError(dataObj, function(ret){                                                       
                  returnJson = GeoJSON.parse(ret, {});
             });
@@ -121,7 +121,7 @@ function getContours(req, res, callback) {
 		}
 		
 		if (lon == undefined) {
-			dataObj.statusMessage = 'missing lon';
+			dataObj.statusMessage = 'Missing lon parameter.';
 			returnError(dataObj, function(ret){                                                       
                  returnJson = GeoJSON.parse(ret, {});
             });
@@ -129,7 +129,7 @@ function getContours(req, res, callback) {
 		}
 		
 		if (nradial == undefined) {
-			dataObj.statusMessage = 'missing nradial';
+			dataObj.statusMessage = 'Missing nradial parameter.';
 			returnError(dataObj, function(ret){                                                       
                  returnJson = GeoJSON.parse(ret, {});
             });
@@ -137,7 +137,7 @@ function getContours(req, res, callback) {
 		}
 		
 		if (rcamsl == undefined) {
-			dataObj.statusMessage = 'missing rcamsl';
+			dataObj.statusMessage = 'Missing rcamsl parameter.';
 			returnError(dataObj, function(ret){                                                       
                  returnJson = GeoJSON.parse(ret, {});
             });
@@ -145,7 +145,7 @@ function getContours(req, res, callback) {
 		}
 		
 		if (field == undefined) {
-			dataObj.statusMessage = 'missing field';
+			dataObj.statusMessage = 'Missing field parameter.';
 			returnError(dataObj, function(ret){                                                       
                  returnJson = GeoJSON.parse(ret, {});
             });
@@ -153,7 +153,7 @@ function getContours(req, res, callback) {
 		}
 		
 		if (erp == undefined) {
-			dataObj.statusMessage = 'missing erp';
+			dataObj.statusMessage = 'Missing erp parameter.';
 			returnError(dataObj, function(ret){                                                       
                  returnJson = GeoJSON.parse(ret, {});
             });
@@ -161,7 +161,7 @@ function getContours(req, res, callback) {
 		}
 		
 		if (serviceType == 'tv' && (channel == undefined || channel == '')) {
-			dataObj.statusMessage = 'missing channel';
+			dataObj.statusMessage = 'Missing channel parameter.';
 			returnError(dataObj, function(ret){                                                       
                  returnJson = GeoJSON.parse(ret, {});
             });
@@ -169,7 +169,7 @@ function getContours(req, res, callback) {
 		}
 		
 		if (curve == undefined) {
-			dataObj.statusMessage = 'missing curve';
+			dataObj.statusMessage = 'Missing curve parameter.';
 			returnError(dataObj, function(ret){                                                       
                  returnJson = GeoJSON.parse(ret, {});
             });
@@ -177,7 +177,7 @@ function getContours(req, res, callback) {
 		}
 		
 		if ( !lat.match(/^-?\d+\.?\d*$/)) {
-			dataObj.statusMessage = 'invalid lat value';
+			dataObj.statusMessage = 'Invalid lat value.';
 			returnError(dataObj, function(ret){                                                       
                  returnJson = GeoJSON.parse(ret, {});
             });
@@ -185,7 +185,7 @@ function getContours(req, res, callback) {
 		}
 		
 		if ( !lon.match(/^-?\d+\.?\d*$/)) {
-			dataObj.statusMessage = 'invalid lon value';
+			dataObj.statusMessage = 'Invalid lon value.';
 			returnError(dataObj, function(ret){                                                       
                  returnJson = GeoJSON.parse(ret, {});
             });
@@ -193,7 +193,7 @@ function getContours(req, res, callback) {
 		}
 		
 		if ( !field.match(/^-?\d+\.?\d*$/)) {
-			dataObj.statusMessage = 'invalid dbu value';
+			dataObj.statusMessage = 'Invalid dbu value.';
 			returnError(dataObj, function(ret){                                                       
                  returnJson = GeoJSON.parse(ret, {});
             });
@@ -201,7 +201,7 @@ function getContours(req, res, callback) {
 		}
 			
 		if ( !rcamsl.match(/^\d+\.?\d*$/)) {
-			dataObj.statusMessage = 'invalid rcamsl value';
+			dataObj.statusMessage = 'Invalid rcamsl value.';
 			returnError(dataObj, function(ret){                                                       
                  returnJson = GeoJSON.parse(ret, {});
             });
@@ -209,7 +209,7 @@ function getContours(req, res, callback) {
 		}	
 			
 		if ( !nradial.match(/^\d+$/)) {
-			dataObj.statusMessage = 'invalid nradial value';
+			dataObj.statusMessage = 'Invalid nradial value.';
 			returnError(dataObj, function(ret){                                                       
                  returnJson = GeoJSON.parse(ret, {});
             });
@@ -217,7 +217,7 @@ function getContours(req, res, callback) {
 		}
 		
 		if ( !erp.match(/^\d+\.?\d*$/)) {
-			dataObj.statusMessage = 'invalid erp value';
+			dataObj.statusMessage = 'Invalid erp value.';
 			returnError(dataObj, function(ret){                                                       
                  returnJson = GeoJSON.parse(ret, {});
             });
@@ -225,7 +225,7 @@ function getContours(req, res, callback) {
 		}
 		
 		if (channel && !channel.match(/^\d+$/)) {
-			dataObj.statusMessage = 'invalid channel value';
+			dataObj.statusMessage = 'Invalid channel value.';
 			returnError(dataObj, function(ret){                                                       
                  returnJson = GeoJSON.parse(ret, {});
             });
@@ -233,7 +233,7 @@ function getContours(req, res, callback) {
 		}
 		
 		if ( !curve.match(/^\d$/)) {
-			dataObj.statusMessage = 'invalid curve value';
+			dataObj.statusMessage = 'Invalid curve value.';
 			returnError(dataObj, function(ret){                                                       
                  returnJson = GeoJSON.parse(ret, {});
             });
@@ -242,7 +242,7 @@ function getContours(req, res, callback) {
 		
 		
 		if ( parseFloat(lat) > 90 || parseFloat(lat) < -90 ) {
-			dataObj.statusMessage = 'lat value out of range';
+			dataObj.statusMessage = 'lat value out of range.';
 			returnError(dataObj, function(ret){                                                       
                  returnJson = GeoJSON.parse(ret, {});
             });
@@ -250,7 +250,7 @@ function getContours(req, res, callback) {
 		}
 		
 		if ( parseFloat(lon) > 180 || parseFloat(lon) < -180 ) {
-			dataObj.statusMessage = 'lon value out of range';
+			dataObj.statusMessage = 'lon value out of range.';
 			returnError(dataObj, function(ret){                                                       
                  returnJson = GeoJSON.parse(ret, {});
             });
@@ -258,7 +258,7 @@ function getContours(req, res, callback) {
 		}
 		
 		if ( parseFloat(nradial) <3 || parseFloat(nradial) > 360 ) {
-			dataObj.statusMessage = 'nradial value out of range [3, 360]';
+			dataObj.statusMessage = 'nradial value out of range [3, 360].';
 			returnError(dataObj, function(ret){                                                       
                  returnJson = GeoJSON.parse(ret, {});
             });
@@ -266,7 +266,7 @@ function getContours(req, res, callback) {
 		}
 				
 		if ( parseFloat(curve) < 0 || parseFloat(curve) > 2) {
-			dataObj.statusMessage = 'curve value out of range [0, 2]';
+			dataObj.statusMessage = 'Curve value out of range [0, 2].';
 			returnError(dataObj, function(ret){                                                       
                  returnJson = GeoJSON.parse(ret, {});
             });
@@ -274,7 +274,7 @@ function getContours(req, res, callback) {
 		}
 		
 		if (getNumDecimal(lat) > 10) {
-			dataObj.statusMessage = 'number of decimal places for lat is larger than 10';
+			dataObj.statusMessage = 'Number of decimal places for lat is larger than 10.';
 			returnError(dataObj, function(ret){                                                       
                  returnJson = GeoJSON.parse(ret, {});
             });
@@ -282,7 +282,7 @@ function getContours(req, res, callback) {
 		}
 		
 		if (getNumDecimal(lon) > 10) {
-			dataObj.statusMessage = 'number of decimal places for lon is larger than 10';
+			dataObj.statusMessage = 'Number of decimal places for lon is larger than 10.';
 			returnError(dataObj, function(ret){                                                       
                  returnJson = GeoJSON.parse(ret, {});
             });
@@ -363,7 +363,7 @@ function getContours(req, res, callback) {
 					dist = tvfm_curves.tvfmfs_metric(erp*full_pattern[i], haat, channel_use, field, distance_tmp, fs_or_dist, curve, flag);
 					if (isNaN(dist)) {
 						console.log('error in distance calculation');
-						dataObj.statusMessage = 'error in distance calculation';
+						dataObj.statusMessage = 'Error in distance calculation.';
 						returnError(dataObj, function(ret){                                                       
 			                 returnJson = GeoJSON.parse(ret, {});
 			            });
@@ -428,7 +428,7 @@ function getContours(req, res, callback) {
 			}
 			else {				
 				console.log('HAAT response error:');
-				dataObj.statusMessage = 'HAAT error';
+				dataObj.statusMessage = 'HAAT calculation error.';
 				returnError(dataObj, function(ret){                                                       
 	                 returnJson = GeoJSON.parse(ret, {});
 	            });
@@ -439,7 +439,7 @@ function getContours(req, res, callback) {
 	}
 	catch(err) {
 		console.log('catch err='+err);
-		dataObj.statusMessage = 'contours error occurred';
+		dataObj.statusMessage = 'Contours error occurred.';
 		returnError(dataObj, function(ret){                                                       
              returnJson = GeoJSON.parse(ret, {});
         });

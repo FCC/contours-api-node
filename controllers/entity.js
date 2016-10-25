@@ -87,7 +87,7 @@ function getEntity(req, res) {
 		res.status(400).send({
 			'status': 'error',
 			'statusCode':'400',
-			'statusMessage': 'invalid serviceType value - must be tv or fm'
+			'statusMessage': 'Invalid serviceType value - must be tv or fm.'
 		});
 		return;
 	}
@@ -98,7 +98,7 @@ function getEntity(req, res) {
 		res.status(400).send({
 			'status': 'error',
 			'statusCode':'400',
-			'statusMessage': 'both callsign and facilityId provided'
+			'statusMessage': 'Both callsign and facilityId provided.'
 		});
 		return;
 	}
@@ -108,7 +108,7 @@ function getEntity(req, res) {
 		res.status(400).send({
 			'status': 'error',
 			'statusCode':'400',
-			'statusMessage': 'callsign/facilityId not provided'
+			'statusMessage': 'callsign and facilityId not provided.'
 		});
 		return;
 	}
@@ -118,7 +118,7 @@ function getEntity(req, res) {
 		res.status(400).send({
 			'status': 'error',
 			'statusCode':'400',
-			'statusMessage': 'invalid facilityId value'
+			'statusMessage': 'Invalid facilityId value.'
 		});
 		return;
 	
@@ -129,7 +129,7 @@ function getEntity(req, res) {
 		res.status(400).send({
 			'status': 'error',
 			'statusCode':'400',
-			'statusMessage': 'invalid applicationId value'
+			'statusMessage': 'Invalid applicationId value'
 		});
 		return;
 	}
@@ -139,7 +139,7 @@ function getEntity(req, res) {
 		res.status(400).send({
 			'status': 'error',
 			'statusCode':'400',
-			'statusMessage': 'invalid src value'
+			'statusMessage': 'Invalid src value.'
 		});
 		return;
 	}
@@ -149,7 +149,7 @@ function getEntity(req, res) {
 		res.status(400).send({
 		'status': 'error',
 		'statusCode':'400',
-		'statusMessage': 'missing nradial'
+		'statusMessage': 'Missing nradial parameter.'
 		});
 		return;
 	}
@@ -159,7 +159,7 @@ function getEntity(req, res) {
 		res.status(400).send({
 		'status': 'error',
 		'statusCode':'400',
-		'statusMessage': 'invalid nradial value'
+		'statusMessage': 'Invalid nradial value.'
 		});
 		return;
 	}
@@ -169,7 +169,7 @@ function getEntity(req, res) {
 		res.status(400).send({
 		'status': 'error',
 		'statusCode':'400',
-		'statusMessage': 'nradial value out of range [3, 360]'
+		'statusMessage': 'nradial value out of range [3, 360].'
 		});
 		return;		
 	}
@@ -213,7 +213,7 @@ function getEntity(req, res) {
 				.json({
 					"status": "error", 
 					"statusCode": "400", 
-					"statusMessage": "no valid record found",
+					"statusMessage": "A valid record could not be found.",
 				});
 				return;
 			}
@@ -221,12 +221,12 @@ function getEntity(req, res) {
 			var recordData1 = getRecord(serviceType, data);
 			
 			if (recordData1.length == 0) {
-				console.log('no valid licensed record found');
+				console.log('A valid licensed record could not be found.');
 				res.status(400)
 				.json({
 					"status": "error", 
 					"statusCode": "400", 
-					"statusMessage": "no valid licensed record found",
+					"statusMessage": "A valid licensed record could not be found.",
 				});
 				return;
 			}
@@ -248,7 +248,7 @@ function getEntity(req, res) {
 				.json({
 					"status": "error", 
 					"statusCode": "400", 
-					"statusMessage": "record lat/lon not available"
+					"statusMessage": "Record lat/lon not available."
 				});
 				return;
 			}
@@ -259,18 +259,18 @@ function getEntity(req, res) {
 				.json({
 					"status": "error", 
 					"statusCode": "400", 
-					"statusMessage": "rcamsl not available"
+					"statusMessage": "RCAMSL not available."
 				});
 				return;
 			}
 			
 			if (recordData.effective_erp == undefined && recordData.horiz_erp == undefined && recordData.vert_erp == undefined) {
-				console.log('erp not available');
+				console.log('ERP not available');
 				res.status(400)
 				.json({
 					"status": "error", 
 					"statusCode": "400", 
-					"statusMessage": "erp not available"
+					"statusMessage": "ERP not available."
 				});
 				return;
 			}
@@ -281,7 +281,7 @@ function getEntity(req, res) {
 				.json({
 					"status": "error", 
 					"statusCode": "400", 
-					"statusMessage": "channel not available"
+					"statusMessage": "Channel not available."
 				});
 				return;
 			}
@@ -292,7 +292,7 @@ function getEntity(req, res) {
 				.json({
 					"status": "error", 
 					"statusCode": "400", 
-					"statusMessage": "station class not available"
+					"statusMessage": "Station class not available."
 				});
 				return;
 			}
@@ -303,7 +303,7 @@ function getEntity(req, res) {
 				.json({
 					"status": "error", 
 					"statusCode": "400", 
-					"statusMessage": "antenna id not available"
+					"statusMessage": "Antenna id not available."
 				});
 				return;
 			}
@@ -487,7 +487,7 @@ function getEntity(req, res) {
 					.json({
 						"status": "error", 
 						"statusCode": "400", 
-						"statusMessage": "invalid station data: " + invalidParam
+						"statusMessage": "Invalid station data: " + invalidParam + "."
 					});
 					return;
 				
@@ -523,7 +523,7 @@ function getEntity(req, res) {
 						.json({
 							"status": "error", 
 							"statusCode": "400", 
-							"statusMessage": "Query error: " + err
+							"statusMessage": "Query error: " + err + invalidParam + "."
 						});
 						return;
 					});
@@ -542,7 +542,7 @@ function getEntity(req, res) {
 				.json({
 					"status": "error", 
 					"statusCode": "400", 
-					"statusMessage": "Query error: " + err
+					"statusMessage": "Query error: " + err + invalidParam + "."
 				});
 				return;
 			});
@@ -552,7 +552,7 @@ function getEntity(req, res) {
 			res.status(400).send({
 				'status': 'error',
 				'statusCode':'400',
-				'statusMessage': 'error executing LMS query',
+				'statusMessage': 'Error executing LMS query.',
 				'error': err.stack
 			});
 		});
@@ -653,7 +653,7 @@ function callCoverage(res, root_url, inputData, pattern) {
 			.json({
 				"status": "error", 
 				"statusCode": "400", 
-				"statusMessage": "coverage call error: " + error
+				"statusMessage": "Coverage call error: " + error  + invalidParam + "."
 			});
 			return;
 		}

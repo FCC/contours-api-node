@@ -15,7 +15,7 @@
                     $('.alert').hide('fast');
                     APIMap.createMarker(data);                    
                 } else {
-                    APIForm.showError();                    
+                    APIForm.showError(data);                    
                 }
 
                 APIResponse.display(data);
@@ -30,7 +30,7 @@
                 dataType: 'json',
                 success: apiSuccess ? apiSuccess : ajaxSuccess,
                 error: function(data) {
-                    APIForm.showError();
+                    APIForm.showError(data);
                     APIResponse.display(data);
                 }
             });

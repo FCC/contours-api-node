@@ -1359,8 +1359,8 @@ function getDistance(req, res, callback) {
 		dataObj['statusMessage'] = '';
 		
 		if (serviceType == undefined) {
-			console.log('missing serviceType');
-			dataObj.statusMessage = 'missing serviceType';
+			console.log('Missing serviceType');
+			dataObj.statusMessage = 'Missing serviceType parameter.';
 			return callback(dataObj);
 		}
 		
@@ -1369,79 +1369,79 @@ function getDistance(req, res, callback) {
 		var tv_fm_list = ['tv', 'fm'];
 		if (tv_fm_list.indexOf(serviceType) < 0) {
 			console.log('invalid serviceType value');
-			dataObj.statusMessage = 'invalid serviceType value';
+			dataObj.statusMessage = 'Invalid serviceType value.';
 			return callback(dataObj);
 		}
 		
 		if (haat == undefined) {
-			console.log('missing haat');
-			dataObj.statusMessage = 'missing haat';
+			console.log('Missing haat');
+			dataObj.statusMessage = 'Missing haat.';
 			return callback(dataObj);
 		}
 		
 		if (field == undefined) {
-			console.log('missing field');
-			dataObj.statusMessage = 'missing field';
+			console.log('Missing field');
+			dataObj.statusMessage = 'Missing field.';
 			return callback(dataObj);
 		}
 		
 		if (erp == undefined) {
-			console.log('missing erp');
-			dataObj.statusMessage = 'missing erp';
+			console.log('Missing erp');
+			dataObj.statusMessage = 'Missing erp.';
 			return callback(dataObj);
 		}
 		
 		if (serviceType == 'tv' && channel == undefined) {
-			console.log('missing channel');
-			dataObj.statusMessage = 'missing channel';
+			console.log('Missing channel');
+			dataObj.statusMessage = 'Missing channel.';
 			return callback(dataObj);
 		}
 		
 		if (curve == undefined) {
-			console.log('missing curve');
-			dataObj.statusMessage = 'missing curve';
+			console.log('Missing curve');
+			dataObj.statusMessage = 'Missing curve.';
 			return callback(dataObj);
 		}
 		
 		if ( !haat.match(/^\d+\.?\d*$/)) {
 			console.log('invalid haat value');
-			dataObj.statusMessage = 'invalid haat value';
+			dataObj.statusMessage = 'Invalid haat value.';
 			return callback(dataObj);
 		}
 		
 		if ( !field.match(/^-?\d+\.?\d*$/)) {
 			console.log('invalid field value');
-			dataObj.statusMessage = 'invalid field value';
+			dataObj.statusMessage = 'Invalid field value';
 			return callback(dataObj);
 		}
 		
 		if ( !erp.match(/^\d+\.?\d*$/)) {
 			console.log('invalid erp value');
-			dataObj.statusMessage = 'invalid erp value';
+			dataObj.statusMessage = 'Invalid erp value.';
 			return callback(dataObj);
 		}
 		
 		if ( channel && !channel.match(/\d+$/)) {
 			console.log('invalid channel value');
-			dataObj.statusMessage = 'invalid channel value';
+			dataObj.statusMessage = 'Invalid channel value.';
 			return callback(dataObj);
 		}
 		
 		if ( serviceType.toLowerCase() == 'fm' && !curve.match(/^\d+$/)) {
 			console.log('invalid curve value');
-			dataObj.statusMessage = 'invalid curve value';
+			dataObj.statusMessage = 'Invalid curve value.';
 			return callback(dataObj);
 		}
 		
 		if ( parseFloat(haat) < 30 || parseFloat(haat) > 1600) {
-			console.log('haat value out of range [30, 1600]');
-			dataObj.statusMessage = 'haat value out of range [30, 1600]';
+			console.log('HAAT value out of range [30, 1600]');
+			dataObj.statusMessage = 'HAAT value out of range [30, 1600].';
 			return callback(dataObj);
 		}
 		
 		if ( parseFloat(curve) < 0 || parseFloat(curve) > 2) {
-			console.log('curve value out of range [0, 2]');
-			dataObj.statusMessage = 'curve value out of range [0, 2]';
+			console.log('Curve value out of range [0, 2]');
+			dataObj.statusMessage = 'Curve value out of range [0, 2].';
 			return callback(dataObj);
 		}
 		
@@ -1505,7 +1505,7 @@ function getDistance(req, res, callback) {
 	catch(err) {
 		console.log('err='+err);
 		dataObj.error = err.stack;
-		dataObj.statusMessage = 'distance error occurred';
+		dataObj.statusMessage = 'Distance error occurred.';
 		return callback(dataObj);
 	}
 }

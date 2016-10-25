@@ -426,7 +426,7 @@ app.use(function(err, req, res, next) {
     var err_res = {};       
     err_res.responseStatus = {
         'status': 500,
-        'type': 'Internal Server Error',
+        'type': 'Internal server error.',
         'err': err.name +': '+ err.message      
     };  
     

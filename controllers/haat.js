@@ -61,7 +61,7 @@ function getHAAT(req, res, callback) {
 		if (!url.match(/lat=/i)) {	
 			console.error('lat error');
 
-			dataObj.statusMessage = 'missing lat value';
+			dataObj.statusMessage = 'Missing lat value.';
 			returnError(dataObj, function(ret){
                  //res.status(400).send(GeoJSON.parse(ret, {}));                                         
                  returnJson = GeoJSON.parse(ret, {});
@@ -69,21 +69,21 @@ function getHAAT(req, res, callback) {
             return callback(returnJson);
 		}
 		if (!url.match(/lon=/i)) {
-			dataObj.statusMessage = 'missing lon value';
+			dataObj.statusMessage = 'Missing lon value.';
 			returnError(dataObj, function(ret){
                  returnJson = GeoJSON.parse(ret, {});
             });
             return callback(returnJson);
 		}
 		if (!url.match(/rcamsl=/i)) {
-			dataObj.statusMessage = 'missing rcamsl value';
+			dataObj.statusMessage = 'Missing rcamsl value.';
 			returnError(dataObj, function(ret){
                  returnJson = GeoJSON.parse(ret, {});
             });
             return callback(returnJson);
 		}
 		if (!url.match(/nradial=/i)) {
-			dataObj.statusMessage = 'missing nradial value';
+			dataObj.statusMessage = 'Missing nradial value.';
 			returnError(dataObj, function(ret){
                  returnJson = GeoJSON.parse(ret, {});
             });
@@ -113,7 +113,7 @@ function getHAAT(req, res, callback) {
 
         if ( !lat.match(/^-?\d+\.?\d*$/) || !lon.match(/^-?\d+\.?\d*$/) ) {            
             
-            dataObj.statusMessage = 'invalid lat/lon value';
+            dataObj.statusMessage = 'Invalid lat/lon value.';
             returnError(dataObj, function(ret){
             	 returnJson = GeoJSON.parse(ret, {});
             });
@@ -121,35 +121,35 @@ function getHAAT(req, res, callback) {
         }
 		
 		if ( !rcamsl.match(/^\d+\.?\d*$/) ) {
-			dataObj.statusMessage = 'invalid rcamsl value';
+			dataObj.statusMessage = 'Invalid rcamsl value.';
             returnError(dataObj, function(ret){
                  returnJson = GeoJSON.parse(ret, {});
             });
             return callback(returnJson);
 		}
 		if ( !nradial.match(/^\d*$/) ) {
-			dataObj.statusMessage = 'invalid nradial value';
+			dataObj.statusMessage = 'Invalid nradial value.';
             returnError(dataObj, function(ret){
                  returnJson = GeoJSON.parse(ret, {});
             });
             return callback(returnJson);
 		}
 		if ( parseFloat(lat) > 90 || parseFloat(lat) < -90 ) {
-			dataObj.statusMessage = 'lat value out of range';
+			dataObj.statusMessage = 'lat value out of range.';
             returnError(dataObj, function(ret){
                  returnJson = GeoJSON.parse(ret, {});
             });
             return callback(returnJson);
 		}
 		if ( parseFloat(lon) > 180 || parseFloat(lon) < -180 ) {
-			dataObj.statusMessage = 'lon value out of range';
+			dataObj.statusMessage = 'lon value out of range.';
             returnError(dataObj, function(ret){
                  returnJson = GeoJSON.parse(ret, {});
             });
             return callback(returnJson);
 		}
 		if ( parseFloat(nradial) <1 || parseFloat(nradial) > 360 ) {
-			dataObj.statusMessage = 'nradial value out of range';
+			dataObj.statusMessage = 'nradial value out of range.';
             returnError(dataObj, function(ret){
                  returnJson = GeoJSON.parse(ret, {});
             });
@@ -221,7 +221,7 @@ function getHAAT(req, res, callback) {
 			
 		if (filenames_no_ned_1.length != 0 && filenames_no_ned_2.length != 0 && filenames_no_globe30.length != 0) {
 			console.error('elevation data file missing');
-			dataObj.statusMessage = 'elevation data file missing';
+			dataObj.statusMessage = 'Elevation data file missing.';
 			returnError(dataObj, function(ret){
                  //res.status(400).send(GeoJSON.parse(ret, {}));                                         
                  returnJson = GeoJSON.parse(ret, {});
@@ -289,7 +289,7 @@ function getHAAT(req, res, callback) {
 	}
 	catch(err) {			
         console.error('--- HAAT processing error ---'+err);
-        dataObj.statusMessage = 'processing error occured';
+        dataObj.statusMessage = 'Processing error occured.';
         returnError(dataObj, function(ret){
              returnJson = GeoJSON.parse(ret, {});
         });

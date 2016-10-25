@@ -53,7 +53,7 @@ function getStation(req, res) {
 			res.status(400).send({
 				'status': 'error',
 				'statusCode':'400',
-				'statusMessage': "error: invalid service type: " + service_type
+				'statusMessage': "Invalid service type: " + service_type + "."
 			});
 			return;
 		}
@@ -63,7 +63,7 @@ function getStation(req, res) {
 			res.status(400).send({
 				'status': 'error',
 				'statusCode':'400',
-				'statusMessage': 'no callsign or facility_id provided'
+				'statusMessage': 'No callsign or facility_id provided.'
 			});
 			return;
 		}
@@ -83,7 +83,7 @@ function getStation(req, res) {
 			res.status(400).send({
 				'status': 'error',
 				'statusCode':'400',
-				'statusMessage': 'invalid facility_id value'
+				'statusMessage': 'Invalid facility_id value.'
 			});
 			return;
 		}
@@ -104,7 +104,7 @@ function getStation(req, res) {
 				res.status(400).send({
 					'status': 'error',
 					'statusCode':'400',
-					'statusMessage': "error: invalid service type: " + service_type
+					'statusMessage': "Invalid service type: " + service_type + "."
 				});
 				return;
 				
@@ -115,7 +115,7 @@ function getStation(req, res) {
 		res.status(400).send({
 			'status': 'error',
         	'statusCode':'400',
-        	'statusMessage': 'Error occurred',
+        	'statusMessage': 'Error occurred.',
 			'error': err.stack
         });
 	}
@@ -143,7 +143,7 @@ function readCDBS(res, service_type, callsign, facility_id) {
 			res.status(400).send({
 				'status': 'error',
 				'statusCode':'400',
-				'statusMessage': 'Error connecting to CDBS',
+				'statusMessage': 'Error connecting to CDBS.',
 				'error': err.stack
 			});
 			return;
@@ -155,7 +155,7 @@ function readCDBS(res, service_type, callsign, facility_id) {
 				res.status(400).send({
 					'status': 'error',
 					'statusCode':'400',
-					'statusMessage': 'error executing CDBS query',
+					'statusMessage': 'Error executing CDBS query.',
 					'error': err.stack
 				});
 				return;
@@ -210,7 +210,7 @@ function readLMS(res, callsign, facility_id) {
 			res.status(400).send({
 				'status': 'error',
 				'statusCode':'400',
-				'statusMessage': 'error executing LMS query',
+				'statusMessage': 'Error executing LMS query.',
 				'error': err.stack
 			});
 	});	

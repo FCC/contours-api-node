@@ -60,16 +60,16 @@
                     "label": "RCAMSL (meters)",
                     "display": true,
                     "in": "query",
-                    "description": "Radiation Center Above Mean Sea Level",
+                    "description": "Radiation Center Above Mean Sea Level (meters)",
                     "required": true,
                     "type": "number",
                     "defaultValue": ""
                 }, {
                     "name": "field",
-                    "label": "Field Strength",
+                    "label": "Field Strength (dBu)",
                     "display": true,
                     "in": "query",
-                    "description": "field strength in dBu",
+                    "description": "field strength (dBu)",
                     "required": true,
                     "type": "number",
                     "defaultValue": ""
@@ -85,7 +85,7 @@
                     "defaultValue": ""
                 }, {
                     "name": "erp",
-                    "label": "ERP",
+                    "label": "ERP (kW)",
                     "display": true,
                     "in": "query",
                     "description": "Effective Radiation Power (kW)",

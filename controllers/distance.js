@@ -633,7 +633,7 @@ function getDistance(req, res) {
 	 	res.status(400).send({
 		'status': 'error',
 		'statusCode':'400',
-		'statusMessage': 'invalid haat value'
+		'statusMessage': 'Invalid HAAT value.'
 		});
 		return;
 	 }
@@ -642,7 +642,7 @@ function getDistance(req, res) {
 	 	res.status(400).send({
 		'status': 'error',
 		'statusCode':'400',
-		'statusMessage': 'invalid dbu value'
+		'statusMessage': 'Invalid dbu value.'
 		});
 		return;
 	 }

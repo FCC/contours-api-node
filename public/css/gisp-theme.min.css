@@ -2173,9 +2173,6 @@ label {
 textarea {
   resize: none;
 }
-.form-group {
-  margin-bottom: 8px;
-}
 .form-group-heading {
   border-bottom: 1px solid #eee;
   margin-top: 27px;
@@ -5841,12 +5838,6 @@ footer {
 .apiResponse__out code {
   font-size: 13px;
 }
-label[required]::after {
-  position: relative;
-  content: "*";
-  left: 4px;
-  font-size: 13px;
-}
 fieldset {
   margin-bottom: 15px;
 }
@@ -5911,6 +5902,9 @@ legend {
     vertical-align: middle;
     width: 350px;
   }
+}
+#txt-error .icon-remove {
+  margin-right: 5px;
 }
 
 /*# sourceMappingURL=gisp-theme.min.css.map */

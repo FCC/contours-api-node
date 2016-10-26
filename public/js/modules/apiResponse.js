@@ -8,7 +8,10 @@
 
             $('#modal-loading').modal('hide');
 
-            $('.apiResponse__out code').text(JSON.stringify(data, null, 2));
+            $('.apiResponse__out code')
+                .text('')
+                .text(JSON.stringify(data, null, 2));
+
             $('pre code').each(function(i, block) {
                 hljs.highlightBlock(block);
             });
@@ -18,7 +21,7 @@
                 .removeClass('hide');
         },
 
-        clear: function() {
+        clear: function() {   
             $('.apiResponse__out code').text('');
             $('.apiResponse__dwnld').addClass('hide');
         }

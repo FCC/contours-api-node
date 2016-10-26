@@ -43,13 +43,26 @@
             Map.clearLayers();
             Map.resetView();
         },
-        showError: function() {
+        showError: function(data) {
+            var errMsg = '';
+            
+            try {
+                errMsg = data.responseJSON.features[0].properties.statusMessage;            
+            } catch(e) {
+                errMsg = data.responseJSON.type;
+            }        
+
             $('#modal-loading').modal('hide');
 
             $('.alert').hide('fast');
-            $('.alert').slideDown();
 
-            APIResponse.clear();                     
+            $('#txt-error')
+                .empty()              
+                .text(errMsg);
+
+            $('.alert').slideDown();
+            
+            Map.clearLayers();
         }
     };
 

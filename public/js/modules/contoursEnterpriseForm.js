@@ -9,7 +9,7 @@
             var serviceSel = entrpForm.find('select').eq(0);
             
             serviceSel.addClass('js-entrp');
-            $('label[for="channel"]').attr('required', true);
+            $('label[for="channel"]').addClass('required');
 
             // display optional fields based on Service Type
             $('#frm-contoursEnterprise').on('change', '.js-entrp', function() {
@@ -21,10 +21,12 @@
                 $('#unit').val('m');
                 
                 if (serviceVal === 'fm') {
-                    $('label[for="channel"]').attr('required', false);
+                    $('label[for="channel"]').removeClass('required');
+                    $('#channel').attr('required', false);
                 
                 } else {
-                    $('label[for="channel"]').attr('required', true);
+                    $('label[for="channel"]').addClass('required');
+                    $('#channel').attr('required', true);
                 }
             });
 

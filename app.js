@@ -9,6 +9,7 @@ var http = require("http");
 var https = require("https");
 var url = require('url');
 var express = require('express');
+var slash   = require('express-slash');
 var path = require('path');
 var fsr = require('file-stream-rotator');
 var fs = require('fs');
@@ -58,6 +59,13 @@ console.log('ElastiCache EndPoint: '+configEnv[NODE_ENV].ELASTICACHE_ENDPOINT);
 
 var app = express();
 
+app.enable('strict routing');
+
+var router = express.Router({
+    caseSensitive: false,
+    strict       : true
+});
+
 app.use(cors());
 app.use(helmet());
 
@@ -88,11 +96,28 @@ app.use(bodyparser.urlencoded({ extended: false }));
 
 // **********************************************************
 // route
-
+app.use(router);
+app.use(slash());
 app.use('/', express.static(__dirname + '/public'));
 app.use('/contour-demo', express.static(__dirname + '/public/contour-demo.html'));
 
+// redirect for /contour-demo/
+router.get('/contour-demo', function(req, res, next) {
+    res.sendFile(__dirname + '/public/contour-demo.html');
+    next();
+});
+
 app.use('/api/contours', function(req, res, next) {
+    if (NODE_ENV === 'LOCAL' || NODE_ENV === 'DEV') {
+        var redURL = req.originalUrl.split('api/contours')[1];
+        res.redirect(301, redURL);
+    }
+
+    next();
+});
+
+// redirect for /api/contours/
+router.get('/api/contours', function(req, res, next) {
     if (NODE_ENV === 'LOCAL' || NODE_ENV === 'DEV') {
         var redURL = req.originalUrl.split('api/contours')[1];
         res.redirect(301, redURL);
@@ -426,7 +451,7 @@ app.use(function(err, req, res, next) {
     var err_res = {};       
     err_res.responseStatus = {
         'status': 500,
-        'type': 'Internal Server Error',
+        'type': 'Internal server error.',
         'err': err.name +': '+ err.message      
     };  
     

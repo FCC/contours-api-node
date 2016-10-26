@@ -68,7 +68,7 @@
                     <br>
                     <br>
                     <div class="alert alert-danger" style="display: none;">
-                        <p><span class="icon icon-remove "></span> Unable to retrieve data based on the provided parameter values. Please revise the parameters and try again.</p>
+                        <p><span class="icon icon-remove "></span> <span id="txt-error"></span> Please revise the parameters and try again.</p>
                     </div>
                 </div>
             </div>
@@ -78,7 +78,7 @@
                         <fieldset>
                             <legend>Select API</legend>
                             <div class="form-group">
-                                <label for="apiType" required>API</label>
+                                <label for="apiType" class="required">API</label>
                                 <select id="apiType" class="form-control" name="apiType">
                                     <option value="contoursEnterprise">Coverage</option>
                                     <option value="contoursOPIF">Entity</option>
@@ -92,7 +92,7 @@
                             <legend>Coverage API</legend>                            
                         </fieldset>
                         <fieldset id="frm-contoursOPIF" class="fields fields-contoursOPIF" style="display: none;">
-                            <legend>OPIF Contour API</legend>                            
+                            <legend>Entity API</legend>                            
                         </fieldset>
                         <fieldset id="frm-elevation" class="fields fields-elevation" style="display: none;">
                             <legend>Elevation API</legend>                            
@@ -114,7 +114,7 @@
                                             <div class="form-group">
                                         {{/if}}
                                         {{#if required}}
-                                            <label for="{{name}}" required>{{label}}</label>
+                                            <label for="{{name}}" class="required">{{label}}</label>
                                         {{else}}
                                             <label for="{{name}}">{{label}}</label>
                                         {{/if}}

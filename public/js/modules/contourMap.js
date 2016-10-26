@@ -5,6 +5,7 @@
     var Map = require('./map.js');
     var APIResponse = require('./apiResponse.js');
 
+    // used to create Coverage and Entity maps
     var ContourMap = {
         getContour: function() {
             var contourAPI = '';
@@ -18,7 +19,12 @@
                     apiURL.push(this.value);
                 });
 
-                contourAPI = apiURL.slice(0, 3).join('/') + '.json';
+                contourAPI = apiURL.slice(0, 3).join('/') + '.json';    
+
+                if ($('#ent-serviceType').val() === 'am') {
+                    contourAPI += '?stationClass=' + apiURL[3] + '&timePeriod=' + apiURL[4];    
+                }                
+
             } else {
                 contourAPI = './coverage.json?';
                 contourAPI += $('.fields-contoursEnterprise').find('input, select').serialize();
@@ -41,12 +47,16 @@
                     if (data.features.length > 0) {
                         $('.alert').hide('fast');
                         ContourMap.createContour(data);
-                        APIResponse.display(data);
                     } else {
                         APIForm.showError();
                     }
+
+                    APIResponse.display(data);
                 },
-                error: APIForm.showError
+                error: function(data) {
+                    APIForm.showError(data);
+                    APIResponse.display(data);
+                }
             });
         },
         createContour: function(data) {

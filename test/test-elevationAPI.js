@@ -21,7 +21,8 @@ describe('Elevation API test', function() {
                         throw err;
                     }
 
-                    res.body.features[0].properties.should.have.property('elevation');
+                    res.body.features[0].properties.should.have.property('statusCode').be.equal('200');
+                    res.body.features[0].properties.should.have.property('elevation').be.equal(430.32);
                     done();
                 });
         });
@@ -107,7 +108,7 @@ describe('Elevation API test', function() {
         }
 
         it('should return elevation data if src = ned_2', function(done) {
-            var url = '/elevation.json?lat=62.67414334669093&lon=-146.42578125&src=ned_2&unit=m&outputcache=false';
+            var url = '/elevation.json?lat=62&lon=-150&src=ned_2&unit=m&outputcache=false';
 
             request(server)
                 .get(url)
@@ -124,7 +125,7 @@ describe('Elevation API test', function() {
         });
 
         it('should return elevation data if src = ned_13', function(done) {
-            var url = '/elevation.json?lat=39.095962936305476&lon=-103.9306640625&src=ned_13&unit=m&outputcache=false';
+            var url = '/elevation.json?lat=39&lon=-99&src=ned_13&unit=m&outputcache=false';
 
             request(server)
                 .get(url)
@@ -265,12 +266,29 @@ describe('Elevation API test', function() {
 
     });
 
-
     describe('format values', function() {
         it('should return JSON format', function(done) {
 
             request(server)
                 .get('/elevation.json?lat=38.22&lon=-78.5&src=ned_1&unit=m&outputcache=false')
+                .expect('Content-Type', /json/)
+                .expect(200)
+                .end(function(err, res) {
+                    if (err) {
+                        throw err;
+                    }
+
+                    res.body.features[0].properties.should.have.property('statusCode').be.equal('200');
+                    done();
+                });
+        });
+    });
+
+    describe('elasticache parameter', function() {
+        it('should return JSON from ElastiCache', function(done) {
+
+            request(server)
+                .get('/elevation.json?lat=38.22&lon=-78.5&src=ned_1&unit=m')
                 .expect('Content-Type', /json/)
                 .expect(200)
                 .end(function(err, res) {

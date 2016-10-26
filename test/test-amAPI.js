@@ -14,7 +14,7 @@ describe('AM Service', function() {
             it('should return contour data based on callsign', function(done) {
 
                 request(server)
-                    .get('/am/callsign/wfed.json')
+                    .get('/am/callsign/wfed.json?outputcache=false')
                     .expect('Content-Type', /json/)
                     .expect(200)
                     .end(function(err, res) {
@@ -31,7 +31,7 @@ describe('AM Service', function() {
             it('should return contour data based on facilityid', function(done) {
 
                 request(server)
-                    .get('/am/facilityid/74120.json')
+                    .get('/am/facilityid/74120.json?outputcache=false')
                     .expect('Content-Type', /json/)
                     .expect(200)
                     .end(function(err, res) {
@@ -48,7 +48,7 @@ describe('AM Service', function() {
             it('should return contour data based on filenumber', function(done) {
 
                 request(server)
-                    .get('/am/filenumber/BML-20110215AFF.json')
+                    .get('/am/filenumber/BML-20110215AFF.json?outputcache=false')
                     .expect('Content-Type', /json/)
                     .expect(200)
                     .end(function(err, res) {
@@ -65,7 +65,7 @@ describe('AM Service', function() {
             it('should return contour data based on applicationid', function(done) {
 
                 request(server)
-                    .get('/am/applicationid/1418234.json')
+                    .get('/am/applicationid/1418234.json?outputcache=false')
                     .expect('Content-Type', /json/)
                     .expect(200)
                     .end(function(err, res) {
@@ -82,7 +82,7 @@ describe('AM Service', function() {
             it('should return contour data based on antennaid', function(done) {
 
                 request(server)
-                    .get('/am/antennaid/113995.json')
+                    .get('/am/antennaid/113995.json?outputcache=false')
                     .expect('Content-Type', /json/)
                     .expect(200)
                     .end(function(err, res) {
@@ -99,7 +99,7 @@ describe('AM Service', function() {
             it('should return contour data based on stationClass', function(done) {
 
                 request(server)
-                    .get('/am/callsign/wfed.json?stationClass=c&timePeriod=day')
+                    .get('/am/callsign/wfed.json?stationClass=c&timePeriod=day&outputcache=false')
                     .expect('Content-Type', /json/)
                     .expect(200)
                     .end(function(err, res) {
@@ -116,7 +116,7 @@ describe('AM Service', function() {
             it('should return contour data based on timePeriod', function(done) {
 
                 request(server)
-                    .get('/am/callsign/wfed.json?stationClass=a&timePeriod=day')
+                    .get('/am/callsign/wfed.json?stationClass=a&timePeriod=day&outputcache=false')
                     .expect('Content-Type', /json/)
                     .expect(200)
                     .end(function(err, res) {
@@ -143,7 +143,7 @@ describe('AM Service', function() {
             it('should return error 500 for invalid facilityid format', function(done) {
 
                 request(server)
-                    .get('/am/facilityid/errr.json')
+                    .get('/am/facilityid/errr.json?outputcache=false')
                     .expect('Content-Type', /json/)
                     .expect(500, done);
             });
@@ -151,7 +151,7 @@ describe('AM Service', function() {
             it('should return error 500 for invalid filenumber format', function(done) {
 
                 request(server)
-                    .get('/am/filenumber/&23.json')
+                    .get('/am/filenumber/&23.json?outputcache=false')
                     .expect('Content-Type', /json/)
                     .expect(500, done);
             });
@@ -159,7 +159,7 @@ describe('AM Service', function() {
             it('should return error 500 for invalid applicationid format', function(done) {
 
                 request(server)
-                    .get('/am/applicationid/&23.json')
+                    .get('/am/applicationid/&23.json?outputcache=false')
                     .expect('Content-Type', /json/)
                     .expect(500, done);
             });
@@ -170,7 +170,7 @@ describe('AM Service', function() {
             it('should not return contour data for invalid callsign value', function(done) {
 
                 request(server)
-                    .get('/am/callsign/errr-fm.json')
+                    .get('/am/callsign/errr-fm.json?outputcache=false')
                     .expect('Content-Type', /json/)
                     .expect(200)
                     .end(function(err, res) {
@@ -187,7 +187,7 @@ describe('AM Service', function() {
             it('should not return contour data for invalid facilityid value', function(done) {
 
                 request(server)
-                    .get('/am/facilityid/9.json')
+                    .get('/am/facilityid/9.json?outputcache=false')
                     .expect('Content-Type', /json/)
                     .expect(200)
                     .end(function(err, res) {
@@ -204,7 +204,7 @@ describe('AM Service', function() {
             it('should not return contour data for invalid filenumber value', function(done) {
 
                 request(server)
-                    .get('/am/filenumber/9.json')
+                    .get('/am/filenumber/9.json?outputcache=false')
                     .expect('Content-Type', /json/)
                     .expect(200)
                     .end(function(err, res) {
@@ -221,7 +221,7 @@ describe('AM Service', function() {
             it('should not return contour data for invalid applicationid value', function(done) {
 
                 request(server)
-                    .get('/am/applicationid/9.json')
+                    .get('/am/applicationid/9.json?outputcache=false')
                     .expect('Content-Type', /json/)
                     .expect(200)
                     .end(function(err, res) {
@@ -273,7 +273,7 @@ describe('AM Service', function() {
         it('should return JSON format', function(done) {
 
             request(server)
-                .get('/am/callsign/wamu.json')
+                .get('/am/callsign/wamu.json?outputcache=false')
                 .expect('Content-Type', /json/)
                 .expect(200, done);
         });

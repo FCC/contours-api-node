@@ -1,7 +1,7 @@
 (function() {
     'use strict';
 
-    var ContourMap = require('./contourMap.js');   
+    var ContourMap = require('./contourMap.js');
 
     var OPIFContourForm = {
         bindEvents: function() {
@@ -20,20 +20,33 @@
             };
 
             var opifForm = $('#frm-contoursOPIF');
-            var serviceSel = opifForm.find('select').eq(0);
             
-            serviceSel.addClass('js-opif');
+            // create custom field ID and for attribute values
+            opifForm
+                .find('label').each(function(index, el) {
+                    var attrVal = $(el).attr('for');
+
+                    $(el).attr('for', 'ent-' + attrVal);
+                })
+                .end()
+                .find('[id]').each(function(index, el) {
+                    var idVal = $(el).attr('id');
+
+                    $(el).attr('id', 'ent-' + idVal);
+                })
+                .end()
+                .find('select').eq(0).addClass('js-opif');
             
             // display optional fields based on Service Type
-            $(opifForm).on('change', '.js-opif', function() {
+            opifForm.on('change', '.js-opif', function() {
                 var serviceVal = this.value;
 
-                $('#idType')
+                $('#ent-idType')
                     .val('facilityid')
                     .find('option').hide();
 
-                $('label[for="idValue"]').text('Facility ID');
-                $('#idValue').val('');
+                $('label[for="ent-idValue"]').text('Facility ID');
+                $('#ent-idValue').val('');
 
                 $(serviceTypes[serviceVal]).each(function(index, value) {
                     $('option[value="' + value + '"]').show();
@@ -47,15 +60,15 @@
             });
 
             // update selected ID Type label text
-            $('#idType').on('change', function() {
-                $('#idValue').val('');
-                $('label[for="idValue"]').text(idTypes[this.value]);
+            $('#ent-idType').on('change', function() {
+                $('#ent-idValue').val('');
+                $('label[for="ent-idValue"]').text(idTypes[this.value]);
             });
 
             $('#form-params').on('click.contoursOPIFAPI', '[data-api="contoursOPIF"]', ContourMap.getContour);
-            
+
         },
-        getParams: function() { 
+        getParams: function() {
             // get parameters (form fields) from Swagger JSON
             $.ajax({
                 url: 'json/api-entity.json',
@@ -69,7 +82,7 @@
                 }
             });
         },
-        createTemplate: function(data) { 
+        createTemplate: function(data) {
             var fields = {};
             var source = $('#apiForm-template').html();
             var template, fieldsetHTML;
@@ -78,9 +91,9 @@
 
             fields.params = data;
             fieldsetHTML = template(fields);
-    
+
             $('#frm-contoursOPIF').append(fieldsetHTML);
-            
+
             OPIFContourForm.bindEvents();
         }
     };

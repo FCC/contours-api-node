@@ -220,6 +220,22 @@ describe('HAAT API test', function() {
                 });
         });
 
+        it('should return haat data based on src = ned_1', function(done) {
+            request(server)
+                .get('/haat.json?lat=35.1019340572&lon=-97.2509765625&nradial=10&rcamsl=100&src=ned_1&unit=m&outputcache=false')
+                .expect('Content-Type', /json/)
+                .expect(200)
+                .end(function(err, res) {
+                    if (err) {
+                        throw err;
+                    }
+
+                    res.body.features[0].properties.should.have.property('statusCode').be.equal('200');
+                    res.body.features[0].properties.should.have.property('elevation_data_source').be.equal('ned_1');
+                    done();
+                });
+        });
+
         it('should return haat data based on src = globe30', function(done) {
             request(server)
                 .get('/haat.json?lat=38.5&lon=-77.5&nradial=360&rcamsl=1000&src=globe30&unit=m&outputcache=false')

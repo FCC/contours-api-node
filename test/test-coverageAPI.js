@@ -6,7 +6,7 @@ var chai = require('chai');
 var expect = chai.expect;
 var should = chai.should();
 
-describe('Contours API test', function() {
+describe('Coverage API test', function() {
     
     describe('/lat/lon/nradial/rcamsl/erp/channel/field/curve/serviceType', function(done) {
 
@@ -47,7 +47,7 @@ describe('Contours API test', function() {
         it('should not return contour if lat input is missing', function(done) {
 
             request(server)
-                .get('/coverage.json?lon=-77.07942&src=ned_1&rcamsl=309&nradial=360&unit=m&channel=9&field=28&erp=52&curve=0&serviceType=fm')
+                .get('/coverage.json?lon=-77.07942&src=ned_1&rcamsl=309&nradial=360&unit=m&channel=9&field=28&erp=52&curve=0&serviceType=fm&outputcache=false')
                 .expect('Content-Type', /json/)
                 .expect(400)
                 .end(function(err, res) {
@@ -469,7 +469,7 @@ describe('Contours API test', function() {
         it('should not return contour if field input is missing', function(done) {
 
             request(server)
-                .get('/coverage.json?lat=38.95039&lon=-77.07942&src=ned_1&rcamsl=309&nradial=360&unit=m&channel=9&erp=52&curve=0&serviceType=fm')
+                .get('/coverage.json?lat=38.95039&lon=-77.07942&src=ned_1&rcamsl=309&nradial=360&unit=m&channel=9&erp=52&curve=0&serviceType=fm&outputcache=false')
                 .set('Accept', 'application/json')
                 .expect(400)
                 .expect(function(err, res) {
@@ -504,7 +504,7 @@ describe('Contours API test', function() {
         it('should not return contour if serviceType input is missing', function(done) {
 
             request(server)
-                .get('/coverage.json?lat=38.95039&lon=-77.07942&src=ned_1&rcamsl=309&nradial=360&unit=m&channel=9&field=28&erp=52&curve=0')
+                .get('/coverage.json?lat=38.95039&lon=-77.07942&src=ned_1&rcamsl=309&nradial=360&unit=m&channel=9&field=28&erp=52&curve=0&outputcache=false')
                 .expect('Content-Type', /json/)
                 .expect(400)
                 .end(function(err, res) {

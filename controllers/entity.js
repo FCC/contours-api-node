@@ -14,11 +14,11 @@ var geo_space = configEnv[NODE_ENV].GEO_SPACE;
 var AWS_ACCESS_KEY =  configEnv[NODE_ENV].AWS_ACCESS_KEY;
 var AWS_SECRET_KEY = configEnv[NODE_ENV].AWS_SECRET_KEY;
 var AWS_REGION = configEnv[NODE_ENV].AWS_REGION;
-var CDBS_HOST = configEnv[NODE_ENV].CDBS_HOST;
-var CDBS_PORT = configEnv[NODE_ENV].CDBS_PORT;
-var CDBS_DBNAME = configEnv[NODE_ENV].CDBS_DBNAME;
-var CDBS_USER = configEnv[NODE_ENV].CDBS_USER;
-var CDBS_PASSWD = configEnv[NODE_ENV].CDBS_PASSWD;
+//var CDBS_HOST = configEnv[NODE_ENV].CDBS_HOST;
+//var CDBS_PORT = configEnv[NODE_ENV].CDBS_PORT;
+//var CDBS_DBNAME = configEnv[NODE_ENV].CDBS_DBNAME;
+//var CDBS_USER = configEnv[NODE_ENV].CDBS_USER;
+//var CDBS_PASSWD = configEnv[NODE_ENV].CDBS_PASSWD;
 var LMS_PG = configEnv[NODE_ENV].LMS_PG;
 var LMS_SCHEMA = configEnv[NODE_ENV].LMS_SCHEMA;
 
@@ -31,28 +31,6 @@ var options = {
 };
 var pgp = require('pg-promise')(options);
 
-try {
-	var db_lms = pgp(LMS_PG);
-	console.log('connected to DB');
-}
-catch(e) {
-	console.log('connection to DB failed' + e);
-}
-
-try {
-	var db_lms_awsdev = pgp(LMS_PG_AWSDEV);
-	console.log('connected to AWSDEV DB');
-}
-catch(e) {
-	console.log('connection to AWSDEV DB failed' + e);
-}
-
-
-
-
-
-
-
 
 //var tv_stations = require('../data/tv_stations.json');
 //var fm_stations = require('../data/fm_stations.json');
@@ -61,6 +39,13 @@ catch(e) {
 function getEntity(req, res) {
 
 	console.log('============ getEntity ============');
+	try {
+		var db_lms = pgp(LMS_PG);
+		console.log('connected to DB');
+	}
+	catch(e) {
+		console.log('connection to DB failed' + e);
+	}
 
 	var serviceType = req.query.serviceType;
 	var callsign = req.query.callsign;

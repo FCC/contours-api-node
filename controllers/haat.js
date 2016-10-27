@@ -243,19 +243,11 @@ function getHAAT(req, res, callback) {
 		inputData['format'] = format;
 		inputData['azimuths'] = azimuths;
 		
-		if (src == 'globe30') {
-			console.log('use globe data');	
-            useGlobeData(res, dataObj, inputData, output_data, filenames_globe, function(data){
-            	if(data){
-                	return callback(data);    
-            	}
-            	return callback(null);
-            });
-			//return callback(null);
-		}
+
 		
 		
-		if (filenames_no_ned_1.length == 0) {
+		if (src != 'globe30' && filenames_no_ned_1.length == 0) {
+			src = 'ned_1';
 			processDataFiles(res, dataObj, inputData, output_data, filenames_ned_1, startTime, function(data){
             	if(data){
                 	return callback(data);    
@@ -263,7 +255,7 @@ function getHAAT(req, res, callback) {
             	return callback(null);
             });			
 		}
-		else if (filenames_no_ned_2.length == 0) {
+		else if (src != 'globe30' && filenames_no_ned_2.length == 0) {
 			src = 'ned_2';
 			inputData.src = src;
 			processDataFiles(res, dataObj, inputData, output_data, filenames_ned_2, startTime, function(data){

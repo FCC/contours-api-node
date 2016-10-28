@@ -5,18 +5,20 @@
 
 // **********************************************************
 
-var configEnv = require('../config/env.json');
+//var configEnv = require('../config/env.json');
+var dotenv = require('dotenv').load();
+
 var http = require('http');
 
 var NODE_ENV = process.env.NODE_ENV;
-var NODE_PORT =  process.env.PORT || configEnv[NODE_ENV].NODE_PORT;
-var host =  configEnv[NODE_ENV].HOST;
-var geo_host =  configEnv[NODE_ENV].GEO_HOST;
-var geo_space = configEnv[NODE_ENV].GEO_SPACE;
+var NODE_PORT =  process.env.NODE_PORT;
+var host =  process.env.HOST;
+var geo_host =  process.env.GEO_HOST;
+var geo_space = process.env.GEO_SPACE;
 var AWS = require('aws-sdk');
-var AWS_ACCESS_KEY =  configEnv[NODE_ENV].AWS_ACCESS_KEY;
-var AWS_SECRET_KEY = configEnv[NODE_ENV].AWS_SECRET_KEY;
-var AWS_REGION = configEnv[NODE_ENV].AWS_REGION;
+var AWS_ACCESS_KEY =  process.env.AWS_ACCESS_KEY;
+var AWS_SECRET_KEY = process.env.AWS_SECRET_KEY;
+var AWS_REGION = process.env.AWS_REGION;
 
 AWS.config.update({
      accessKeyId: AWS_ACCESS_KEY,
@@ -29,7 +31,7 @@ var fs = require('fs');
 var ned_1_files = require('../data/ned_1_files.json');
 var ned_2_files = require('../data/ned_2_files.json');
 
-var data_dir = configEnv[NODE_ENV].EFS_ELEVATION_DATASET;
+var data_dir = process.env.EFS_ELEVATION_DATASET;
 var filepath;
 var data_src = 'ned';
 var param_unit = 'm';

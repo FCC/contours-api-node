@@ -22,6 +22,8 @@ var helmet = require('helmet');
 var bodyparser = require('body-parser');
 var package_json = require('./package.json');
 
+var dotenv = require('dotenv').load();
+	
 var contour = require('./controllers/contour.js');
 var elevation = require('./controllers/elevation.js');
 var haat = require('./controllers/haat.js');
@@ -32,16 +34,15 @@ var contours = require('./controllers/contours.js');
 var tvfm_curves = require('./controllers/tvfm_curves.js');
 var entity = require('./controllers/entity.js');
 
-
 // **********************************************************
 // config
 
-var configEnv = require('./config/env.json');
+//var configEnv = require('./config/env.json');
 
 var NODE_ENV = process.env.NODE_ENV;
 //console.log('NODE_ENV : '+ NODE_ENV );
 
-var NODE_PORT =  process.env.PORT || configEnv[NODE_ENV].NODE_PORT;
+var NODE_PORT =  process.env.NODE_PORT
 
 // **********************************************************
 // console start
@@ -49,7 +50,7 @@ var NODE_PORT =  process.env.PORT || configEnv[NODE_ENV].NODE_PORT;
 console.log('package_json.name : '+ package_json.name );
 console.log('package_json.version : '+ package_json.version );
 console.log('package_json.description : '+ package_json.description );
-console.log('ElastiCache EndPoint: '+configEnv[NODE_ENV].ELASTICACHE_ENDPOINT);
+console.log('ElastiCache EndPoint: '+process.env.ELASTICACHE_ENDPOINT);
 
 //console.log('NODE_PORT : '+ NODE_PORT );
 //console.log('PG_DB : '+ PG_DB );
@@ -69,8 +70,8 @@ var router = express.Router({
 app.use(cors());
 app.use(helmet());
 
-var memcached = new Memcached(configEnv[NODE_ENV].ELASTICACHE_ENDPOINT);
-var memcached_lifetime = Number(configEnv[NODE_ENV].ELASTICACHE_LIFETIME);
+var memcached = new Memcached(process.env.ELASTICACHE_ENDPOINT);
+var memcached_lifetime = Number(process.env.ELASTICACHE_LIFETIME);
 var cached_param = 'outputcache';
 
 // **********************************************************

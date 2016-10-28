@@ -5,16 +5,16 @@
 
 // **********************************************************
 
-var configEnv = require('../config/env.json');
+var dotenv = require('dotenv').load();
 var NODE_ENV = process.env.NODE_ENV;
-var NODE_PORT =  process.env.PORT || configEnv[NODE_ENV].NODE_PORT;
-var host =  configEnv[NODE_ENV].HOST;
-var geo_host =  configEnv[NODE_ENV].GEO_HOST;
-var geo_space = configEnv[NODE_ENV].GEO_SPACE;
-var AWS_ACCESS_KEY =  configEnv[NODE_ENV].AWS_ACCESS_KEY;
-var AWS_SECRET_KEY = configEnv[NODE_ENV].AWS_SECRET_KEY;
-var AWS_REGION = configEnv[NODE_ENV].AWS_REGION;
-var EFS_ELEVATION_DATASET = configEnv[NODE_ENV].EFS_ELEVATION_DATASET;
+var NODE_PORT =  process.env.NODE_PORT;
+var host =  process.env.HOST;
+var geo_host =  process.env.GEO_HOST;
+var geo_space = process.env.GEO_SPACE;
+var AWS_ACCESS_KEY =  process.env.AWS_ACCESS_KEY;
+var AWS_SECRET_KEY = process.env.AWS_SECRET_KEY;
+var AWS_REGION = process.env.AWS_REGION;
+var EFS_ELEVATION_DATASET = process.env.EFS_ELEVATION_DATASET;
 
 var fs = require('fs');
 var async = require('async');

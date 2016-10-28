@@ -42,7 +42,8 @@ var entity = require('./controllers/entity.js');
 var NODE_ENV = process.env.NODE_ENV;
 //console.log('NODE_ENV : '+ NODE_ENV );
 
-var NODE_PORT =  process.env.NODE_PORT
+//var NODE_PORT =  process.env.NODE_PORT
+var NODE_PORT = process.env.PORT;
 
 // **********************************************************
 // console start

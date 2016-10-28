@@ -32,7 +32,6 @@
     "cors": "^2.7.1",
     "dotenv": "^2.0.0",
     "express": "^4.13.1",
-    "express-slash": "^2.0.1",
     "file-stream-rotator": "0.0.6",
     "geojson": "0.3.0",
     "handlebars": "^4.0.5",

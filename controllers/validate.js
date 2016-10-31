@@ -2,16 +2,29 @@
 
 var errLat = {
     value: 'Invalid latitude (lat) value.',
+    missing: 'Missing latitude (lat) value.',
     decimal: 'Number of decimal places for lat is larger than 10.',
     range: 'Latitude value is out of range (-90 < lat < 90).'
 };
 
 var errLon = {
     value: 'Invalid longitude (lon) value.',
+    missing: 'Missing longitude (lon) value.',
     decimal: 'Number of decimal places for lon is larger than 10.',
     range: 'Longitude value is out of range (-180 < lon < 180).'
 };
 
+function latMissing(lat, url) {
+    if (!url.match(/lat=/i)) {
+        return true;
+    }
+}
+
+function lonMissing(lon, url) {
+    if (!url.match(/lon=/i)) {
+       return true;
+    }
+}
 
 function getNumDecimal(a) {
     var dum = (parseFloat(a) + '').split('.');
@@ -43,6 +56,8 @@ function lonRange(lon) {
 
 module.exports.errLat = errLat;
 module.exports.errLon = errLon;
+module.exports.latMissing = latMissing;
+module.exports.lonMissing = lonMissing;
 module.exports.getNumDecimal = getNumDecimal;
 module.exports.latLonValue = latLonValue;
 module.exports.latRange = latRange;

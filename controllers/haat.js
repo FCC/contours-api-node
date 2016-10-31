@@ -26,7 +26,7 @@ var data_dir = EFS_ELEVATION_DATASET;
 var ned_1_files = require('../data/ned_1_files.json');
 var ned_2_files = require('../data/ned_2_files.json');
 var globe_files = require('../data/globe_files.json');
-
+var validate = require('./validate.js');
 
 function getHAAT(req, res, callback) {
 
@@ -45,6 +45,8 @@ function getHAAT(req, res, callback) {
 		output_data = [];
 		
 		var url = req.url;
+		var latitude = req.query.lat;
+		var longitude = req.query.lon;
 		var returnJson;
 
 		var dataObj = new Object;		
@@ -58,25 +60,26 @@ function getHAAT(req, res, callback) {
 		
 		startTime = new Date().getTime();
 
-		if (!url.match(/lat=/i)) {	
-			console.error('lat error');
+		if (validate.latMissing(lat, url)) {
+			dataObj.statusMessage = validate.errLat.missing;
 
-			dataObj.statusMessage = 'Missing lat value.';
-			returnError(dataObj, function(ret){
-                 //res.status(400).send(GeoJSON.parse(ret, {}));                                         
+			returnError(dataObj, function(ret){                                                       
                  returnJson = GeoJSON.parse(ret, {});
             });
             return callback(returnJson);
 		}
-		if (!url.match(/lon=/i)) {
-			dataObj.statusMessage = 'Missing lon value.';
-			returnError(dataObj, function(ret){
+
+		if (validate.lonMissing(lon, url)) {
+			dataObj.statusMessage = validate.errLon.missing;
+
+			returnError(dataObj, function(ret){                                                       
                  returnJson = GeoJSON.parse(ret, {});
             });
             return callback(returnJson);
 		}
+
 		if (!url.match(/rcamsl=/i)) {
-			dataObj.statusMessage = 'Missing rcamsl value.';
+			dataObj.statusMessage = 'Missing RCAMSL value.';
 			returnError(dataObj, function(ret){
                  returnJson = GeoJSON.parse(ret, {});
             });
@@ -111,17 +114,8 @@ function getHAAT(req, res, callback) {
 		dataObj.lat = lat;
         dataObj.lon = lon;
 
-        if ( !lat.match(/^-?\d+\.?\d*$/) || !lon.match(/^-?\d+\.?\d*$/) ) {            
-            
-            dataObj.statusMessage = 'Invalid lat/lon value.';
-            returnError(dataObj, function(ret){
-            	 returnJson = GeoJSON.parse(ret, {});
-            });
-            return callback(returnJson);
-        }
-		
-		if ( !rcamsl.match(/^\d+\.?\d*$/) ) {
-			dataObj.statusMessage = 'Invalid rcamsl value.';
+        if ( !rcamsl.match(/^\d+\.?\d*$/) ) {
+			dataObj.statusMessage = 'Invalid RCAMSL value.';
             returnError(dataObj, function(ret){
                  returnJson = GeoJSON.parse(ret, {});
             });
@@ -134,20 +128,61 @@ function getHAAT(req, res, callback) {
             });
             return callback(returnJson);
 		}
-		if ( parseFloat(lat) > 90 || parseFloat(lat) < -90 ) {
-			dataObj.statusMessage = 'lat value out of range.';
-            returnError(dataObj, function(ret){
+		
+		if (validate.latLonValue(latitude)) {
+			dataObj.statusMessage = validate.errLat.value;
+
+			returnError(dataObj, function(ret){                                                       
                  returnJson = GeoJSON.parse(ret, {});
             });
             return callback(returnJson);
 		}
-		if ( parseFloat(lon) > 180 || parseFloat(lon) < -180 ) {
-			dataObj.statusMessage = 'lon value out of range.';
-            returnError(dataObj, function(ret){
+
+		if (validate.latLonValue(longitude)) {
+			dataObj.statusMessage = validate.errLon.value;
+
+			returnError(dataObj, function(ret){                                                       
                  returnJson = GeoJSON.parse(ret, {});
             });
             return callback(returnJson);
 		}
+				
+		if (validate.latRange(lat)) {
+			dataObj.statusMessage = validate.errLat.range;
+
+			returnError(dataObj, function(ret){                                                       
+                 returnJson = GeoJSON.parse(ret, {});
+            });
+            return callback(returnJson);
+		}
+
+		if (validate.lonRange(lon)) {
+			dataObj.statusMessage = validate.errLon.range;
+
+			returnError(dataObj, function(ret){                                                       
+                 returnJson = GeoJSON.parse(ret, {});
+            });
+            return callback(returnJson);
+		}
+
+		if (validate.getNumDecimal(lat) > 10) {
+			dataObj.statusMessage = validate.errLat.decimal;
+
+			returnError(dataObj, function(ret){                                                       
+                 returnJson = GeoJSON.parse(ret, {});
+            });
+            return callback(returnJson);
+		}
+		
+		if (validate.getNumDecimal(lon) > 10) {
+			dataObj.statusMessage = validate.errLon.decimal;
+
+			returnError(dataObj, function(ret){                                                       
+                 returnJson = GeoJSON.parse(ret, {});
+            });
+            return callback(returnJson);
+		}
+
 		if ( parseFloat(nradial) <1 || parseFloat(nradial) > 360 ) {
 			dataObj.statusMessage = 'nradial value out of range.';
             returnError(dataObj, function(ret){

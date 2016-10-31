@@ -38,6 +38,7 @@ var param_unit = 'm';
 var file_ext = '_1';
 var GeoJSON = require('geojson');
 var utility = require('./utility.js');
+var validate = require('./validate.js');
 
 
 function getElevation(req, res, callback) {
@@ -67,8 +68,11 @@ function getElevation(req, res, callback) {
 		var datatype = req.query.src;
 		var unit = req.query.unit;
 
-		lat = latitude;
-		lon = longitude;
+		// lat = latitude;
+		// lon = longitude;
+		lat = parseFloat(latitude);
+		lon = parseFloat(longitude);
+
 		dataObj.lat = lat;
 		dataObj.lon = lon;
 
@@ -93,27 +97,60 @@ function getElevation(req, res, callback) {
             });
             console.log('returnJson ===='+returnJson);
             callback(returnJson);
-		}
+		}		
 
-		if ( !latitude.match(/^-?\d+\.?\d*$/) || !longitude.match(/^-?\d+\.?\d*$/) ) {
-			
-        	dataObj.statusMessage = 'Invalid latitude or longitude value.';
-			returnError(dataObj, function(ret){
+		if (validate.latLonValue(latitude)) {
+			dataObj.statusMessage = validate.errLat.value;
+
+			returnError(dataObj, function(ret){                                                       
                  returnJson = GeoJSON.parse(ret, {});
             });
-            callback(returnJson);
+            return callback(returnJson);
 		}
 
-		lat = parseFloat(latitude);
-		lon = parseFloat(longitude);
+		if (validate.latLonValue(longitude)) {
+			dataObj.statusMessage = validate.errLon.value;
+
+			returnError(dataObj, function(ret){                                                       
+                 returnJson = GeoJSON.parse(ret, {});
+            });
+            return callback(returnJson);
+		}
+				
+		if (validate.latRange(lat)) {
+			dataObj.statusMessage = validate.errLat.range;
+
+			returnError(dataObj, function(ret){                                                       
+                 returnJson = GeoJSON.parse(ret, {});
+            });
+            return callback(returnJson);
+		}
+
+		if (validate.lonRange(lon)) {
+			dataObj.statusMessage = validate.errLon.range;
+
+			returnError(dataObj, function(ret){                                                       
+                 returnJson = GeoJSON.parse(ret, {});
+            });
+            return callback(returnJson);
+		}
+
+		if (validate.getNumDecimal(lat) > 10) {
+			dataObj.statusMessage = validate.errLat.decimal;
+
+			returnError(dataObj, function(ret){                                                       
+                 returnJson = GeoJSON.parse(ret, {});
+            });
+            return callback(returnJson);
+		}
 		
-		if (lat <= -90 || lat > 90 || lon < -180 || lon > 180) {
-			
-        	dataObj.statusMessage = 'Invalid latitude or longitude value.';
-			returnError(dataObj, function(ret){
+		if (validate.getNumDecimal(lon) > 10) {
+			dataObj.statusMessage = validate.errLon.decimal;
+
+			returnError(dataObj, function(ret){                                                       
                  returnJson = GeoJSON.parse(ret, {});
             });
-            callback(returnJson);
+            return callback(returnJson);
 		}
 
 		if (datatype != 'ned' && datatype != 'ned_1' && datatype != 'ned_2' && datatype != 'ned_13' && datatype != 'globe30' && datatype != 'usgs') {

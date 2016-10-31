@@ -100,7 +100,8 @@ app.get('/contour-demo/', function(req, res, next) {
 });
 
 app.use('/api/contours', function(req, res, next) {
-    if (NODE_ENV === 'LOCAL' || NODE_ENV === 'DEV') {
+
+    if (NODE_ENV === 'LOCAL' || NODE_ENV === 'DEV') { console.log('********************************* ' + NODE_ENV);
         var redURL = req.originalUrl.split('api/contours')[1];
         res.redirect(301, redURL);
     }

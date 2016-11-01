@@ -26,22 +26,6 @@ describe('Elevation API test', function() {
                     done();
                 });
         });
-
-        it('should not return elevation data if lat and lon are not provided', function(done) {
-            request(server)
-                .get('/elevation.json?outputcache=false')
-                .expect('Content-Type', /json/)
-                .expect(400)
-                .end(function(err, res) {
-                    if (err) {
-                        throw err;
-                    }
-
-                    res.body.features[0].properties.should.have.property('statusCode').be.equal('400');
-                    res.body.features[0].properties.should.have.property('statusMessage').be.equal('Invalid parameters.');
-                    done();
-                });
-        });
         
     });
 
@@ -59,6 +43,21 @@ describe('Elevation API test', function() {
                     }
 
                     res.body.features[0].properties.should.have.property('statusMessage').be.equal('Invalid latitude (lat) value.');
+                    done();
+                });
+        });
+
+         it('should not return profile data if lat parameter is not provided', function(done) {
+            request(server)
+                .get('/elevation.json?lon=-98.5&outputcache=false')
+                .expect('Content-Type', /json/)
+                .expect(400)
+                .end(function(err, res) {
+                    if (err) {
+                        throw err;
+                    }
+
+                    res.body.features[0].properties.should.have.property('statusMessage').be.equal('Missing latitude (lat) value.');
                     done();
                 });
         });
@@ -110,6 +109,21 @@ describe('Elevation API test', function() {
                     }
 
                     res.body.features[0].properties.should.have.property('statusMessage').be.equal('Invalid longitude (lon) value.');
+                    done();
+                });
+        });
+
+        it('should not return elevation data if lon is not provided', function(done) {
+            request(server)
+                .get('/elevation.json?lat=38&outputcache=false')
+                .expect('Content-Type', /json/)
+                .expect(400)
+                .end(function(err, res) {
+                    if (err) {
+                        throw err;
+                    }
+
+                    res.body.features[0].properties.should.have.property('statusMessage').be.equal('Missing longitude (lon) value.');
                     done();
                 });
         });
@@ -313,29 +327,7 @@ describe('Elevation API test', function() {
                 });
         });
 
-    });
-
-    describe('all parameters', function() {
-
-        it('should not return elevation data if src, unit, lat, and lon are missing', function(done) {
-
-            request(server)
-                .get('/elevation.json?outputcache=false')
-                .expect('Content-Type', /json/)
-                .expect(400)
-                .end(function(err, res) {
-                    if (err) {
-                        throw err;
-                    }
-
-                    res.body.features[0].properties.should.have.property('statusCode').be.equal('400');
-                    res.body.features[0].properties.should.have.property('statusMessage').be.equal('Invalid parameters.');
-                    done();
-                });
-        });
-
-
-    });
+    });    
 
     describe('format values', function() {
         it('should return JSON format', function(done) {

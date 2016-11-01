@@ -21,6 +21,7 @@ var mathjs = require('mathjs');
 var data_dir = EFS_ELEVATION_DATASET;
 
 var globe_files = require('../data/globe_files.json');
+var validate = require('./validate.js');
 
 var src, lat, lon, lat_all, lon_all, rcamsl, nradial, format, unit, azimuth;
 var  output_data;
@@ -68,23 +69,23 @@ function getProfile(req, res, callback) {
 		if (unit == undefined) {
 			unit = 'm';
 		}
-		
-		if (lat == undefined) {
-			console.log('Missing lat');
-			dataObj.statusMessage = 'Missing lat.';
-			returnError(dataObj, function(ret){                                         
+
+		if (validate.latMissing(lat)) {
+			dataObj.statusMessage = validate.errLat.missing;
+
+			returnError(dataObj, function(ret){                                                       
                  returnJson = GeoJSON.parse(ret, {});
             });
-            return callback(returnJson);			
+            return callback(returnJson);
 		}
-		
-		if (lon == undefined) {
-			console.log('Missing lon');
-			dataObj.statusMessage = 'Missing lon.';
-			returnError(dataObj, function(ret){
+
+		if (validate.lonMissing(lon)) {
+			dataObj.statusMessage = validate.errLon.missing;
+
+			returnError(dataObj, function(ret){                                                       
                  returnJson = GeoJSON.parse(ret, {});
             });
-            return callback(returnJson);			
+            return callback(returnJson);
 		}
 		
 		if (azimuth == undefined) {
@@ -140,18 +141,56 @@ function getProfile(req, res, callback) {
             });
             return callback(returnJson);			
 		}
-		
-		if ( !lat.match(/^-?\d+\.?\d*$/)) {
-			dataObj.statusMessage = 'Invalid lat value.';
-			returnError(dataObj, function(ret){
+
+		if (validate.latLonValue(lat)) {
+			dataObj.statusMessage = validate.errLat.value;
+
+			returnError(dataObj, function(ret){                                                       
+                 returnJson = GeoJSON.parse(ret, {});
+            });
+            return callback(returnJson);
+		}
+
+		if (validate.latLonValue(lon)) {
+			dataObj.statusMessage = validate.errLon.value;
+
+			returnError(dataObj, function(ret){                                                       
+                 returnJson = GeoJSON.parse(ret, {});
+            });
+            return callback(returnJson);
+		}
+				
+		if (validate.latRange(parseFloat(lat))) {
+			dataObj.statusMessage = validate.errLat.range;
+
+			returnError(dataObj, function(ret){                                                       
+                 returnJson = GeoJSON.parse(ret, {});
+            });
+            return callback(returnJson);
+		}
+
+		if (validate.lonRange(parseFloat(lon))) {
+			dataObj.statusMessage = validate.errLon.range;
+
+			returnError(dataObj, function(ret){                                                       
+                 returnJson = GeoJSON.parse(ret, {});
+            });
+            return callback(returnJson);
+		}
+
+		if (validate.getNumDecimal(parseFloat(lat)) > 10) {
+			dataObj.statusMessage = validate.errLat.decimal;
+
+			returnError(dataObj, function(ret){                                                       
                  returnJson = GeoJSON.parse(ret, {});
             });
             return callback(returnJson);
 		}
 		
-		if ( !lon.match(/^-?\d+\.?\d*$/)) {
-			dataObj.statusMessage = 'Invalid lon value.';
-			returnError(dataObj, function(ret){
+		if (validate.getNumDecimal(parseFloat(lon)) > 10) {
+			dataObj.statusMessage = validate.errLon.decimal;
+
+			returnError(dataObj, function(ret){                                                       
                  returnJson = GeoJSON.parse(ret, {});
             });
             return callback(returnJson);

@@ -45,8 +45,8 @@ function getHAAT(req, res, callback) {
 		output_data = [];
 		
 		var url = req.url;
-		var latitude = req.query.lat;
-		var longitude = req.query.lon;
+		// var latitude = req.query.lat;
+		// var longitude = req.query.lon;
 		var returnJson;
 
 		var dataObj = new Object;		
@@ -60,7 +60,7 @@ function getHAAT(req, res, callback) {
 		
 		startTime = new Date().getTime();
 
-		if (validate.latMissing(lat, url)) {
+		if (!url.match(/lat=/i)) {
 			dataObj.statusMessage = validate.errLat.missing;
 
 			returnError(dataObj, function(ret){                                                       
@@ -69,7 +69,7 @@ function getHAAT(req, res, callback) {
             return callback(returnJson);
 		}
 
-		if (validate.lonMissing(lon, url)) {
+		if (!url.match(/lon=/i)) {
 			dataObj.statusMessage = validate.errLon.missing;
 
 			returnError(dataObj, function(ret){                                                       
@@ -129,7 +129,7 @@ function getHAAT(req, res, callback) {
             return callback(returnJson);
 		}
 		
-		if (validate.latLonValue(latitude)) {
+		if (validate.latLonValue(lat)) {
 			dataObj.statusMessage = validate.errLat.value;
 
 			returnError(dataObj, function(ret){                                                       
@@ -138,7 +138,7 @@ function getHAAT(req, res, callback) {
             return callback(returnJson);
 		}
 
-		if (validate.latLonValue(longitude)) {
+		if (validate.latLonValue(lon)) {
 			dataObj.statusMessage = validate.errLon.value;
 
 			returnError(dataObj, function(ret){                                                       

@@ -88,7 +88,7 @@ function getElevation(req, res, callback) {
 			unit = param_unit;
 		}
 		
-		if(!datatype || !unit || !latitude || !longitude){
+		if(!datatype || !unit){
 			
         	dataObj.statusMessage = 'Invalid parameters.';
 			returnError(dataObj, function(ret){
@@ -98,6 +98,24 @@ function getElevation(req, res, callback) {
             console.log('returnJson ===='+returnJson);
             callback(returnJson);
 		}		
+
+		if (validate.latMissing(latitude)) {
+			dataObj.statusMessage = validate.errLat.missing;
+
+			returnError(dataObj, function(ret){                                                       
+                 returnJson = GeoJSON.parse(ret, {});
+            });
+            return callback(returnJson);
+		}
+
+		if (validate.lonMissing(longitude)) {
+			dataObj.statusMessage = validate.errLon.missing;
+
+			returnError(dataObj, function(ret){                                                       
+                 returnJson = GeoJSON.parse(ret, {});
+            });
+            return callback(returnJson);
+		}
 
 		if (validate.latLonValue(latitude)) {
 			dataObj.statusMessage = validate.errLat.value;

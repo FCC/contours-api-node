@@ -14,14 +14,14 @@ var errLon = {
     range: 'Longitude value is out of range (-180 < lon < 180).'
 };
 
-function latMissing(lat, url) {
-    if (!url.match(/lat=/i)) {
+function latMissing(latitude) { 
+    if (latitude === undefined) {
         return true;
     }
 }
 
-function lonMissing(lon, url) {
-    if (!url.match(/lon=/i)) {
+function lonMissing(longitude) {
+    if (longitude === undefined) {
        return true;
     }
 }

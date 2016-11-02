@@ -1,4 +1,4 @@
-var configEnv = require('../config/env.json');
+var dotenv = require('dotenv').load();
 var NODE_ENV = process.env.NODE_ENV;
 var ned_1_files = require('../data/ned_1_files.json');
 var ned_2_files = require('../data/ned_2_files.json');
@@ -6,9 +6,9 @@ var ned_13_files = require('../data/ned_13_files.json');
 var globe_files = require('../data/globe_files.json');
 
 var AWS = require('aws-sdk');
-var AWS_ACCESS_KEY =  configEnv[NODE_ENV].AWS_ACCESS_KEY;
-var AWS_SECRET_KEY = configEnv[NODE_ENV].AWS_SECRET_KEY;
-var AWS_REGION = configEnv[NODE_ENV].AWS_REGION;
+var AWS_ACCESS_KEY =  process.env.AWS_ACCESS_KEY;
+var AWS_SECRET_KEY = process.env.AWS_SECRET_KEY;
+var AWS_REGION = process.env.AWS_REGION;
 
 AWS.config.update({
      accessKeyId: AWS_ACCESS_KEY,

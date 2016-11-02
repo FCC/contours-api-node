@@ -45,3 +45,6 @@ data/ned_2
 # DevOps
 .ebextensions
 app.zip
+
+*.env
+*.env.*

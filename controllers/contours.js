@@ -5,23 +5,12 @@
 
 // **********************************************************
 
-
-//var configEnv = require('../config/env.json');
 var dotenv = require('dotenv').load();
 var NODE_ENV = process.env.NODE_ENV;
 var NODE_PORT =  process.env.NODE_PORT;
 var host =  process.env.HOST;
 var geo_host =  process.env.GEO_HOST;
 var geo_space = process.env.GEO_SPACE;
-//var AWS_ACCESS_KEY =  configEnv[NODE_ENV].AWS_ACCESS_KEY;
-//var AWS_SECRET_KEY = configEnv[NODE_ENV].AWS_SECRET_KEY;
-//var AWS_REGION = configEnv[NODE_ENV].AWS_REGION;
-
-//var CDBS_HOST = configEnv[NODE_ENV].CDBS_HOST;
-//var CDBS_PORT = configEnv[NODE_ENV].CDBS_PORT;
-//var CDBS_DBNAME = configEnv[NODE_ENV].CDBS_DBNAME;
-//var CDBS_USER = configEnv[NODE_ENV].CDBS_USER;
-//var CDBS_PASSWD = configEnv[NODE_ENV].CDBS_PASSWD;
 var EFS_ELEVATION_DATASET = process.env.EFS_ELEVATION_DATASET;
 
 var CONTEXT_PATH = process.env.CONTEXT_PATH || 'api/contours/';
@@ -38,6 +27,8 @@ var math = require('mathjs');
 var haat = require('./haat.js');
 var distance = require('./distance.js');
 var tvfm_curves = require('./tvfm_curves.js');
+var area = require('./area.js');
+var population = require('./population.js');
 
 var data_dir = EFS_ELEVATION_DATASET;
 
@@ -63,7 +54,7 @@ function getContours(req, res, callback) {
 		var nradial = req.query.nradial;
 		var unit = req.query.unit;
 		var erp = req.query.erp;
-		var curve_type = req.query.curve_type;
+		//var curve_type = req.query.curve_type;
 		
 		var field = req.query.field;
 		var channel = req.query.channel;
@@ -77,6 +68,9 @@ function getContours(req, res, callback) {
 		else {
 			pattern = undefined;
 		}
+		
+		var pop = req.query.pop;
+		
 		
 		var dataObj = new Object;		
 		dataObj['status'] = 'error';
@@ -259,8 +253,8 @@ function getContours(req, res, callback) {
             return callback(returnJson);
 		}
 		
-		if ( parseFloat(nradial) <3 || parseFloat(nradial) > 360 ) {
-			dataObj.statusMessage = 'nradial value out of range [3, 360].';
+		if ( parseFloat(nradial) <8 || parseFloat(nradial) > 360 ) {
+			dataObj.statusMessage = 'nradial value out of range [8, 360].';
 			returnError(dataObj, function(ret){                                                       
                  returnJson = GeoJSON.parse(ret, {});
             });
@@ -314,7 +308,7 @@ function getContours(req, res, callback) {
 		
 		//get haat
 		//var url = root_url + "/" + CONTEXT_PATH + "haat.json?lat=" + lat + "&lon=" + lon + "&rcamsl=" + rcamsl + "&nradial=" + nradial + "&src=" + src + "&unit=" + unit + '&outputcache=false';
-		var haat_url = "haat.json?lat=" + lat + "&lon=" + lon + "&rcamsl=" + rcamsl + "&nradial=" + nradial + "&src=" + src + "&unit=" + unit + '&outputcache=false';
+		var haat_url = "haat.json?lat=" + lat + "&lon=" + lon + "&rcamsl=" + rcamsl + "&nradial=" + nradial + "&src=" + src + "&unit=" + unit;
 		
 		console.log('calling HAAT with req='+haat_url);
 
@@ -360,7 +354,6 @@ function getContours(req, res, callback) {
 					if (haat < 30) {
 						haat = 30;
 					}
-					//dist = distance.calTvFmDist(haat_data.features[0].properties.haat_azimuth[i], dbu_curve, curve_type);
 					
 					dist = tvfm_curves.tvfmfs_metric(erp*full_pattern[i], haat, channel_use, field, distance_tmp, fs_or_dist, curve, flag);
 					if (isNaN(dist)) {
@@ -415,16 +408,54 @@ function getContours(req, res, callback) {
 											"code": "4326"
 									}};*/
 
-					console.log('output dataObj='+dataObj);
+					var geom = JSON.stringify({"type": "MultiPolygon", "coordinates": coordinates});
+					
+					area.getArea(geom, function(error, response) {
+						if (error) {
+						console.log("Area API error: ", error)
+							dataObj.area = -999;
+							dataObj.area_unit = response.area_unit;
+						}
+						else {
+							dataObj.area = response.area;
+							dataObj.area_unit = response.area_unit;
+						}
+						
+						
+						if (pop == 'true') {
+							population.getPopulation(geom, function(error, response) {
+								if (error) {
+									dataObj.population = -999;
+								}
+								else {
+									dataObj.population = response.population;
+								}
+								
+								console.log('output dataObj='+dataObj);
 
-					var return_data = [dataObj];
-					
-					GeoJSON.defaults = {MultiPolygon: coordinates, include: ['status','statusCode','statusMessage']};
-					
-					var return_json = GeoJSON.parse(return_data, {MultiPolygon: 'coordinates', include: ['status','statusCode','statusMessage', 
-					'antenna_lat','antenna_lon','field','erp','serviceType','curve','channel','rcamsl','nradial','unit','elevation_data_source','elapsed_time']}); 
-					
-					callback(return_json);
+								var return_data = [dataObj];
+								GeoJSON.defaults = {MultiPolygon: coordinates, include: ['status','statusCode','statusMessage']};
+								
+								var return_json = GeoJSON.parse(return_data, {MultiPolygon: 'coordinates', include: ['status','statusCode','statusMessage', 
+								'antenna_lat','antenna_lon','field','erp','serviceType','curve','channel','rcamsl','nradial','unit','elevation_data_source','area','area_unit','population','elapsed_time']}); 
+								
+								callback(return_json);
+		
+							});
+						}
+						else {
+							console.log('output dataObj='+dataObj);
+							var return_data = [dataObj];
+							GeoJSON.defaults = {MultiPolygon: coordinates, include: ['status','statusCode','statusMessage']};
+							
+							var return_json = GeoJSON.parse(return_data, {MultiPolygon: 'coordinates', include: ['status','statusCode','statusMessage', 
+							'antenna_lat','antenna_lon','field','erp','serviceType','curve','channel','rcamsl','nradial','unit','elevation_data_source','area','area_unit','elapsed_time']}); 
+							
+							callback(return_json);
+						}
+						
+						
+					});
 					
 				}
 			}

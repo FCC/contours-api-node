@@ -402,9 +402,16 @@ app.get('/distance.json', function(req, res){
     });   
 });
 
-/*app.get('/entity.json', function(req, res){
-    entity.getEntity(req, res);
-});*/
+app.get('/entity.json', function(req, res){
+    entity.getEntity(req, res, function(error, response) {
+    if (error) {
+        res.status(400).send({"status": "error", "statusCode": 400, "statusMessage": error});
+    }
+    else  {
+    res.send(response);
+    }
+    });
+});
 
 // **********************************************************
 // error

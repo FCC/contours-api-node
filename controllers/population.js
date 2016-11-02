@@ -4,11 +4,9 @@
 'use strict';
 
 // **********************************************************
-var configEnv = require('../config/env.json');
-var NODE_ENV = process.env.NODE_ENV;
-
-var CONTOURS_PG = configEnv[NODE_ENV].CONTOURS_PG;
-var CONTOURS_SCHEMA = configEnv[NODE_ENV].CONTOURS_SCHEMA;
+var dotenv = require('dotenv').load();
+var CONTOURS_PG = process.env.CONTOURS_PG;
+var CONTOURS_SCHEMA = process.env.CONTOURS_SCHEMA;
 
 var promise = require('bluebird');
 var options = {

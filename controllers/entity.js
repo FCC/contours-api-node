@@ -30,7 +30,9 @@ var options = {
   // Initialization Options
   promiseLib: promise
 };
-var pgp = require('pg-promise')(options);
+var pgp_lms = require('pg-promise')(options);
+var pgp_contours = require('pg-promise')(options);
+
 var contours = require('./contours.js');
 
 
@@ -42,7 +44,7 @@ function getEntity(req, res, callback) {
 
 	console.log('============ getEntity ============');
 	try {
-		var db_lms = pgp(LMS_PG);
+		var db_lms = pgp_lms(LMS_PG);
 		console.log('connected to LMS DB');
 	}
 	catch(e) {
@@ -50,7 +52,7 @@ function getEntity(req, res, callback) {
 	}
 	
 	try {
-		var db_contours = pgp(CONTOURS_PG);
+		var db_contours = pgp_contours(CONTOURS_PG);
 		console.log('connected to CONTOURS DB');
 	}
 	catch(e) {

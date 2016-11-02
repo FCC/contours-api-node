@@ -71,7 +71,7 @@ var cached_param = 'outputcache';
 // **********************************************************
 // log
 
-var logDirectory = __dirname + '/log';
+var logDirectory = path.join(__dirname,'/log');
 
 fs.existsSync(logDirectory) || fs.mkdirSync(logDirectory);
 
@@ -92,8 +92,8 @@ app.use(bodyparser.urlencoded({ extended: false }));
 // **********************************************************
 // route
 
-app.use('/', express.static(__dirname + '/public'));
-app.use('/contour-demo', express.static(__dirname + '/public/contour-demo.html'));
+app.use('/', express.static(path.join(__dirname, '/public')));
+app.use('/contour-demo', express.static(path.join(__dirname ,'/public/contour-demo.html')));
 
 app.get('/contour-demo/', function(req, res, next) {   
     res.redirect(301, '/api/contours/contour-demo');        
@@ -114,7 +114,7 @@ app.param('uuid', function(req, res, next, uuid){
     if(!serverCheck.checkUUID(uuid)){
         return serverSend.sendErr(res, 'json', 'not_found');
     } else {
-        next();
+        return next();
     }
 })
 
@@ -127,11 +127,11 @@ app.param('ext', function(req, res, next, ext) {
         if(!serverCheck.checkExt(ext)){
             return serverSend.sendErr(res, 'json', 'invalid_ext');
         } else {
-            next();
+            return next();
         }
     }
     else {
-        next();
+        return next();
     }
 });
 
@@ -428,7 +428,7 @@ app.use(function(req, res) {
 
     res.status(404);
     // res.sendFile('/public/404.html');
-    res.sendFile('404.html', { root: __dirname + '/public' });
+    res.sendFile('404.html', { root: path.join(__dirname, '/public')});
     // res.send(err_res);    
 });
 
@@ -445,7 +445,7 @@ app.use(function(err, req, res, next) {
     };  
     
     res.status(500);
-    res.sendFile('500.html', { root: __dirname + '/public' });
+    res.sendFile('500.html', { root: path.join(__dirname, '/public')});
     // res.send(err_res);
 });
 
@@ -470,7 +470,7 @@ function getCachedData(req, req_key, success){
     var outputcache = req.query.outputcache;
     console.log('Cache req_key = '+req_key);
     console.log('outputcache param = '+outputcache);
-    if(outputcache && outputcache == 'false'){
+    if(outputcache && outputcache === 'false'){
         return success(null, null);
     }
     else {
@@ -498,7 +498,7 @@ function getElevationData(req, res, success) {
         console.error('\n\n getElevationData err '+err);  
         return success(err, null);
     }  
-};
+}
 
 function getHaatData(req, res, success) {
     console.log('app getHaatData');
@@ -515,7 +515,7 @@ function getHaatData(req, res, success) {
         console.error('\n\n getHaatData err '+err);  
         return success(err, null);
     }  
-};
+}
 
 function getProfileData(req, res, success) {
     console.log('app getProfileData');
@@ -532,7 +532,7 @@ function getProfileData(req, res, success) {
         console.error('\n\n getProfileData err '+err);  
         return success(err, null);
     }  
-};
+}
 
 function getCoverageData(req, res, success) {
     console.log('app getCoverageData');
@@ -549,7 +549,7 @@ function getCoverageData(req, res, success) {
         console.error('\n\n getCoverageData err '+err);  
         return success(err, null);
     }  
-};
+}
 
 function getDistanceData(req, res, success) {
     console.log('app getDistanceData');
@@ -566,7 +566,7 @@ function getDistanceData(req, res, success) {
         console.error('\n\n getCoverageData err '+err);  
         return success(err, null);
     }  
-};
+}
 
 function getContourData(req, res, success) {
     console.log('app getContourData');

@@ -14,8 +14,8 @@ var geo_space = process.env.GEO_SPACE;
 var EFS_ELEVATION_DATASET = process.env.EFS_ELEVATION_DATASET;
 
 var CONTEXT_PATH = process.env.CONTEXT_PATH || 'api/contours/';
-if (NODE_ENV == 'DEV' || NODE_ENV == 'LOCAL') {
-	var CONTEXT_PATH = '';
+if (NODE_ENV === 'DEV' || NODE_ENV === 'LOCAL') {
+	CONTEXT_PATH = '';
 }
 
 var fs = require('fs');
@@ -79,7 +79,7 @@ function getContours(req, res, callback) {
 
 		GeoJSON.defaults = {Point: ['lat', 'lon'], include: ['status','statusCode','statusMessage']};
 		
-		if (serviceType == undefined) {
+		if (serviceType === undefined) {
 			console.log('Missing serviceType');
 			dataObj.statusMessage = 'Missing serviceType.';
 			returnError(dataObj, function(ret){
@@ -101,14 +101,14 @@ function getContours(req, res, callback) {
             return callback(returnJson);
 		}
 		
-		if (src == undefined) {
+		if (src === undefined) {
 			src = 'ned_1';
 		}
-		if (unit == undefined) {
+		if (unit === undefined) {
 			unit = 'm';
 		}
 		
-		if (lat == undefined) {			
+		if (lat === undefined) {			
 			dataObj.statusMessage = 'Missing lat parameter.';
 			returnError(dataObj, function(ret){                                                       
                  returnJson = GeoJSON.parse(ret, {});
@@ -116,7 +116,7 @@ function getContours(req, res, callback) {
             return callback(returnJson);
 		}
 		
-		if (lon == undefined) {
+		if (lon === undefined) {
 			dataObj.statusMessage = 'Missing lon parameter.';
 			returnError(dataObj, function(ret){                                                       
                  returnJson = GeoJSON.parse(ret, {});
@@ -124,7 +124,7 @@ function getContours(req, res, callback) {
             return callback(returnJson);
 		}
 		
-		if (nradial == undefined) {
+		if (nradial === undefined) {
 			dataObj.statusMessage = 'Missing nradial parameter.';
 			returnError(dataObj, function(ret){                                                       
                  returnJson = GeoJSON.parse(ret, {});
@@ -132,7 +132,7 @@ function getContours(req, res, callback) {
             return callback(returnJson);
 		}
 		
-		if (rcamsl == undefined) {
+		if (rcamsl === undefined) {
 			dataObj.statusMessage = 'Missing rcamsl parameter.';
 			returnError(dataObj, function(ret){                                                       
                  returnJson = GeoJSON.parse(ret, {});
@@ -140,7 +140,7 @@ function getContours(req, res, callback) {
             return callback(returnJson);
 		}
 		
-		if (field == undefined) {
+		if (field === undefined) {
 			dataObj.statusMessage = 'Missing field parameter.';
 			returnError(dataObj, function(ret){                                                       
                  returnJson = GeoJSON.parse(ret, {});
@@ -148,7 +148,7 @@ function getContours(req, res, callback) {
             return callback(returnJson);
 		}
 		
-		if (erp == undefined) {
+		if (erp === undefined) {
 			dataObj.statusMessage = 'Missing erp parameter.';
 			returnError(dataObj, function(ret){                                                       
                  returnJson = GeoJSON.parse(ret, {});
@@ -156,7 +156,7 @@ function getContours(req, res, callback) {
             return callback(returnJson);			
 		}
 		
-		if (serviceType == 'tv' && (channel == undefined || channel == '')) {
+		if (serviceType === 'tv' && (channel === undefined || channel === '')) {
 			dataObj.statusMessage = 'Missing channel parameter.';
 			returnError(dataObj, function(ret){                                                       
                  returnJson = GeoJSON.parse(ret, {});
@@ -164,7 +164,7 @@ function getContours(req, res, callback) {
             return callback(returnJson);			
 		}
 		
-		if (curve == undefined) {
+		if (curve === undefined) {
 			dataObj.statusMessage = 'Missing curve parameter.';
 			returnError(dataObj, function(ret){                                                       
                  returnJson = GeoJSON.parse(ret, {});
@@ -289,17 +289,17 @@ function getContours(req, res, callback) {
 		lon = parseFloat(lon);
 		field = parseFloat(field);
 		erp = parseFloat(erp);
-		if (channel != undefined) {
-			channel = parseInt(channel);
+		if (channel !== undefined) {
+			channel = parseInt(channel);//Missing radix parameter
 		}
 		rcamsl = parseFloat(rcamsl);
-		nradial = parseInt(nradial);
-		curve = parseInt(curve);
+		nradial = parseInt(nradial);//Missing radix parameter
+		curve = parseInt(curve);//Missing radix parameter
 		
 		var full_pattern = getFullAntennaPattern(nradial, pattern);
 		
 		var hostname = req.hostname;
-		if (hostname == "localhost" || hostname == "127.0.0.1") {
+		if (hostname === "localhost" || hostname === "127.0.0.1") {
 			hostname = hostname + ":" + NODE_PORT;
 		}
 		console.log(req.protocol);
@@ -322,7 +322,7 @@ function getContours(req, res, callback) {
 				console.log('data returned from HAAT');
 				console.log('statusCode='+haat_data.features[0].properties.statusCode);
 
-				if (haat_data.features[0].properties.statusCode + '' != "200"){
+				if (haat_data.features[0].properties.statusCode + '' !== "200"){
 					console.log('HAAT error: ' + haat_data.features[0].properties.statusMessage);				
 					dataObj.statusMessage = haat_data.features[0].properties.statusMessage;
 					returnError(dataObj, function(ret){                                                       
@@ -343,7 +343,7 @@ function getContours(req, res, callback) {
 				var fs_or_dist = 2;
 				var flag = [];
 				var channel_use = channel;
-				if (serviceType == 'fm') {
+				if (serviceType === 'fm') {
 					channel_use = 6;
 				}
 				for (var i = 0; i < haat_data.features[0].properties.haat_azimuth.length; i++) {
@@ -369,7 +369,7 @@ function getContours(req, res, callback) {
 						dist = 1;
 					}
 					latlon = getLatLonFromDist(lat, lon, haat_data.features[0].properties.azimuth[i], dist);
-					if (i == 0) {
+					if (i === 0) {
 						latlon_1st = latlon;
 					}
 		
@@ -422,7 +422,7 @@ function getContours(req, res, callback) {
 						}
 						
 						
-						if (pop == 'true') {
+						if (pop === 'true') {
 							population.getPopulation(geom, function(error, response) {
 								if (error) {
 									dataObj.population = -999;
@@ -451,7 +451,7 @@ function getContours(req, res, callback) {
 							var return_json = GeoJSON.parse(return_data, {MultiPolygon: 'coordinates', include: ['status','statusCode','statusMessage', 
 							'antenna_lat','antenna_lon','field','erp','serviceType','curve','channel','rcamsl','nradial','unit','elevation_data_source','area','area_unit','elapsed_time']}); 
 							
-							callback(return_json);
+							return callback(return_json);
 						}
 						
 						
@@ -483,7 +483,7 @@ function getContours(req, res, callback) {
 
 function getNumDecimal(a) {
 	var dum = (parseFloat(a) + '').split('.');
-	if (dum.length == 2) {
+	if (dum.length === 2) {
 		return dum[1].length;
 	}
 
@@ -522,7 +522,7 @@ function getFullAntennaPattern(nradial, pattern) {
 	var i, j, j1, j2, az, az1, az2, field, field1, field2;
 	
 	var full_pattern = [];
-	if (pattern == undefined) {
+	if (pattern === undefined) {
 		for (i = 0; i < nradial; i++) {
 			full_pattern.push(1);
 		}
@@ -552,7 +552,7 @@ function getFullAntennaPattern(nradial, pattern) {
 				j2 = j + 1;
 			}
 		}
-		if (j1 == -1) {
+		if (j1 === -1) {
 			j1 = azimuths.length-1;
 			j2 = 0;
 		}

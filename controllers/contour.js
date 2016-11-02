@@ -123,7 +123,32 @@ function getContour(req, res, callback) {
 	}
 
 	if (serviceType == 'am') {
-		filter += '+AND+contour_level=' + contour_level + '+AND+time_period=\'' + timePeriod + '\'';
+		if(idType == 'applicationid'){
+			var ret_obj = {
+				'status': 400,
+				'type': 'Invalid Input',
+				'err': 'applicationid is not a valid idType for am services'      
+			};  
+			return callback(ret_obj, null);
+		}else if(idType == 'filenumber'){
+			var ret_obj = {
+				'status': 400,
+				'type': 'Invalid Input',
+				'err': 'filenumber is not a valid idType for am services'      
+			};  
+			return callback(ret_obj, null);
+		}else{
+			filter += '+AND+contour_level=' + contour_level + '+AND+time_period=\'' + timePeriod + '\'';
+		}
+	}else if(serviceType != 'am'){
+		if(idType == 'antennaid'){
+			var ret_obj = {
+				'status': 400,
+				'type': 'Invalid Input',
+				'err': 'antennaid is not a valid idType for fm or tv services'      
+			};  
+			return callback(ret_obj, null);
+		}
 	}
 	
 	console.log('filter ' + filter);

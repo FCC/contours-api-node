@@ -581,11 +581,15 @@ function formatHAAT(dataObj) {
 		}
 		if (unit == "ft") {
 			haat_total = Math.round(100 * haat_total * feet_per_meter) / 100;
-			elev_av = Math.round(100 * elev_av * feet_per_meter) / 100;
+			for(i=0;i<elev_av.length; i++){
+				elev_av[i] = Math.round(100 * elev_av[i] * feet_per_meter) / 100;
+			}
 		}
 		else if (unit == "mi") {
 			haat_total = Math.round(100000 * haat_total * miles_per_meter) / 100000;
-			elev_av = Math.round(100000 * elev_av * miles_per_meter) / 100000;
+			for(i=0;i<elev_av.length;i++){
+				elev_av[i] = Math.round(100000 * elev_av[i] * miles_per_meter) / 100000;
+			}
 		}
 		
 	}

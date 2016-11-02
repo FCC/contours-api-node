@@ -214,7 +214,7 @@ function getEntity(req, res, callback) {
 		
 		q += " ORDER BY application_id DESC";
 		
-		console.log(q);
+		console.log('serviceType '+serviceType+ ' query='+q);
 		
 		
 		db_lms.any(q)
@@ -233,7 +233,7 @@ function getEntity(req, res, callback) {
 				return;
 			}
 			
-			console.log(recordData1);
+			console.log('Query Results='+recordData1);
 			
 			var recordData = recordData1[0];
 			
@@ -481,7 +481,7 @@ function getEntity(req, res, callback) {
 				
 				//get antenna patetrn for directional antenna
 				q = "SELECT * FROM " + LMS_SCHEMA + ".gis_ant_pattern WHERE antenna_id = " + recordData.antenna_id + " ORDER BY azimuth";
-				//console.log(q)
+				console.log('antenna patetrn for directional antenna Query='+q);
 				
 				db_lms.any(q)
 				.then(function (data) {
@@ -678,7 +678,7 @@ function callCoverage(res, root_url, inputData, pattern) {
 
 var getOneContour = function (db_contours, db_lms, queryParams, recordData, callback) {
 
-console.log(recordData)
+console.log('getOneContour recordData='+recordData);
 
 	if ([recordData.lat_deg,
 	recordData.lat_min,
@@ -905,18 +905,18 @@ console.log(recordData)
 		
 		//get antenna patetrn for directional antenna
 		q = "SELECT * FROM " + LMS_SCHEMA + ".gis_ant_pattern WHERE antenna_id = " + recordData.antenna_id + " ORDER BY azimuth";
-		console.log(q)
+		console.log('antenna patetrn Query='+q);
 		
 		db_lms.any(q)
 		.then(function (data) {
-			console.log('pattern', data)
+			console.log('Query data [pattern] =', data)
 			var pattern = getPatternString(data);
 			
 			var url = "coverage.json?serviceType=" + inputData.serviceType + "&lat=" + inputData.lat + "&lon=" + inputData.lon +
 					"&nradial=" + inputData.nradial + "&rcamsl=" + inputData.rcamsl + "&field=" + inputData.field + "&channel=" + inputData.channel +
-					"&erp=" + inputData.erp + "&curve=" + inputData.curve + "&src=" + inputData.src + "&unit=" + inputData.unit + "&pattern=" + pattern;
+					"&erp=" + inputData.erp + "&curve=" + inputData.curve + "&src=" + inputData.src + "&unit=" + inputData.unit + "&pattern=" + pattern+'&outputcache=false';
 
-			console.log(url);
+			console.log('coverage API URL='+url);
 			
 			var contours_req = new Object;
 			
@@ -939,7 +939,7 @@ console.log(recordData)
 					}
 				};
 				
-			console.log(contours_req)
+			console.log('contours_req='+contours_req);
 			
 			try {
 				console.log('in try')

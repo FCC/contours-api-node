@@ -183,7 +183,7 @@ function getContour(req, res, callback) {
 			
 			var content_type = response.headers['content-type'];
 			
-			if ((!response.statusCode == 200))  {			
+			if ((!response.statusCode === 200))  {			
 			
 				console.error('response.statusCode : ' + response.statusCode);
 			
@@ -194,7 +194,7 @@ function getContour(req, res, callback) {
 				return callback(ret_obj, null);
 			
 			}
-			else if (content_type == 'text/xml;charset=UTF-8')  {			
+			else if (content_type === 'text/xml;charset=UTF-8')  {			
 			
 				console.error('content_type : ' + content_type);
 			
@@ -209,7 +209,7 @@ function getContour(req, res, callback) {
 				var content_ext = format;
 				var content_disp = '';
 				
-				if (format == 'shp') {
+				if (format === 'shp') {
 					content_ext = 'zip';
 					content_disp = 'attachment';
 				}							

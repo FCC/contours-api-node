@@ -29,6 +29,7 @@ var distance = require('./distance.js');
 var tvfm_curves = require('./tvfm_curves.js');
 var area = require('./area.js');
 var population = require('./population.js');
+var validate = require('./validate.js');
 
 var data_dir = EFS_ELEVATION_DATASET;
 
@@ -269,7 +270,7 @@ function getContours(req, res, callback) {
             return callback(returnJson);
 		}
 		
-		if (getNumDecimal(lat) > 10) {
+		if (validate.getNumDecimal(lat) > 10) {
 			dataObj.statusMessage = 'Number of decimal places for lat is larger than 10.';
 			returnError(dataObj, function(ret){                                                       
                  returnJson = GeoJSON.parse(ret, {});
@@ -277,7 +278,7 @@ function getContours(req, res, callback) {
             return callback(returnJson);
 		}
 		
-		if (getNumDecimal(lon) > 10) {
+		if (validate.getNumDecimal(lon) > 10) {
 			dataObj.statusMessage = 'Number of decimal places for lon is larger than 10.';
 			returnError(dataObj, function(ret){                                                       
                  returnJson = GeoJSON.parse(ret, {});
@@ -479,15 +480,6 @@ function getContours(req, res, callback) {
         return callback(returnJson);
 	}
 
-}
-
-function getNumDecimal(a) {
-	var dum = (parseFloat(a) + '').split('.');
-	if (dum.length === 2) {
-		return dum[1].length;
-	}
-
-	return 0
 }
 
 function getLatLonFromDist(lat1, lon1, az, d) {

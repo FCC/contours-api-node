@@ -22,7 +22,7 @@ if (NODE_ENV == 'DEV' || NODE_ENV == 'LOCAL') {
 	var CONTEXT_PATH = '';
 }
 
-
+var async = require('async');
 var request = require('request');
 var mathjs = require('mathjs');
 var promise = require('bluebird');
@@ -66,8 +66,12 @@ function getEntity(req, res, callback) {
 	var src = req.query.src;
 	var nradial = req.query.nradial;
 	var pop = req.query.pop;
+	var area = req.query.area;
 	if (pop === undefined) {
 		pop = '';
+	}
+	if (area === undefined) {
+		area = '';
 	}
 	
 	var i;
@@ -93,23 +97,32 @@ function getEntity(req, res, callback) {
 		return;
 	}
 	
+	var v3 = [callsign, facilityId, applicationId];
+		var numDefined = 0;
+	for (i = 0; i < v3.length; i++) {
+		if (v3[i] !== undefined) {
+			numDefined++;
+		}
+	}
 	
-	if (callsign != undefined && facilityId != undefined) {
-		console.log('both callsign and facilityId provided');
+	console.log(v3, numDefined);
+	
+	if (numDefined === 0) {
+		console.log('must provide one of callsign, facilityId, or applicationId');
 		res.status(400).send({
 			'status': 'error',
 			'statusCode':'400',
-			'statusMessage': 'Both callsign and facilityId provided.'
+			'statusMessage': 'must provide one of callsign, facilityId, or applicationId.'
 		});
 		return;
 	}
 	
-	if ( (callsign == undefined || callsign == '') && (facilityId == undefined || facilityId == '') ) {
-		console.log('callsign/facilityId not provided');
+	if (numDefined > 1) {
+		console.log('should provide only one of callsign, facilityId, or applicationId');
 		res.status(400).send({
 			'status': 'error',
 			'statusCode':'400',
-			'statusMessage': 'callsign and facilityId not provided.'
+			'statusMessage': 'should provide only one of callsign, facilityId, or applicationId.'
 		});
 		return;
 	}
@@ -120,17 +133,6 @@ function getEntity(req, res, callback) {
 			'status': 'error',
 			'statusCode':'400',
 			'statusMessage': 'Invalid facilityId value.'
-		});
-		return;
-	
-	}
-	
-	if (applicationId != undefined && !applicationId.match(/^\d+$/)) {
-		console.log('invalid applicationId value');
-		res.status(400).send({
-			'status': 'error',
-			'statusCode':'400',
-			'statusMessage': 'Invalid applicationId value'
 		});
 		return;
 	}
@@ -165,12 +167,12 @@ function getEntity(req, res, callback) {
 		return;
 	}
 	
-	if ( parseFloat(nradial) <3 || parseFloat(nradial) > 360 ) {
-		console.log('nradial value out of range [3, 360]');
+	if ( parseFloat(nradial) <8 || parseFloat(nradial) > 360 ) {
+		console.log('nradial value out of range [8, 360]');
 		res.status(400).send({
 		'status': 'error',
 		'statusCode':'400',
-		'statusMessage': 'nradial value out of range [3, 360].'
+		'statusMessage': 'nradial value out of range [8, 360].'
 		});
 		return;		
 	}
@@ -209,7 +211,7 @@ function getEntity(req, res, callback) {
 			q = "SELECT a.*, b.* from " + LMS_SCHEMA + ".gis_facility a, " + eng_data_table + " b where a.facility_id = b.facility_id and a.fac_callsign = '" + callsign + "'";
 		}
 		if (applicationId != undefined) {
-			q += " and application_id = " + applicationId;
+			q = "SELECT a.*, b.* from " + LMS_SCHEMA + ".gis_facility a, " + eng_data_table + " b where a.facility_id = b.facility_id and b.application_id = '" + applicationId + "'";
 		}
 		
 		q += " ORDER BY application_id DESC";
@@ -225,29 +227,61 @@ function getEntity(req, res, callback) {
 				return;
 			}
 			
-			var recordData1 = getRecord(serviceType, data);
+			var recordData = getRecord(serviceType, data);
 			
-			if (recordData1.length == 0) {
+			console.log('recorddata', JSON.stringify(recordData))
+			
+			if (recordData.length == 0) {
 				console.log('A valid licensed record could not be found');
 				callback('A valid licensed record could not be found', null)
 				return;
 			}
 			
-			console.log('Query Results='+recordData1);
+			console.log('Query Results='+recordData);
 			
-			var recordData = recordData1[0];
+			var asyncTasks = [];
+			for (i = 0; i < recordData.length; i++) {
+				asyncTasks.push(getOneContour(db_contours, db_lms, queryParams, recordData[i]));
+			}
 			
-			getOneContour(db_contours, db_lms, queryParams, recordData, function(error, data) {
+			console.log('async task=', asyncTasks)
+			
+			async.parallel(asyncTasks, function(error, result){
+				console.log("all done");
+				
+				//console.log(result)
 				if (error) {
-					callback(error, null);
-				}
-				else {
-				callback(null, data);
+					callback(error, []);
 				
 				}
-			
-			
+				else {
+				
+					var features = [];
+					for (i = 0; i < result.length; i++) {
+						features.push(result[i].features[0])
+					}
+					features.sort(function(a,b) {return a.properties.area - b.properties.area;});
+					var contours = {type: "FeatureCollection", "features": features};
+				
+					callback(null, contours);
+				}
+				
 			});
+			
+			
+			
+			
+			// getOneContour(db_contours, db_lms, queryParams, recordData, function(error, data) {
+				// if (error) {
+					// callback(error, null);
+				// }
+				// else {
+				// callback(null, data);
+				
+				// }
+			
+			
+			// });
 			
 			
 			
@@ -492,6 +526,14 @@ function getEntity(req, res, callback) {
 							"&nradial=" + inputData.nradial + "&rcamsl=" + inputData.rcamsl + "&field=" + inputData.field + "&channel=" + inputData.channel +
 							"&erp=" + inputData.erp + "&curve=" + inputData.curve + "&src=" + inputData.src + "&unit=" + inputData.unit + "&pattern=" + pattern;
 
+					if (area === 'true') {
+						url += "&area=true";
+					}
+					if (pop === 'true') {
+						url += "&pop=true";
+					}
+					
+							
 					console.log(url);
 					
 					var contours_req = new Object;
@@ -563,7 +605,7 @@ function getRecord(serviceType, data) {
 	
 
 	for (i = 0; i < data.length; i++) {
-		if (serviceType == 'tv' && data[i].vsd_service == 'DT' && data[i].tv_dom_status == 'LIC' && (data[i].eng_record_type == 'C')) {
+		if (serviceType == 'tv' && data[i].tv_dom_status == 'LIC' && (data[i].eng_record_type == 'C')) {
 			recordIndex.push(i);
 		}
 		if (serviceType == 'fm' && data[i].asd_service == 'FM' && data[i].fm_dom_status == 'LIC' && data[i].eng_record_type == 'C') {
@@ -676,7 +718,7 @@ function callCoverage(res, root_url, inputData, pattern) {
 }
 
 
-var getOneContour = function (db_contours, db_lms, queryParams, recordData, callback) {
+var getOneContour = function (db_contours, db_lms, queryParams, recordData) {return function(callback) {
 
 console.log('getOneContour recordData='+recordData);
 
@@ -745,7 +787,7 @@ console.log('getOneContour recordData='+recordData);
 	var channel_use = recordData.station_channel;
 	
 	var isDigitalTv = false;
-	if (recordData.vsd_service == 'DT') {
+	if (recordData.vsd_service[0] === 'D') {
 		isDigitalTv = true;
 	}
 	var curve_use = 0;
@@ -869,6 +911,8 @@ console.log('getOneContour recordData='+recordData);
 			"callsign": recordData.fac_callsign,
 			"facilityId": recordData.facility_id,
 			"applicationId": recordData.application_id,
+			"antenna_id": recordData.antenna_id,
+			"antenna_type": recordData.antenna_type,
 			"service": service_use,
 			"dom_status": dom_status_use,
 			"eng_record_type": eng_record_type_use,
@@ -950,6 +994,9 @@ console.log('getOneContour recordData='+recordData);
 					properties.callsign = inputData.callsign;
 					properties.facility_id = inputData.facilityId;
 					properties.application_id = inputData.applicationId;
+					properties.antenna_id = inputData.antenna_id;
+					properties.antenna_type = inputData.antenna_type;
+					properties.service = inputData.service;
 					for (var key in data.features[0].properties) {
 						properties[key] = data.features[0].properties[key];
 					}
@@ -980,7 +1027,7 @@ console.log('getOneContour recordData='+recordData);
 		return;
 	});
 				
-};
+}};
 
 
 

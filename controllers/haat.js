@@ -183,8 +183,8 @@ function getHAAT(req, res, callback) {
             return callback(returnJson);
 		}
 
-		if ( parseFloat(nradial) <1 || parseFloat(nradial) > 360 ) {
-			dataObj.statusMessage = 'nradial value out of range.';
+		if ( parseFloat(nradial) <8 || parseFloat(nradial) > 360 ) {
+			dataObj.statusMessage = 'nradial value out of range [8-360].';
             returnError(dataObj, function(ret){
                  returnJson = GeoJSON.parse(ret, {});
             });

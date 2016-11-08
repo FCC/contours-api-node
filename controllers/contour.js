@@ -79,19 +79,19 @@ function getContour(req, res, callback) {
 
 	// **********************************************************
 
-	var stationClass = 'b'; //default
+	var stationClass = 'B'; //default
 	var timePeriod = 'daytime'; //default
 	var contour_level = 0.5;
 
 	if (serviceType === 'am') {
 	
-		if (req.params.stationClass) {
-			stationClass = req.params.stationClass.toLowerCase();
+		if (req.query.stationClass) {
+			stationClass = req.query.stationClass.toUpperCase();
 		}
-		if (req.params.timePeriod) {
-			timePeriod = req.params.timePeriod + 'time'.toLowerCase();
+		if (req.query.timePeriod) {
+			timePeriod = req.query.timePeriod + 'time'.toLowerCase();
 		}		
-		if (stationClass === 'a') {
+		if (stationClass === 'A') {
 			contour_level = 0.025;
 		}
 		// b, c, d = 0.5
@@ -128,25 +128,25 @@ function getContour(req, res, callback) {
 			ret_obj = {
 				'status': 400,
 				'type': 'Invalid Input',
-				'err': 'applicationid is not a valid idType for am services'      
+				'err': 'applicationid is not a valid idType for AM services'      
 			};  
 			return callback(ret_obj, null);
 		}else if(idType === 'filenumber'){
 			ret_obj = {
 				'status': 400,
 				'type': 'Invalid Input',
-				'err': 'filenumber is not a valid idType for am services'      
+				'err': 'filenumber is not a valid idType for AM services'      
 			};  
 			return callback(ret_obj, null);
 		}else{
-			filter += '+AND+contour_level=' + contour_level + '+AND+time_period=\'' + timePeriod + '\'';
+			filter += '+AND+contour_level=' + contour_level + '+AND+time_period=\'' + timePeriod + '\'+AND+class=\''+stationClass+'\'';
 		}
 	}else if(serviceType !== 'am'){
 		if(idType === 'antennaid'){
 			ret_obj = {
 				'status': 400,
 				'type': 'Invalid Input',
-				'err': 'antennaid is not a valid idType for fm or tv services'      
+				'err': 'antennaid is not a valid idType for FM or TV services'      
 			};  
 			return callback(ret_obj, null);
 		}

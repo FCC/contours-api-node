@@ -76,7 +76,7 @@
                 type: "GET",
                 dataType: "json",
                 success: function(data) {
-                    var paramsData = data.paths['/{serviceType}/{idType}/{idValue}.{format}'].get.parameters;
+                    var paramsData = data.paths['/entity.{format}'].get.parameters;
 
                     OPIFContourForm.createTemplate(paramsData);
                 }

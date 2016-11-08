@@ -9,33 +9,24 @@
     var ContourMap = {
         getContour: function() {
             var contourAPI = '';
-            var apiURL = [];
+            // var apiURL = [];
             var apiType = $('#apiType').val();
             var serviceType = $('#serviceType').val();
             var amParams = '';
 
             if (apiType === 'contoursOPIF') {
-                $('.fields-' + apiType).find(':input').not('button').each(function(element, value) {
-                    apiURL.push(this.value);
-                });
-
-                contourAPI = apiURL.slice(0, 3).join('/') + '.json';    
-
-                if ($('#ent-serviceType').val() === 'am') {
-                    contourAPI += '?stationClass=' + apiURL[3] + '&timePeriod=' + apiURL[4];    
-                }                
-
+                contourAPI = './entity.json?';
+                contourAPI += $('.fields-contoursOPIF').find('input, select').serialize();
             } else {
                 contourAPI = './coverage.json?';
                 contourAPI += $('.fields-contoursEnterprise').find('input, select').serialize();
             }
 
-
-            if (serviceType === 'am') {
+            /*if (serviceType === 'am') {
                 amParams = '?' + $('#form-params').serialize().split('&').slice(3, 5).join('&');
                 contourAPI += amParams;
-            }
-
+            }*/
+            
             APIResponse.url = contourAPI;
 
             $.ajax({

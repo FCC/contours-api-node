@@ -18,8 +18,8 @@
                 "description": "Get contour based on serviceType (TV or FM), idType (callsign, applicationid, fileNumber, antennaid), and idValue. Response returned in GeoJSON, JSONP, Shapefile, KML, GML, CSV.",
                 "parameters": [{
                     "name": "serviceType",
-                    "label": "Service Type",
-                    "display": true,
+                    "x-label": "Service Type",
+                    "x-display": true,
                     "in": "query",
                     "description": "Type of broadcast service. <br /><br />Valid values: tv or fm",
                     "required": true,
@@ -31,8 +31,8 @@
                     ]
                 }, {
                     "name": "callsign",
-                    "label": "Call Sign",
-                    "display": true,
+                    "x-label": "Call Sign",
+                    "x-display": true,
                     "in": "query",
                     "description": "Set of characters that serve as the public identification for a broadcast radio or television station.<br /><br /><b>Must provide callsign, facilityid, or applicationid</b>.",
                     "required": false,
@@ -40,8 +40,8 @@
                     "default": ""                    
                 }, {
                     "name": "facilityid",
-                    "label": "Facility ID",
-                    "display": true,
+                    "x-label": "Facility ID",
+                    "x-display": true,
                     "in": "query",
                     "description": "The unique integer number that identifies a station.<br /><br /><b>Must provide callsign, facilityid, or applicationid</b>.",
                     "required": false,
@@ -49,8 +49,8 @@
                     "default": ""                    
                 }, {
                     "name": "applicationid",
-                    "label": "Application ID",
-                    "display": true,
+                    "x-label": "Application ID",
+                    "x-display": true,
                     "in": "query",
                     "description": "Unique ID assigned to an application.<br /><br /><b>Must provide callsign, facilityid, or applicationid</b>.",
                     "required": false,
@@ -58,8 +58,8 @@
                     "default": ""                    
                 }, {
                     "name": "nradial",
-                    "label": "Number of Radials",
-                    "display": true,
+                    "x-label": "Number of Radials",
+                    "x-display": true,
                     "in": "query",
                     "description": "Number of radials",
                     "required": true,
@@ -67,8 +67,8 @@
                     "default": ""
                 }, {
                     "name": "pop",
-                    "label": "Population",
-                    "display": true,
+                    "x-label": "Population",
+                    "x-display": true,
                     "in": "query",
                     "description": "Population calculation",
                     "required": false,
@@ -80,8 +80,8 @@
                     ]
                 }, {
                     "name": "area",
-                    "label": "Coverage Area",
-                    "display": true,
+                    "x-label": "Coverage Area",
+                    "x-display": true,
                     "in": "query",
                     "description": "Coverage area",
                     "required": false,
@@ -93,8 +93,8 @@
                     ]
                 }, {
                     "name": "src",
-                    "label": "Source",
-                    "display": true,
+                    "x-label": "Source",
+                    "x-display": true,
                     "in": "query",
                     "description": "Data source.",
                     "required": false,
@@ -110,8 +110,8 @@
                     ]
                 }, {
                     "name": "format",
-                    "label": "Format",
-                    "display": false,
+                    "x-label": "Format",
+                    "x-display": false,
                     "in": "path",
                     "description": "Format for the returned results.<br /><br />Valid values: json, jsonp, shp, kml, gml, csv. Shapefiles (.shp) download as zip archive (.zip). <br /><br />Defaults to json.",
                     "required": true,

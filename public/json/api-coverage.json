@@ -17,90 +17,90 @@
                 "description": "Get contour based on serviceType (FM, TV). Response returned in GeoJSON, JSONP, Shapefile, KML, GML, CSV.",
                 "parameters": [{
                     "name": "serviceType",
-                    "label": "Service Type",
-                    "display": true,
+                    "x-label": "Service Type",
+                    "x-display": true,
                     "in": "query",
                     "description": "Type of broadcast service. <br /><br />Valid values: tv, fm",
                     "required": true,
                     "type": "string",
-                    "defaultValue": "tv",
+                    "default": "",
                     "enum": [
                         "tv",
                         "fm"
                     ]
                 }, {
                     "name": "lat",
-                    "label": "Latitude",
-                    "display": true,
+                    "x-label": "Latitude",
+                    "x-display": true,
                     "in": "query",
                     "description": "Latitude",
                     "required": true,
                     "type": "number",
-                    "defaultValue": ""
+                    "default": ""
                 }, {
                     "name": "lon",
-                    "label": "Longitude",
-                    "display": true,
+                    "x-label": "Longitude",
+                    "x-display": true,
                     "in": "query",
                     "description": "Longitude",
                     "required": true,
                     "type": "number",
-                    "defaultValue": ""
+                    "default": ""
                 }, {
                     "name": "nradial",
-                    "label": "Number of Radials",
-                    "display": true,
+                    "x-label": "Number of Radials",
+                    "x-display": true,
                     "in": "query",
                     "description": "Number of radials",
                     "required": true,
                     "type": "integer",
-                    "defaultValue": ""
+                    "default": ""
                 }, {
                     "name": "rcamsl",
-                    "label": "RCAMSL (m)",
-                    "display": true,
+                    "x-label": "RCAMSL (m)",
+                    "x-display": true,
                     "in": "query",
                     "description": "Radiation Center Above Mean Sea Level (meters)",
                     "required": true,
                     "type": "number",
-                    "defaultValue": ""
+                    "default": ""
                 }, {
                     "name": "field",
-                    "label": "Field Strength (dBu)",
-                    "display": true,
+                    "x-label": "Field Strength (dBu)",
+                    "x-display": true,
                     "in": "query",
                     "description": "field strength (dBu)",
                     "required": true,
                     "type": "number",
-                    "defaultValue": ""
+                    "default": ""
                 }, {
                     "name": "channel",
-                    "label": "Channel",
-                    "display": true,
+                    "x-label": "Channel",
+                    "x-display": true,
                     "fmOnly": true,
                     "in": "query",
                     "description": "Channel (required for TV)",
                     "required": false,
                     "type": "integer",
-                    "defaultValue": ""
+                    "default": ""
                 }, {
                     "name": "erp",
-                    "label": "ERP (kW)",
-                    "display": true,
+                    "x-label": "ERP (kW)",
+                    "x-display": true,
                     "in": "query",
                     "description": "Effective Radiation Power (kW)",
                     "required": true,
                     "type": "number",
-                    "defaultValue": ""                    
+                    "default": ""                    
                 }, {
                     "name": "curve",
-                    "label": "Curve",
-                    "display": true,
+                    "x-label": "Curve",
+                    "x-display": true,
                     "in": "query",
                     "description": "Type of propagation curve, range is 0-2.<br /><br /><b>0:</b> use F(50, 50) curve<br /><br /><b>1:</b>  use F(50, 10) curve<br /><br /><b>2:</b> use F(50, 90) curve",
                     "required": false,
                     "type": "string",
-                    "defaultValue": "0",
+                    "default": "",
                     "enum": [
                         "0",
                         "1",
@@ -108,22 +108,22 @@
                     ]
                 }, {
                     "name": "pattern",
-                    "label": "Pattern",
-                    "display": true,
+                    "x-label": "Pattern",
+                    "x-display": true,
                     "in": "query",
                     "description": "Specify the radiation strength at various azimuths for stations with directional antenna. Provide a list of (azimuth, radiation strength) values separated by a semi-colon. Example: 0,0.63;10,0.57;20,0.58;30,0.595;",
                     "required": false,
                     "type": "string",
-                    "defaultValue": ""                    
+                    "default": ""                    
                 }, {
                     "name": "src",
-                    "label": "Source",
-                    "display": true,
+                    "x-label": "Source",
+                    "x-display": true,
                     "in": "query",
                     "description": "Data source.",
                     "required": false,
                     "type": "string",
-                    "defaultValue": "ned",
+                    "default": "ned",
                     "enum": [
                         "ned",
                         "ned_1",
@@ -134,13 +134,13 @@
                     ]
                 }, {
                     "name": "unit",
-                     "label": "Unit",
-                    "display": true,
+                     "x-label": "Unit",
+                    "x-display": true,
                     "in": "query",
                     "description": "Unit of measurement: m=meters (default), mi=miles, ft=feet",
                     "required": false,
                     "type": "string",
-                    "defaultValue": "m",
+                    "default": "m",
                     "enum": [
                         "m",
                         "mi",
@@ -148,13 +148,13 @@
                     ]
                 }, {
                     "name": "format",
-                    "label": "Format",
-                    "display": false,
+                    "x-label": "Format",
+                    "x-display": false,
                     "in": "path",
                     "description": "Format for the returned results.<br /><br />Valid values: json, jsonp, shp, kml, gml, csv. Shapefiles (.shp) download as zip archive (.zip). <br /><br />Defaults to json.",
                     "required": false,
                     "type": "string",
-                    "defaultValue": "json",
+                    "default": "json",
                     "enum": [
                         "json",
                         "jsonp",

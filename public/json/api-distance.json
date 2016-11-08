@@ -23,7 +23,7 @@
                     "description": "Type of broadcast service. <br /><br />Valid values: tv or fm",
                     "required": true,
                     "type": "string",
-                    "defaultValue": "tv",
+                    "default": "",
                     "enum": [
                         "tv",
                         "fm"
@@ -36,7 +36,7 @@
                     "description": "Height Above Average Terrain<br /><br />Values must be between 30-1600 meters.",
                     "required": true,
                     "type": "number",
-                    "defaultValue": ""
+                    "default": ""
                 }, {
                     "name": "field",
                     "label": "field",
@@ -45,7 +45,7 @@
                     "description": "Field strength (e.g. 28 dBu).",
                     "required": true,
                     "type": "number",
-                    "defaultValue": ""
+                    "default": ""
                 }, {
                     "name": "channel",
                     "label": "Channel",
@@ -54,7 +54,7 @@
                     "description": "Required for TV.",
                     "required": false,
                     "type": "integer",
-                    "defaultValue": ""
+                    "default": ""
                 }, {
                     "name": "erp",
                     "label": "ERP (kW)",
@@ -63,7 +63,7 @@
                     "description": "Effective Radiation Power (kW)",
                     "required": true,
                     "type": "number",
-                    "defaultValue": ""
+                    "default": ""
                 }, {
                     "name": "curve",
                     "label": "Curve",
@@ -72,7 +72,7 @@
                     "description": "Type of propagation curve, range is 0-2.<br /><br /><b>0:</b> use F(50, 50) curve<br /><br /><b>1:</b>  use F(50, 10) curve<br /><br /><b>2:</b> use F(50, 90) curve",
                     "required": true,
                     "type": "string",
-                    "defaultValue": "0",
+                    "default": "0",
                     "enum": [
                         "0",
                         "1",

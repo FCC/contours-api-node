@@ -39,7 +39,7 @@
                     "type": "string",
                     "default": ""                    
                 }, {
-                    "name": "facilityid",
+                    "name": "facilityId",
                     "x-label": "Facility ID",
                     "x-display": true,
                     "in": "query",
@@ -48,7 +48,7 @@
                     "type": "string",
                     "default": ""                    
                 }, {
-                    "name": "applicationid",
+                    "name": "applicationId",
                     "x-label": "Application ID",
                     "x-display": true,
                     "in": "query",

@@ -34,6 +34,7 @@ var contours = require('./controllers/contours.js');
 var tvfm_curves = require('./controllers/tvfm_curves.js');
 var entity = require('./controllers/entity.js');
 var conductivity = require('./controllers/conductivity.js');
+var gwave = require('./controllers/gwave.js');
 
 // **********************************************************
 // config
@@ -427,6 +428,9 @@ app.get('/conductivity.json', function(req, res){
     });
 });
 
+app.get('/amField.json', function(req, res){
+    gwave.getAmField(req, res);
+});
 
 // **********************************************************
 // error

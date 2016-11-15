@@ -680,7 +680,7 @@ function fmForAvailableChannel(req, res) {
 	            uuid_tuple = "(" + uuid_tuple.replace(/,$/, "") + ")";
 
 	            var url = geo_host + "/" + geo_space + "/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=" + 
-							geo_space + ":amr_fm_contours&maxFeatures=500&outputFormat=json&sortBy=area+D&cql_filter=uuid+IN+" + uuid_tuple;
+							geo_space + ":fm_contours&maxFeatures=500&outputFormat=json&sortBy=area+D&cql_filter=uuid+IN+" + uuid_tuple;
 	            protocol.get(url, function(res1) {
 	                var data = "";
 	                res1.on('data', function(chunk) {

@@ -35,6 +35,7 @@ var tvfm_curves = require('./controllers/tvfm_curves.js');
 var entity = require('./controllers/entity.js');
 var conductivity = require('./controllers/conductivity.js');
 var gwave = require('./controllers/gwave.js');
+var amr = require('./controllers/amr.js');
 
 // **********************************************************
 // config
@@ -93,6 +94,34 @@ app.use(bodyparser.urlencoded({ extended: false }));
 
 // **********************************************************
 // route
+
+app.get('/amrProcess/:lat/:lon', function(req, res){
+amr.amrProcess(req, res);
+});
+
+app.get('/interferingContours/:id', function(req, res){
+amr.interferingContours(req, res);
+});
+
+app.get('/fmContours/:id', function(req, res){
+amr.fmContours(req, res);
+});
+
+app.get('/amContour/:callsign', function(req, res){
+amr.amContour(req, res);
+});
+
+app.get('/fmForAvailableChannel/:channel/:uuid0', function(req, res){
+amr.fmForAvailableChannel(req, res);
+});
+
+app.get('/amCallsigns/:callsign/:count', function(req, res){
+amr.amCallsigns(req, res);
+});
+
+app.get('/allAMCallsignList', function(req, res){
+amr.allAMCallsignList(req, res);
+});
 
 app.use('/', express.static(path.join(__dirname, '/public')));
 app.use('/contour-demo', express.static(path.join(__dirname ,'/public/contour-demo.html')));
@@ -431,6 +460,9 @@ app.get('/conductivity.json', function(req, res){
 app.get('/amField.json', function(req, res){
     gwave.getAmField(req, res);
 });
+
+
+
 
 // **********************************************************
 // error

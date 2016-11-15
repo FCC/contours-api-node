@@ -42,24 +42,24 @@ var contours = require('./contours.js');
 
 function getEntity(req, res, callback) {
 
-	console.log('============ getEntity ============');
+	console.log('\n' + '============ getEntity ============');
 	try {
 		var db_lms = pgp_lms(LMS_PG);
-		console.log('connected to LMS DB');
+		console.log('\n' + 'connected to LMS DB');
 	}
 	catch(e) {
-		console.log('connection to LMS DB failed' + e);
+		console.log('\n' + 'connection to LMS DB failed' + e);
 	}
 	
 	try {
 		var db_contours = pgp_contours(CONTOURS_PG);
-		console.log('connected to CONTOURS DB');
+		console.log('\n' + 'connected to CONTOURS DB');
 	}
 	catch(e) {
-		console.log('connection to CONTOURS DB failed' + e);
+		console.log('\n' + 'connection to CONTOURS DB failed' + e);
 	}
 
-	var serviceType = req.query.serviceType;
+	var serviceType = req.query.serviceType;	
 	var callsign = req.query.callsign;
 	var facilityId = req.query.facilityId;
 	var applicationId = req.query.applicationId;
@@ -67,17 +67,23 @@ function getEntity(req, res, callback) {
 	var nradial = req.query.nradial;
 	var pop = req.query.pop;
 	var area = req.query.area;
+
+	if(nradial === undefined){
+		nradial = '360';
+	}
 	if (pop === undefined) {
 		pop = '';
 	}
 	if (area === undefined) {
 		area = '';
 	}
+
+	var idType;
 	
 	var i;
 	
 	if (serviceType == undefined) {
-		console.log('serviceType missing');
+		console.log('\n' + 'serviceType missing');
 		res.status(400).send({
 			'status': 'error',
 			'statusCode':'400',
@@ -88,7 +94,7 @@ function getEntity(req, res, callback) {
 	
 	serviceType = serviceType.toLowerCase();
 	if (['tv', 'fm'].indexOf(serviceType) < 0) {
-		console.log('invalid serviceType value');
+		console.log('\n' + 'invalid serviceType value');
 		res.status(400).send({
 			'status': 'error',
 			'statusCode':'400',
@@ -105,10 +111,10 @@ function getEntity(req, res, callback) {
 		}
 	}
 	
-	console.log(v3, numDefined);
+	console.log('\n' + v3, numDefined);
 	
 	if (numDefined === 0) {
-		console.log('must provide one of callsign, facilityId, or applicationId');
+		console.log('\n' + 'must provide one of callsign, facilityId, or applicationId');
 		res.status(400).send({
 			'status': 'error',
 			'statusCode':'400',
@@ -118,7 +124,7 @@ function getEntity(req, res, callback) {
 	}
 	
 	if (numDefined > 1) {
-		console.log('should provide only one of callsign, facilityId, or applicationId');
+		console.log('\n' + 'should provide only one of callsign, facilityId, or applicationId');
 		res.status(400).send({
 			'status': 'error',
 			'statusCode':'400',
@@ -128,7 +134,7 @@ function getEntity(req, res, callback) {
 	}
 	
 	if ( (facilityId != undefined && facilityId != '') && !facilityId.match(/^\d+$/)) {
-		console.log('invalid facilityId value');
+		console.log('\n' + 'invalid facilityId value');
 		res.status(400).send({
 			'status': 'error',
 			'statusCode':'400',
@@ -138,7 +144,7 @@ function getEntity(req, res, callback) {
 	}
 	
 	if (src != undefined && ['ned', 'ned_1', 'ned_2', 'globe30'].indexOf(src.toLowerCase()) < 0) {
-		console.log('invalid src value');
+		console.log('\n' + 'invalid src value');
 		res.status(400).send({
 			'status': 'error',
 			'statusCode':'400',
@@ -148,7 +154,7 @@ function getEntity(req, res, callback) {
 	}
 	
 	if (nradial == undefined) {
-		console.log('missing nradial');
+		console.log('\n' + 'missing nradial');
 		res.status(400).send({
 		'status': 'error',
 		'statusCode':'400',
@@ -158,7 +164,7 @@ function getEntity(req, res, callback) {
 	}
 	
 	if ( !nradial.match(/^\d+$/)) {
-		console.log('invalid nradial value');
+		console.log('\n' + 'invalid nradial value');
 		res.status(400).send({
 		'status': 'error',
 		'statusCode':'400',
@@ -168,7 +174,7 @@ function getEntity(req, res, callback) {
 	}
 	
 	if ( parseFloat(nradial) <8 || parseFloat(nradial) > 360 ) {
-		console.log('nradial value out of range [8, 360]');
+		console.log('\n' + 'nradial value out of range [8, 360]');
 		res.status(400).send({
 		'status': 'error',
 		'statusCode':'400',
@@ -202,54 +208,81 @@ function getEntity(req, res, callback) {
 	}
 	
 	var q, eng_data_table;
-	if (["tv", "fm"].indexOf(serviceType) >= 0) {
+	if (["tv", "fm"].indexOf(serviceType) >= 0) {		
 		eng_data_table = LMS_SCHEMA + ".gis_" + serviceType + "_eng_data";
 		if (facilityId != undefined) {
+			idType = 'facilityId';
 			q = "SELECT a.*, b.* from " + LMS_SCHEMA + ".gis_facility a, " + eng_data_table + " b where a.facility_id = b.facility_id and a.facility_id = " + facilityId;
 		}
 		if (callsign != undefined) {
+			idType = 'callsign';
 			q = "SELECT a.*, b.* from " + LMS_SCHEMA + ".gis_facility a, " + eng_data_table + " b where a.facility_id = b.facility_id and a.fac_callsign = '" + callsign + "'";
 		}
 		if (applicationId != undefined) {
-			q = "SELECT a.*, b.* from " + LMS_SCHEMA + ".gis_facility a, " + eng_data_table + " b where a.facility_id = b.facility_id and b.application_id = '" + applicationId + "'";
+			if(isNaN(applicationId)){
+				idType = 'applIdUuid';
+				q = "SELECT f.callsign, f.facility_id, f.channel, a.aapp_application_id, " +
+					" loc.aloc_lat_deg, loc.aloc_lat_mm, loc.aloc_lat_ss, loc.aloc_lat_dir, loc.aloc_long_deg, loc.aloc_long_mm, loc.aloc_long_ss, loc.aloc_long_dir," +
+					" lfv.service_code, lfv.auth_type_code, ant.aant_antenna_id, ant.aant_antenna_type_code, " +
+					" ant.aant_horiz_rc_amsl, ant.aant_vert_rc_amsl, antf.aafq_power_erp_kw, " +
+					" antf.aafq_vert_erp_kw, antf.aafq_horiz_erp_kw, antf.aafq_channel, antf.aafq_class_station_code" +
+					" FROM common_schema.facility f, " +
+					" common_schema.application_facility af," +
+					" common_schema.license_filing_version lfv," +
+					" common_schema.application a, " +
+					" mass_media.app_location loc, " +
+					" mass_media.app_antenna ant, " +
+					" mass_media.app_antenna_frequency antf " +
+					" WHERE f.facility_id = af.afac_facility_id" + 
+					" AND af.afac_application_id = a.aapp_application_id" +
+					" AND lfv.filing_version_id = a.aapp_application_id" +
+					" AND loc.aloc_aapp_application_id = a.aapp_application_id" +
+					" AND loc.aloc_loc_record_id = ant.aant_aloc_loc_record_id" +
+					" AND ant.aant_antenna_record_id = antf.aafq_aant_antenna_record_id" +
+					" AND a.aapp_application_id = '" + applicationId + "'";
+			}
+			else {
+				idType = 'applIdNumber';
+				q = "SELECT a.*, b.* from " + LMS_SCHEMA + ".gis_facility a, " + eng_data_table + " b where a.facility_id = b.facility_id and b.application_id = '" + applicationId + "'";	
+				q += " ORDER BY application_id DESC";
+			}
+			
 		}
 		
-		q += " ORDER BY application_id DESC";
-		
-		console.log('serviceType '+serviceType+ ' query='+q);
+		console.log('\n' + 'serviceType '+serviceType+ ' query='+q);
 		
 		
 		db_lms.any(q)
 		.then(function (data) {
 			if (data.length == 0) {
-				console.log('no valid record found');
+				console.log('\n' + 'no valid record found');
 				callback('no valid record found', null);
 				return;
 			}
 			
-			var recordData = getRecord(serviceType, data);
+			var recordData = getRecord(serviceType, idType, data);
 			
-			console.log('recorddata', JSON.stringify(recordData))
+			console.log('\n' + 'recorddata', JSON.stringify(recordData))
 			
 			if (recordData.length == 0) {
-				console.log('A valid licensed record could not be found');
+				console.log('\n' + 'A valid licensed record could not be found');
 				callback('A valid licensed record could not be found', null)
 				return;
 			}
 			
-			console.log('Query Results='+recordData);
+			console.log('\n' + 'Query Results='+recordData);
 			
 			var asyncTasks = [];
 			for (i = 0; i < recordData.length; i++) {
-				asyncTasks.push(getOneContour(db_contours, db_lms, queryParams, recordData[i]));
+				asyncTasks.push(getOneContour(db_contours, db_lms, idType, queryParams, recordData[i]));
 			}
 			
-			console.log('async task=', asyncTasks)
+			console.log('\n' + 'async task=', asyncTasks)
 			
 			async.parallel(asyncTasks, function(error, result){
-				console.log("all done");
+				console.log('\n' + "all done");
 				
-				//console.log(result)
+				//console.log('\n' + result)
 				if (error) {
 					callback(error, []);
 				
@@ -258,7 +291,10 @@ function getEntity(req, res, callback) {
 				
 					var features = [];
 					for (i = 0; i < result.length; i++) {
-						features.push(result[i].features[0])
+						console.log('each contour status='+result[i].features[0].properties.statusCode);
+						if(result[i].features[0].properties.statusCode == '200'){
+							features.push(result[i].features[0])	
+						}
 					}
 					features.sort(function(a,b) {return a.properties.area - b.properties.area;});
 					var contours = {type: "FeatureCollection", "features": features};
@@ -285,7 +321,7 @@ function getEntity(req, res, callback) {
 			
 			
 			
-			//console.log(recordData);
+			//console.log('\n' + recordData);
 			
 			return;
 			
@@ -297,37 +333,37 @@ function getEntity(req, res, callback) {
 			recordData.lon_min,
 			recordData.lon_sec,
 			recordData.lon_dir].indexOf(undefined) >= 0) {
-				console.log('record lat/lon not available');
+				console.log('\n' + 'record lat/lon not available');
 				callback('record lat/lon not available', null);
 				return;
 			}
 			
 			if (recordData.rcamsl_horiz_mtr == undefined && recordData.rcamsl_vert_mtr == undefined) {
-				console.log('rcamsl not available');
+				console.log('\n' + 'rcamsl not available');
 				callback('rcamsl not available', null);
 				return;
 			}
 			
 			if (recordData.effective_erp == undefined && recordData.horiz_erp == undefined && recordData.vert_erp == undefined) {
-				console.log('ERP not available');
+				console.log('\n' + 'ERP not available');
 				callback('ERP not available', null);
 				return;
 			}
 			
-			if (recordData.facility_channel == undefined && recordData.station_channel == undefined) {
-				console.log('channel not available');
+			if (recordData.fac_channel == undefined && recordData.station_channel == undefined) {
+				console.log('\n' + 'channel not available');
 				callback('channel not available', null);
 				return;
 			}
 			
 			if (recordData.serviceType == 'fm' && recordData.station_class == undefined) {
-				console.log('station class not available');
+				console.log('\n' + 'station class not available');
 				callback('station class not available', null);
 				return;
 			}
 			
 			if (recordData.antenna_type == 'D' && recordData.antenna_id == undefined) {
-				console.log('antenna id not available');
+				console.log('\n' + 'antenna id not available');
 				callback('antenna id not available', null);
 				return;
 			}
@@ -349,12 +385,12 @@ function getEntity(req, res, callback) {
 				rcamsl_use = recordData.rcamsl_vert_mtr;
 			}
 
-			//console.log('rcamsl', rcamsl_use);
+			//console.log('\n' + 'rcamsl', rcamsl_use);
 			
 			var channel_use = recordData.station_channel;
 			
 			var isDigitalTv = false;
-			if (recordData.vsd_service == 'DT') {
+			if (recordData.vsd_service == 'DT' || recordData.vsd_service == 'DTV') {
 				isDigitalTv = true;
 			}
 			var curve_use = 0;
@@ -362,7 +398,7 @@ function getEntity(req, res, callback) {
 				curve_use = 2;
 			}
 			
-			//console.log('curve', curve_use);
+			//console.log('\n' + 'curve', curve_use);
 			
 			var erp_use;
 			if (recordData.effective_erp) {
@@ -384,7 +420,7 @@ function getEntity(req, res, callback) {
 			}
 			
 			
-			//console.log('erp_use', erp_use)
+			//console.log('\n' + 'erp_use', erp_use)
 			
 			var field_use;
 			if (serviceType == 'fm') {
@@ -455,15 +491,15 @@ function getEntity(req, res, callback) {
 			var lat_nad27 = getDecimalLatLon(recordData.lat_deg, recordData.lat_min, recordData.lat_sec, recordData.lat_dir);
 			var lon_nad27 = getDecimalLatLon(recordData.lon_deg, recordData.lon_min, recordData.lon_sec, recordData.lon_dir);
 			
-			//console.log(lat_nad27, lon_nad27);
+			//console.log('\n' + lat_nad27, lon_nad27);
 			
 			//convert from NAD27 to WGS84
 			q = "SELECT ST_AsText(ST_Transform(ST_GeomFromText('POINT(" + lon_nad27 + " " + lat_nad27 + ")', 4267),4326))";
-			//console.log(q)
+			//console.log('\n' + q)
 			db_contours.any(q)
 				.then(function (data) {
 				
-				//console.log(data)
+				//console.log('\n' + data)
 				var dum = data[0].st_astext.replace(/^.*\(/, '').replace(/\(.*$/, '');
 				var lon = parseFloat(dum.split(' ')[0]);
 				var lat = parseFloat(dum.split(' ')[1]);
@@ -471,7 +507,7 @@ function getEntity(req, res, callback) {
 				lat = mathjs.round(lat, 10);
 				lon = mathjs.round(lon, 10);
 				
-				//console.log(lat, lon);
+				//console.log('\n' + lat, lon);
 				
 				var inputData = {
 					"serviceType": recordData.serviceType,
@@ -493,7 +529,7 @@ function getEntity(req, res, callback) {
 					"unit": "m"
 				};
 				
-				//console.log(inputData);
+				console.log('\n' + 'inputData='+inputData);
 				
 				//check input data
 				var inputOk = true;
@@ -506,7 +542,7 @@ function getEntity(req, res, callback) {
 				}
 				
 				if (!inputOk) {
-					console.log('invalid station data');
+					console.log('\n' + 'invalid station data');
 					callback('invalid station data', null);
 					return;
 				
@@ -515,11 +551,24 @@ function getEntity(req, res, callback) {
 				
 				//get antenna patetrn for directional antenna
 				q = "SELECT * FROM " + LMS_SCHEMA + ".gis_ant_pattern WHERE antenna_id = " + recordData.antenna_id + " ORDER BY azimuth";
-				console.log('antenna patetrn for directional antenna Query='+q);
+				if(idType == 'applIdUuid'){
+					q = "SELECT antfv.aafv_azimuth azimuth, antfv.aafv_field_value field_value FROM" +
+						" common_schema.application a," + 
+						" mass_media.app_location loc," + 
+						" mass_media.app_antenna ant," + 
+						" mass_media.app_antenna_frequency antf," +
+						" mass_media.app_antenna_field_value antfv" +
+						" WHERE loc.aloc_aapp_application_id = a.aapp_application_id" +
+						" AND loc.aloc_loc_record_id = ant.aant_aloc_loc_record_id" +
+						" AND ant.aant_antenna_record_id = antf.aafq_aant_antenna_record_id" +
+						" AND ant.aant_antenna_record_id = antfv.aafv_aant_antenna_record_id" +
+						" AND a.aapp_application_id = '" + recordData.application_id + "' order by azimuth";
+				}
+				console.log('\n' + 'antenna patetrn for directional antenna Query='+q);
 				
 				db_lms.any(q)
 				.then(function (data) {
-					console.log('pattern', data)
+					console.log('\n' + 'pattern', data)
 					var pattern = getPatternString(data);
 					
 					var url = "coverage.json?serviceType=" + inputData.serviceType + "&lat=" + inputData.lat + "&lon=" + inputData.lon +
@@ -534,7 +583,7 @@ function getEntity(req, res, callback) {
 					}
 					
 							
-					console.log(url);
+					console.log('\n' + 'coverage URL: '+url);
 					
 					var contours_req = new Object;
 					
@@ -559,7 +608,7 @@ function getEntity(req, res, callback) {
 					
 					try {
 						contours.getContours(contours_req, res, function(data){
-						console.log('calling coverage from entity', data);
+						console.log('\n' + 'coverage response in entity='+JSON.stringify(data));
 						if(data){
 							callback(null, data);    
 						}
@@ -573,7 +622,7 @@ function getEntity(req, res, callback) {
 						
 					})
 					.catch(function (err) {
-						console.log(err);
+						console.log('\n' + err);
 						res.status(400)
 						callback(err, null);
 						return;
@@ -583,13 +632,13 @@ function getEntity(req, res, callback) {
 
 				})
 				.catch(function (err) {
-					console.log(err);
+					console.log('\n' + err);
 					callback(err, null);
 					return;
 				});
 		})
 		.catch(function (err) {
-			console.log(err);
+			console.log('\n' + err);
 			callback(err, null);
 		});
 	
@@ -598,24 +647,62 @@ function getEntity(req, res, callback) {
 }
 
 
-function getRecord(serviceType, data) {
+function getRecord(serviceType, idType, data) {
+	console.log('\n' + 'getRecord idType='+idType);
 	//select records from those returned to make contour
 	var i, record;
 	var recordIndex = [];
-	
-
-	for (i = 0; i < data.length; i++) {
-		if (serviceType == 'tv' && data[i].tv_dom_status == 'LIC' && (data[i].eng_record_type == 'C')) {
-			recordIndex.push(i);
-		}
-		if (serviceType == 'fm' && data[i].asd_service == 'FM' && data[i].fm_dom_status == 'LIC' && data[i].eng_record_type == 'C') {
-			recordIndex.push(i);
-		}
-	}
-		
 	var recordData = [];
 	
-	for (i = 0; i < recordIndex.length; i++) {
+	if(idType == 'applIdUuid'){
+		console.log('\n' + 'getting appliaction uuid record');
+		for (i = 0; i < data.length; i++) {
+			recordIndex.push(i);
+		}
+
+		for (i = 0; i < recordIndex.length; i++) {			
+			recordData[i] = {};
+			recordData[i].serviceType = serviceType;
+			recordData[i].fac_callsign = data[recordIndex[i]].callsign;
+			recordData[i].facility_id = data[recordIndex[i]].facility_id;
+			recordData[i].application_id = data[recordIndex[i]].aapp_application_id;
+			recordData[i].lat_deg = data[recordIndex[i]].aloc_lat_deg;
+			recordData[i].lat_min = data[recordIndex[i]].aloc_lat_mm;
+			recordData[i].lat_sec = data[recordIndex[i]].aloc_lat_ss;
+			recordData[i].lat_dir = data[recordIndex[i]].aloc_lat_dir;
+			recordData[i].lon_deg = data[recordIndex[i]].aloc_long_deg;
+			recordData[i].lon_min = data[recordIndex[i]].aloc_long_mm;
+			recordData[i].lon_sec = data[recordIndex[i]].aloc_long_ss;
+			recordData[i].lon_dir = data[recordIndex[i]].aloc_long_dir;
+			recordData[i].vsd_service = data[recordIndex[i]].service_code;
+			recordData[i].asd_service = data[recordIndex[i]].service_code;
+			recordData[i].tv_dom_status = data[recordIndex[i]].auth_type_code;
+			recordData[i].fm_dom_status = data[recordIndex[i]].auth_type_code;
+			//recordData[i].eng_record_type = data[recordIndex[i]].eng_record_type;
+			recordData[i].antenna_id = data[recordIndex[i]].aant_antenna_id;
+			recordData[i].antenna_type = data[recordIndex[i]].aant_antenna_type_code;
+			recordData[i].rcamsl_horiz_mtr = data[recordIndex[i]].aant_horiz_rc_amsl;
+			recordData[i].rcamsl_vert_mtr = data[recordIndex[i]].aant_vert_rc_amsl;
+			recordData[i].effective_erp = data[recordIndex[i]].aafq_power_erp_kw;
+			recordData[i].vert_erp = data[recordIndex[i]].aafq_vert_erp_kw;
+			recordData[i].horiz_erp = data[recordIndex[i]].aafq_horiz_erp_kw;
+			recordData[i].fac_channel = data[recordIndex[i]].channel;
+			recordData[i].station_channel = data[recordIndex[i]].aafq_channel;
+			recordData[i].station_class = data[recordIndex[i]].aafq_class_station_code;
+			console.log('\n' + i + ' recordData='+recordData[i]);
+		}
+	}
+	else {
+		for (i = 0; i < data.length; i++) {
+			if (serviceType == 'tv' && data[i].tv_dom_status == 'LIC' && (data[i].eng_record_type == 'C') && data[i].antenna_id != 0 ) {
+				recordIndex.push(i);
+			}
+			if (serviceType == 'fm' && data[i].asd_service == 'FM' && data[i].fm_dom_status == 'LIC' && data[i].eng_record_type == 'C') {
+				recordIndex.push(i);
+			}
+		}	
+
+		for (i = 0; i < recordIndex.length; i++) {			
 			recordData[i] = {};
 			recordData[i].serviceType = serviceType;
 			recordData[i].fac_callsign = data[recordIndex[i]].fac_callsign;
@@ -644,6 +731,8 @@ function getRecord(serviceType, data) {
 			recordData[i].fac_channel = data[recordIndex[i]].fac_channel;
 			recordData[i].station_channel = data[recordIndex[i]].station_channel;
 			recordData[i].station_class = data[recordIndex[i]].station_class;
+			console.log('\n' + i + ' recordData='+recordData[i]);
+		}
 	}
 		
 	return recordData;
@@ -651,7 +740,7 @@ function getRecord(serviceType, data) {
 
 
 function getDecimalLatLon(deg, min, sec, dir) {
-//console.log(deg, min, sec, dir)
+//console.log('\n' + deg, min, sec, dir)
 
 	var value = parseFloat(deg) + parseFloat(min)/60.0 + parseFloat(sec)/3600.0;
 	if (dir == 'W' || dir == 'S') {
@@ -676,16 +765,16 @@ function getPatternString(data) {
 
 function callCoverage(res, root_url, inputData, pattern) {
 
-	//console.log(inputData);
+	//console.log('\n' + inputData);
 	var url = root_url + "/coverage.json?serviceType=" + inputData.serviceType + "&lat=" + inputData.lat + "&lon=" + inputData.lon +
 				"&nradial=" + inputData.nradial + "&rcamsl=" + inputData.rcamsl + "&field=" + inputData.field + "&channel=" + inputData.channel +
 				"&erp=" + inputData.erp + "&curve=" + inputData.curve + "&src=" + inputData.src + "&unit=" + inputData.unit + "&pattern=" + pattern;
 	
-	console.log(url);
+	console.log('\n' + url);
 	
 	request(url, function (error, response, body) {
 		if(error){
-			console.log('coverage call error:', error);
+			console.log('\n' + 'coverage call error:', error);
 			res.status(400)
 			.json({
 				"status": "error", 
@@ -718,9 +807,9 @@ function callCoverage(res, root_url, inputData, pattern) {
 }
 
 
-var getOneContour = function (db_contours, db_lms, queryParams, recordData) {return function(callback) {
+var getOneContour = function (db_contours, db_lms, idType, queryParams, recordData) {return function(callback) {
 
-console.log('getOneContour recordData='+recordData);
+console.log('\n' + 'getOneContour recordData='+JSON.stringify(recordData));
 
 	if ([recordData.lat_deg,
 	recordData.lat_min,
@@ -730,37 +819,37 @@ console.log('getOneContour recordData='+recordData);
 	recordData.lon_min,
 	recordData.lon_sec,
 	recordData.lon_dir].indexOf(undefined) >= 0) {
-		console.log('record lat/lon not available');
+		console.log('\n' + 'record lat/lon not available');
 		callback('record lat/lon not available', null);
 		return;
 	}
 	
 	if (recordData.rcamsl_horiz_mtr == undefined && recordData.rcamsl_vert_mtr == undefined) {
-		console.log('rcamsl not available');
+		console.log('\n' + 'rcamsl not available');
 		callback('rcamsl not available', null);
 		return;
 	}
 	
 	if (recordData.effective_erp == undefined && recordData.horiz_erp == undefined && recordData.vert_erp == undefined) {
-		console.log('ERP not available');
+		console.log('\n' + 'ERP not available');
 		callback('ERP not available', null);
 		return;
 	}
 	
-	if (recordData.facility_channel == undefined && recordData.station_channel == undefined) {
-		console.log('channel not available');
+	if (recordData.fac_channel == undefined && recordData.station_channel == undefined) {
+		console.log('\n' + 'channel not available');
 		callback('channel not available', null);
 		return;
 	}
 	
 	if (recordData.serviceType == 'fm' && recordData.station_class == undefined) {
-		console.log('station class not available');
+		console.log('\n' + 'station class not available');
 		callback('station class not available', null);
 		return;
 	}
 	
-	if (recordData.antenna_type == 'D' && recordData.antenna_id == undefined) {
-		console.log('antenna id not available');
+	if ((recordData.antenna_type == 'D' || recordData.antenna_type == 'DIR') && recordData.antenna_id == undefined) {
+		console.log('\n' + 'antenna id not available');
 		callback('antenna id not available', null);
 		return;
 	}
@@ -782,12 +871,16 @@ console.log('getOneContour recordData='+recordData);
 		rcamsl_use = recordData.rcamsl_vert_mtr;
 	}
 
-	//console.log('rcamsl', rcamsl_use);
+	//console.log('\n' + 'rcamsl', rcamsl_use);
 	
 	var channel_use = recordData.station_channel;
+
+	if(channel_use == undefined || channel_use == null){
+		channel_use = recordData.fac_channel;
+	}
 	
 	var isDigitalTv = false;
-	if (recordData.vsd_service[0] === 'D') {
+	if (recordData.vsd_service[0] === 'DT' || recordData.vsd_service[0] === 'DTV') {
 		isDigitalTv = true;
 	}
 	var curve_use = 0;
@@ -795,7 +888,7 @@ console.log('getOneContour recordData='+recordData);
 		curve_use = 2;
 	}
 	
-	//console.log('curve', curve_use);
+	//console.log('\n' + 'curve', curve_use);
 	
 	var erp_use;
 	if (recordData.effective_erp) {
@@ -817,7 +910,7 @@ console.log('getOneContour recordData='+recordData);
 	}
 	
 	
-	//console.log('erp_use', erp_use)
+	//console.log('\n' + 'erp_use', erp_use)
 	
 	var field_use;
 	if (recordData.serviceType == 'fm') {
@@ -888,15 +981,15 @@ console.log('getOneContour recordData='+recordData);
 	var lat_nad27 = getDecimalLatLon(recordData.lat_deg, recordData.lat_min, recordData.lat_sec, recordData.lat_dir);
 	var lon_nad27 = getDecimalLatLon(recordData.lon_deg, recordData.lon_min, recordData.lon_sec, recordData.lon_dir);
 	
-	//console.log(lat_nad27, lon_nad27);
+	//console.log('\n' + lat_nad27, lon_nad27);
 	
 	//convert from NAD27 to WGS84
 	var q = "SELECT ST_AsText(ST_Transform(ST_GeomFromText('POINT(" + lon_nad27 + " " + lat_nad27 + ")', 4267),4326))";
-	//console.log(q)
+	console.log('\n' + 'NAD27 to WGS84 Query='+q);
 	db_contours.any(q)
 		.then(function (data) {
 		
-		//console.log(data)
+		//console.log('\n' + data)
 		var dum = data[0].st_astext.replace(/^.*\(/, '').replace(/\(.*$/, '');
 		var lon = parseFloat(dum.split(' ')[0]);
 		var lat = parseFloat(dum.split(' ')[1]);
@@ -904,7 +997,7 @@ console.log('getOneContour recordData='+recordData);
 		lat = mathjs.round(lat, 10);
 		lon = mathjs.round(lon, 10);
 		
-		//console.log(lat, lon);
+		//console.log('\n' + lat, lon);
 		
 		var inputData = {
 			"serviceType": recordData.serviceType,
@@ -928,7 +1021,7 @@ console.log('getOneContour recordData='+recordData);
 			"unit": queryParams.unit,
 		};
 		
-		console.log(inputData);
+		console.log('\n' + 'contour inputData='+JSON.stringify(inputData));
 		
 		//check input data
 		var inputOk = true;
@@ -941,7 +1034,7 @@ console.log('getOneContour recordData='+recordData);
 		}
 		
 		if (!inputOk) {
-			console.log('invalid station data');
+			console.log('\n' + 'invalid station data='+invalidParam);
 			callback('invalid station data', null);
 			return;
 		
@@ -949,18 +1042,31 @@ console.log('getOneContour recordData='+recordData);
 		
 		//get antenna patetrn for directional antenna
 		q = "SELECT * FROM " + LMS_SCHEMA + ".gis_ant_pattern WHERE antenna_id = " + recordData.antenna_id + " ORDER BY azimuth";
-		console.log('antenna patetrn Query='+q);
+		if(idType == 'applIdUuid'){
+			q = "SELECT antfv.aafv_azimuth azimuth, antfv.aafv_field_value field_value FROM" +
+				" common_schema.application a," + 
+				" mass_media.app_location loc," + 
+				" mass_media.app_antenna ant," + 
+				" mass_media.app_antenna_frequency antf," +
+				" mass_media.app_antenna_field_value antfv" +
+				" WHERE loc.aloc_aapp_application_id = a.aapp_application_id" +
+				" AND loc.aloc_loc_record_id = ant.aant_aloc_loc_record_id" +
+				" AND ant.aant_antenna_record_id = antf.aafq_aant_antenna_record_id" +
+				" AND ant.aant_antenna_record_id = antfv.aafv_aant_antenna_record_id" +
+				" AND a.aapp_application_id = '" + recordData.application_id + "' and ant.aant_antenna_id = '" + recordData.antenna_id + "' order by azimuth";
+		}
+		console.log('\n' + 'oneContour antenna patetrn Query='+q);
 		
 		db_lms.any(q)
 		.then(function (data) {
-			console.log('Query data [pattern] =', data)
+			console.log('\n' + 'Query data [pattern] =', data)
 			var pattern = getPatternString(data);
 			
 			var url = "coverage.json?serviceType=" + inputData.serviceType + "&lat=" + inputData.lat + "&lon=" + inputData.lon +
 					"&nradial=" + inputData.nradial + "&rcamsl=" + inputData.rcamsl + "&field=" + inputData.field + "&channel=" + inputData.channel +
 					"&erp=" + inputData.erp + "&curve=" + inputData.curve + "&src=" + inputData.src + "&unit=" + inputData.unit + "&pattern=" + pattern+'&outputcache=false';
 
-			console.log('coverage API URL='+url);
+			console.log('\n' + 'coverage API URL='+url);
 			
 			var contours_req = new Object;
 			
@@ -983,26 +1089,34 @@ console.log('getOneContour recordData='+recordData);
 					}
 				};
 				
-			console.log('contours_req='+contours_req);
+			console.log('\n' + 'contours_req='+contours_req);
 			
 			try {
-				console.log('in try')
+				console.log('\n' + 'in try')
 				contours.getContours(contours_req, null, function(data){
-				console.log('calling coverage from entity', data);
+				console.log('\n' + 'oneContour coverage from entity' +data);
 				if(data){
-					var properties = {};
-					properties.callsign = inputData.callsign;
-					properties.facility_id = inputData.facilityId;
-					properties.application_id = inputData.applicationId;
-					properties.antenna_id = inputData.antenna_id;
-					properties.antenna_type = inputData.antenna_type;
-					properties.service = inputData.service;
-					for (var key in data.features[0].properties) {
-						properties[key] = data.features[0].properties[key];
+					console.log('contour response code: '+data.features[0].properties.statusCode);
+					if(data.features[0].properties.statusCode == '200'){
+						console.log('using this contour');
+						var properties = {};
+						properties.callsign = inputData.callsign;
+						properties.facility_id = inputData.facilityId;
+						properties.application_id = inputData.applicationId;
+						properties.antenna_id = inputData.antenna_id;
+						properties.antenna_type = inputData.antenna_type;
+						properties.service = inputData.service;
+						for (var key in data.features[0].properties) {
+							properties[key] = data.features[0].properties[key];
+						}
+						data.features[0].properties = properties;
+						
+						callback(null, data);    
 					}
-					data.features[0].properties = properties;
+					else {
+						callback(null, data);
+					}
 					
-					callback(null, data);    
 					
 				}
 				return;           
@@ -1015,14 +1129,14 @@ console.log('getOneContour recordData='+recordData);
 				
 		})
 		.catch(function (err) {
-			console.log(err);
+			console.log('\n' + err);
 			res.status(400)
 			callback(err, null);
 			return;
 		});
 	})
 	.catch(function (err) {
-		console.log(err);
+		console.log('\n' + err);
 		callback(err, null);
 		return;
 	});

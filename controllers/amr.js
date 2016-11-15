@@ -646,8 +646,6 @@ function fmForAvailableChannel(req, res) {
 	    if (ch1 > 300) {
 	        ch1 = 300;
 	    }
-	    var configEnv = require('../config/env.json');
-
 
 	    var pg = require('pg');
 	    var client = new pg.Client(PG_DB);

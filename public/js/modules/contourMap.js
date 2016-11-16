@@ -9,32 +9,29 @@
     var ContourMap = {
         getContour: function() {
             var contourAPI = '';
-            var apiURL = [];
+            // var apiURL = [];
             var apiType = $('#apiType').val();
-            var serviceType = $('#serviceType').val();
-            var amParams = '';
+            // var serviceType = $('#serviceType').val();
+            // var amParams = '';
 
             if (apiType === 'contoursOPIF') {
-                $('.fields-' + apiType).find(':input').not('button').each(function(element, value) {
-                    apiURL.push(this.value);
-                });
-
-                contourAPI = apiURL.slice(0, 3).join('/') + '.json';    
-
-                if ($('#ent-serviceType').val() === 'am') {
-                    contourAPI += '?stationClass=' + apiURL[3] + '&timePeriod=' + apiURL[4];    
-                }                
-
+                contourAPI = './entity.json?';
+                contourAPI += $('.fields-contoursOPIF').find('input, select')
+                    .filter(function() {
+                        if (this.value !== '') {
+                            return this;
+                        }
+                    })
+                    .serialize();
             } else {
                 contourAPI = './coverage.json?';
                 contourAPI += $('.fields-contoursEnterprise').find('input, select').serialize();
             }
 
-
-            if (serviceType === 'am') {
+            /*if (serviceType === 'am') {
                 amParams = '?' + $('#form-params').serialize().split('&').slice(3, 5).join('&');
                 contourAPI += amParams;
-            }
+            }*/
 
             APIResponse.url = contourAPI;
 
@@ -126,7 +123,7 @@
                 .bindPopup(contourMeta);
 
         },
-        createOPIFMarker: function(data) { 
+        createOPIFMarker: function(data) {
             var contourMeta = '';
 
             Map.featureLayer = L.mapbox.featureLayer().addTo(Map.map);
@@ -145,17 +142,21 @@
 
                 contourMeta += '<dt>Facility ID:</dt>';
                 contourMeta += '<dd>' + data.features[i].properties.facility_id + '</dd>';
-                contourMeta += '<dt>File Number:</dt>';
-                contourMeta += '<dd>' + data.features[i].properties.filenumber + '</dd>';
+                // contourMeta += '<dt>File Number:</dt>';
+                // contourMeta += '<dd>' + data.features[i].properties.filenumber + '</dd>';
                 contourMeta += '<dt>Application ID:</dt>';
                 contourMeta += '<dd>' + data.features[i].properties.application_id + '</dd>';
+                contourMeta += '<dt>Channel:</dt>';
+                contourMeta += '<dd>' + data.features[i].properties.channel + '</dd>';
+                contourMeta += '<dt>No. of radials:</dt>';
+                contourMeta += '<dd>' + data.features[i].properties.nradial + '</dd>';
                 contourMeta += '<dt>Latitude:</dt>';
-                contourMeta += '<dd>' + data.features[i].properties.station_lat + '</dd>';
+                contourMeta += '<dd>' + data.features[i].properties.antenna_lat + '</dd>';
                 contourMeta += '<dt>Longitude:</dt>';
-                contourMeta += '<dd>' + data.features[i].properties.station_lon + '</dd>';
+                contourMeta += '<dd>' + data.features[i].properties.antenna_lon + '</dd>';
                 contourMeta += '</dl>';
 
-                Map.stationMarker = L.marker([data.features[i].properties.station_lat, data.features[i].properties.station_lon], Map.markerIcon)
+                Map.stationMarker = L.marker([data.features[i].properties.antenna_lat, data.features[i].properties.antenna_lon], Map.markerIcon)
                     .addTo(Map.featureLayer)
                     .bindPopup(contourMeta);
 

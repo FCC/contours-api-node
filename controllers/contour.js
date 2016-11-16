@@ -5,12 +5,13 @@
 
 // **********************************************************
 
-var configEnv = require('../config/env.json');
+//var configEnv = require('../config/env.json');
+var dotenv = require('dotenv').load();
 var NODE_ENV = process.env.NODE_ENV;
-var NODE_PORT =  process.env.PORT || configEnv[NODE_ENV].NODE_PORT;
-var host =  configEnv[NODE_ENV].HOST;
-var geo_host =  configEnv[NODE_ENV].GEO_HOST;
-var geo_space = configEnv[NODE_ENV].GEO_SPACE;
+var NODE_PORT =  process.env.NODE_PORT;
+var host =  process.env.HOST;
+var geo_host =  process.env.GEO_HOST;
+var geo_space = process.env.GEO_SPACE;
 
 // **********************************************************
 
@@ -36,6 +37,7 @@ function getContour(req, res, callback) {
 	var idType = req.params.idType.toLowerCase();
 	var idValue = req.params.id.toLowerCase();
 	var format = req.params.ext;
+	var ret_obj;
 	
 	if (!format) {
 		format = 'json';
@@ -44,8 +46,8 @@ function getContour(req, res, callback) {
 		format.toLowerCase();
 	}	
 	
-	if (format == 'xml') { format = 'gml'; }
-	if (format == 'zip') { format = 'shp'; }
+	if (format === 'xml') { format = 'gml'; }
+	if (format === 'zip') { format = 'shp'; }
 	
 	console.log('serviceType ' + serviceType);
 	console.log('idType ' + idType);
@@ -54,22 +56,22 @@ function getContour(req, res, callback) {
 
 	var outputFormat = 'application/json';
 	
-	if (format == 'json') {
+	if (format === 'json') {
 		outputFormat = 'application/json';
 	}
-	else if (format == 'jsonp') {
+	else if (format === 'jsonp') {
 		outputFormat = 'text/javascript';
 	}
-	else if (format == 'gml') {
+	else if (format === 'gml') {
 		outputFormat = 'GML3';
 	}
-	else if (format == 'csv') {
+	else if (format === 'csv') {
 		outputFormat = 'csv';
 	}
-	else if (format == 'shp') {
+	else if (format === 'shp') {
 		outputFormat = 'shape-zip';
 	}
-	else if (format == 'kml') {
+	else if (format === 'kml') {
 		outputFormat = 'kml';
 	}
 	
@@ -77,19 +79,19 @@ function getContour(req, res, callback) {
 
 	// **********************************************************
 
-	var stationClass = 'b'; //default
+	var stationClass = 'B'; //default
 	var timePeriod = 'daytime'; //default
 	var contour_level = 0.5;
 
-	if (serviceType == 'am') {
+	if (serviceType === 'am') {
 	
-		if (req.params.stationClass) {
-			stationClass = req.params.stationClass.toLowerCase();
+		if (req.query.stationClass) {
+			stationClass = req.query.stationClass.toUpperCase();
 		}
-		if (req.params.timePeriod) {
-			timePeriod = req.params.timePeriod + 'time'.toLowerCase();
+		if (req.query.timePeriod) {
+			timePeriod = req.query.timePeriod + 'time'.toLowerCase();
 		}		
-		if (stationClass == 'a') {
+		if (stationClass === 'A') {
 			contour_level = 0.025;
 		}
 		// b, c, d = 0.5
@@ -105,24 +107,49 @@ function getContour(req, res, callback) {
 	var typeName = geo_space +':' + serviceType + '_contours';
 	var filter;
 	
-	if (idType == 'applicationid') {
+	if (idType === 'applicationid') {
 		filter = 'application_id=' + idValue;
 	}
-	else if (idType == 'filenumber') {
+	else if (idType === 'filenumber') {
 		filter = 'filenumber ILIKE \'' + idValue + '\'';
 	}
-	else if (idType == 'callsign') {
+	else if (idType === 'callsign') {
 		filter = 'callsign ILIKE \'' + idValue + '\'';
 	}
-	else if (idType == 'antennaid') {
+	else if (idType === 'antennaid') {
 		filter = 'antid=' + idValue;
 	}
-	else if (idType == 'facilityid') {
+	else if (idType === 'facilityid') {
 		filter = 'facility_id=' + idValue;
 	}
 
-	if (serviceType == 'am') {
-		filter += '+AND+contour_level=' + contour_level + '+AND+time_period=\'' + timePeriod + '\'';
+	if (serviceType === 'am') {
+		if(idType === 'applicationid'){
+			ret_obj = {
+				'status': 400,
+				'type': 'Invalid Input',
+				'err': 'applicationid is not a valid idType for AM services'      
+			};  
+			return callback(ret_obj, null);
+		}else if(idType === 'filenumber'){
+			ret_obj = {
+				'status': 400,
+				'type': 'Invalid Input',
+				'err': 'filenumber is not a valid idType for AM services'      
+			};  
+			return callback(ret_obj, null);
+		}else{
+			filter += '+AND+contour_level=' + contour_level + '+AND+time_period=\'' + timePeriod + '\'+AND+class=\''+stationClass+'\'';
+		}
+	}else if(serviceType !== 'am'){
+		if(idType === 'antennaid'){
+			ret_obj = {
+				'status': 400,
+				'type': 'Invalid Input',
+				'err': 'antennaid is not a valid idType for FM or TV services'      
+			};  
+			return callback(ret_obj, null);
+		}
 	}
 	
 	console.log('filter ' + filter);
@@ -141,7 +168,7 @@ function getContour(req, res, callback) {
 			console.error('err.name : ' + err.name);
 			console.error('err.message : ' + err.message);
 		
-			var ret_obj = {
+			ret_obj = {
 				'status': 500,
 				'type': 'Internal Server Error',
 				'err': err.name +': '+ err.message      
@@ -156,22 +183,22 @@ function getContour(req, res, callback) {
 			
 			var content_type = response.headers['content-type'];
 			
-			if ((!response.statusCode == 200))  {			
+			if ((!response.statusCode === 200))  {			
 			
 				console.error('response.statusCode : ' + response.statusCode);
 			
-				var ret_obj = {
+				ret_obj = {
 					'status': 500,
 					'type': 'Internal Server Error'    
 				};  
 				return callback(ret_obj, null);
 			
 			}
-			else if (content_type == 'text/xml;charset=UTF-8')  {			
+			else if (content_type === 'text/xml;charset=UTF-8')  {			
 			
 				console.error('content_type : ' + content_type);
 			
-				var ret_obj = {
+				ret_obj = {
 					'status': 500,
 					'type': 'Internal Server Error'       
 				};  
@@ -182,7 +209,7 @@ function getContour(req, res, callback) {
 				var content_ext = format;
 				var content_disp = '';
 				
-				if (format == 'shp') {
+				if (format === 'shp') {
 					content_ext = 'zip';
 					content_disp = 'attachment';
 				}							
@@ -193,7 +220,7 @@ function getContour(req, res, callback) {
 				console.log('content_ext ' + content_ext);
 				console.log('filename_attach ' + filename_attach);
 				
-				var ret_obj = {
+				ret_obj = {
 					'Content-Disposition': ''+ content_disp +'; filename='+filename_attach,
 					'Content-Type': content_type,
 					'Content-Length': body.length

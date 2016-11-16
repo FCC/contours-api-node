@@ -1246,7 +1246,7 @@ function tvfmfs_comment(i)
     else if(i==16) comment ="<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Maximum curve <b>distance</b> for interfering contours is limited to 500 km.<br>\n";
     
     else if(i==17) comment ="<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;The 'Find ERP' calculation is not valid for the TV service.<br>\n";
-
+	else if(i==18) comment ="&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Maximum ERP for VHF, FM Channel 6, is 400 kW. <br>\n";
 
     else comment=""; 
     return comment;
@@ -1444,6 +1444,12 @@ function getDistance(req, res, callback) {
 			dataObj.statusMessage = 'Curve value out of range [0, 2].';
 			return callback(dataObj);
 		}
+
+		if(serviceType === 'fm' && (channel !== '6' || channel == undefined)){
+			console.log('Channel 6 is the only valid channel for FM services');
+			dataObj.statusMessage = 'Only channel 6 allowed for FM services';
+			return callback(dataObj);
+		}
 		
 
 		var fs_or_dist = 2
@@ -1470,9 +1476,15 @@ function getDistance(req, res, callback) {
 			var comments = "";
 			for (var i = 0; i < distance.length; i++) {
 				if (distance[i] == 1) {
-					console.log('comment for item='+i)					
-					var comment = tvfmfs_comment(i).replace(/^.*;/, '').replace(/\..*\n/, '');
-					comments += comment + ";";
+					if(i === 12 && serviceType.toLowerCase() == 'fm'){
+						console.log('comment for item=18')					
+						var comment = tvfmfs_comment(18).replace(/^.*;/, '').replace(/\..*\n/, '');
+						comments += comment + ";";
+					}else{
+						console.log('comment for item='+i)					
+						var comment = tvfmfs_comment(i).replace(/^.*;/, '').replace(/\..*\n/, '');
+						comments += comment + ";";
+					}
 				}
 			}
 			

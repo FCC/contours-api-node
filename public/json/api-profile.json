@@ -17,80 +17,80 @@
                 "description": "Get Profile data based on latitude, longitude, azimuth, data source and unit of measurement. Response returned in JSON format.",
                 "parameters": [{
                     "name": "lat",
-                    "label": "Latitude",
-                    "display": true,
+                    "x-label": "Latitude",
+                    "x-display": true,
                     "in": "query",
                     "description": "Latitude",
                     "required": true,
                     "type": "number",
-                    "defaultValue": ""
+                    "default": ""
                 }, {
                     "name": "lon",
-                    "label": "Longitude",
-                    "display": true,
+                    "x-label": "Longitude",
+                    "x-display": true,
                     "in": "query",
                     "description": "Longitude",
                     "required": true,
                     "type": "number",
-                    "defaultValue": ""
+                    "default": ""
                 }, {
                     "name": "azimuth",
-                    "label": "Azimuth",
-                    "display": true,
+                    "x-label": "Azimuth",
+                    "x-display": true,
                     "in": "query",
                     "description": "Azimuth along which the profile is made.",
                     "required": true,
                     "type": "number",
-                    "defaultValue": ""
+                    "default": ""
                 }, {
                     "name": "start",
-                    "label": "Start",
-                    "display": true,
+                    "x-label": "Start",
+                    "x-display": true,
                     "in": "query",
                     "description": "Distance of the starting point of profile from the location, in kilometers.",
                     "required": true,
                     "type": "number",
-                    "defaultValue": ""
+                    "default": ""
                 }, {
                     "name": "end",
-                    "label": "End",
-                    "display": true,
+                    "x-label": "End",
+                    "x-display": true,
                     "in": "query",
                     "description": "Distance of the ending point of the profile from the location, in kilometers.",
                     "required": true,
                     "type": "number",
-                    "defaultValue": ""
+                    "default": ""
                 }, {
                     "name": "num_points",
-                    "label": "No. of Points",
-                    "display": true,
+                    "x-label": "No. of Points",
+                    "x-display": true,
                     "in": "query",
                     "description": "Number of points used for the profile.",
                     "required": true,
                     "type": "number",
-                    "defaultValue": ""
+                    "default": ""
                 }, {
                     "name": "src",
-                    "label": "Source",
-                    "display": true,
+                    "x-label": "Source",
+                    "x-display": true,
                     "in": "query",
                     "description": "Data source.",
                     "required": false,
                     "type": "string",
-                    "defaultValue": "ned",
+                    "default": "ned",
                     "enum": [                        
                         "ned_1",
                         "globe30"
                     ]
                 }, {
                     "name": "unit",
-                     "label": "Unit",
-                    "display": true,
+                     "x-label": "Unit",
+                    "x-display": true,
                     "in": "query",
-                    "description": "Unit of measurement: m=meters, mi=miles, ft=feet",
+                    "description": "Unit of measurement: m=meters (default), mi=miles, ft=feet",
                     "required": false,
                     "type": "string",
-                    "defaultValue": "meters",
+                    "default": "m",
                     "enum": [
                     	"m",
                         "mi",
@@ -98,13 +98,13 @@
                     ]
                 }, {
                     "name": "format",
-                    "label": "Format",
-                    "display": false,
+                    "x-label": "Format",
+                    "x-display": false,
                     "in": "path",
                     "description": "Format for the returned results.<br /><br />Valid values: json.",
                     "required": true,
                     "type": "string",
-                    "defaultValue": "json",
+                    "default": "json",
                     "enum": [
                         "json"
                     ]

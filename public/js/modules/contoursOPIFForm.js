@@ -5,6 +5,9 @@
 
     var OPIFContourForm = {
         bindEvents: function() {
+            var opifForm = $('#frm-contoursOPIF');
+            var inputTypeFields = opifForm.find('input').closest('div').not(':last');
+
             var idTypes = {
                 facilityid: 'Facility ID',
                 callsign: 'Call Sign',
@@ -13,14 +16,28 @@
                 antennaid: 'Antenna ID'
             };
 
-            var serviceTypes = {
-                tv: ['facilityid', 'callsign', 'filenumber', 'applicationid'],
-                fm: ['facilityid', 'callsign', 'filenumber', 'applicationid'],
-                am: ['facilityid', 'callsign', 'antennaid']
-            };
+            // create Input Type field (not part of Entity API)
+            var selectTpl = '<div class="form-group">';
+            selectTpl += '<label for="ent-inputType" class="required">Input Type</label>';
+            selectTpl += '<select id="ent-inputType" class="js-inputType form-control" name="inputType">';
+            selectTpl += '<option value="ent-callsign" selected>Call Sign</option>';
+            selectTpl += '<option value="ent-facilityId">Facility ID</option>';
+            selectTpl += '<option value="ent-applicationId">Application ID</option>';
+            selectTpl += '</select>';
+            selectTpl += '</div>';
 
-            var opifForm = $('#frm-contoursOPIF');
+            opifForm.find('div').eq(0).after(selectTpl);
+
+            // hide Input Type fields by default
+            inputTypeFields.hide();
             
+
+            // display Input Type options based on selection
+            opifForm.on('change', '.js-inputType', function() {
+                inputTypeFields.hide();
+                $('#' + this.value).closest('div').slideDown();
+            });
+
             // create custom field ID and for attribute values
             opifForm
                 .find('label').each(function(index, el) {
@@ -36,34 +53,28 @@
                 })
                 .end()
                 .find('select').eq(0).addClass('js-opif');
-            
-            // display optional fields based on Service Type
+
+            // reset fields to default values when Service or Input Type changes
+            opifForm.on('change', '.js-opif, .js-inputType', function() {
+                // var serviceVal = this.value;
+
+                opifForm
+                    .find('input').val('')
+                    .end()
+                    .find('select:gt(1)').each(function(index, el) {
+                        el.value = index === 2 ? 'ned' : 'true';
+                    });                
+            });
+
+            // hide Input Type fields except Call Sign when Service Type changes
             opifForm.on('change', '.js-opif', function() {
-                var serviceVal = this.value;
-
-                $('#ent-idType')
-                    .val('facilityid')
-                    .find('option').hide();
-
-                $('label[for="ent-idValue"]').text('Facility ID');
-                $('#ent-idValue').val('');
-
-                $(serviceTypes[serviceVal]).each(function(index, value) {
-                    $('option[value="' + value + '"]').show();
-                });
-
-                if (serviceVal === 'am') {
-                    $('.js-am-only').slideDown();
-                } else {
-                    $('.js-am-only').slideUp();
-                }
+                $('.js-inputType').val('ent-callsign');
+                inputTypeFields.hide();
+                $('#ent-callsign').closest('div').slideDown();
             });
 
-            // update selected ID Type label text
-            $('#ent-idType').on('change', function() {
-                $('#ent-idValue').val('');
-                $('label[for="ent-idValue"]').text(idTypes[this.value]);
-            });
+            // show Call Sign field as default
+            $('#ent-callsign').closest('div').slideDown();            
 
             $('#form-params').on('click.contoursOPIFAPI', '[data-api="contoursOPIF"]', ContourMap.getContour);
 
@@ -76,7 +87,7 @@
                 type: "GET",
                 dataType: "json",
                 success: function(data) {
-                    var paramsData = data.paths['/{serviceType}/{idType}/{idValue}.{format}'].get.parameters;
+                    var paramsData = data.paths['/entity.{format}'].get.parameters;
 
                     OPIFContourForm.createTemplate(paramsData);
                 }

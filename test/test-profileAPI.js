@@ -6,10 +6,10 @@ var should = chai.should();
 
 describe('Profile API test', function() {
 
-    describe('lat/lon parameters', function(done) {
+    describe('all parameters', function(done) {
         it('should return profile data based on lat, lon, azimuth, src, and unit', function(done) {
             request(server)
-                .get('/profile.json?lat=38.5&lon=-98.5&azimuth=45.5&start=10&end=1000&num_points=10&src=ned_1&unit=m&outputcache=false')
+                .get('/profile.json?lat=37.4399740523&lon=-97.4267578125&azimuth=45.5&start=10&end=100&num_points=100&src=ned_1&unit=m')
                 .expect('Content-Type', /json/)
                 .expect(200)
                 .end(function(err, res) {
@@ -22,9 +22,13 @@ describe('Profile API test', function() {
                 });
         });
 
-        it('should not return profile data if lat value is not provided', function(done) {
+    });
+
+     describe('lat parameter', function(done) {
+
+        it('should not return profile data if lat value is invalid', function(done) {
             request(server)
-                .get('/profile.json?lat=&lon=-98.5&azimuth=45.5&start=10&end=1000&num_points=10&src=ned_1&unit=m&outputcache=false')
+                .get('/profile.json?lat=aksdf&lon=-98.5&azimuth=45.5&start=10&end=1000&num_points=10&src=ned_1&unit=m&outputcache=false')
                 .expect('Content-Type', /json/)
                 .expect(400)
                 .end(function(err, res) {
@@ -32,15 +36,14 @@ describe('Profile API test', function() {
                         throw err;
                     }
 
-                    res.body.features[0].properties.should.have.property('statusCode').be.equal('400');
-                    res.body.features[0].properties.should.have.property('statusMessage').be.equal('invalid lat value');
+                    res.body.features[0].properties.should.have.property('statusMessage').be.equal('Invalid latitude (lat) value.');
                     done();
                 });
         });
 
         it('should not return profile data if lat parameter is not provided', function(done) {
             request(server)
-                .get('/profile.json?&lon=-98.5&azimuth=45.5&start=10&end=1000&num_points=10&src=ned_1&unit=m&outputcache=false')
+                .get('/profile.json?lon=-98.5azimuth=45.5&start=10&end=1000&num_points=10&src=ned_1&unit=m&outputcache=false')
                 .expect('Content-Type', /json/)
                 .expect(400)
                 .end(function(err, res) {
@@ -48,15 +51,14 @@ describe('Profile API test', function() {
                         throw err;
                     }
 
-                    res.body.features[0].properties.should.have.property('statusCode').be.equal('400');
-                    res.body.features[0].properties.should.have.property('statusMessage').be.equal('missing lat');
+                    res.body.features[0].properties.should.have.property('statusMessage').be.equal('Missing latitude (lat) value.');
                     done();
                 });
         });
 
         it('should not return profile data if lat < -90 or lat > 90', function(done) {
             request(server)
-                .get('/profile.json?lat=900&lon=-98.5&azimuth=45.5&start=10&end=1000&num_points=10&src=ned_1&unit=m&outputcache=false')
+                .get('/profile.json?lat=138.5&lon=-98.5&azimuth=45.5&start=10&end=1000&num_points=10&src=ned_1&unit=m&outputcache=false')
                 .expect('Content-Type', /json/)
                 .expect(400)
                 .end(function(err, res) {
@@ -64,15 +66,15 @@ describe('Profile API test', function() {
                         throw err;
                     }
 
-                    res.body.features[0].properties.should.have.property('statusCode').be.equal('400');
-                    res.body.features[0].properties.should.have.property('statusMessage').be.equal('lat value out of range');
+                    res.body.features[0].properties.should.have.property('statusMessage').be.equal('Latitude value is out of range (-90 < lat < 90).');
                     done();
                 });
         });
 
-        it('should not return profile data if lon value is not provided', function(done) {
+        it('should not return profile data if lat has more than 10 decimal places', function(done) {
+
             request(server)
-                .get('/profile.json?lat=38.5&azimuth=45.5&src=ned_1&unit=m&outputcache=false')
+                .get('/profile.json?lat=38.01234567896&lon=-98.5&azimuth=45.5&start=10&end=1000&num_points=10&src=ned_1&unit=m&outputcache=false')
                 .expect('Content-Type', /json/)
                 .expect(400)
                 .end(function(err, res) {
@@ -80,11 +82,13 @@ describe('Profile API test', function() {
                         throw err;
                     }
 
-                    res.body.features[0].properties.should.have.property('statusCode').be.equal('400');
-                    res.body.features[0].properties.should.have.property('statusMessage').be.equal('missing lon');
+                    res.body.features[0].properties.should.have.property('statusMessage').be.equal('Number of decimal places for lat is larger than 10.');
                     done();
                 });
         });
+    });
+
+    describe('lon parameter', function(done) {
 
         it('should not return profile data if lon value is invalid', function(done) {
             request(server)
@@ -96,8 +100,22 @@ describe('Profile API test', function() {
                         throw err;
                     }
 
-                    res.body.features[0].properties.should.have.property('statusCode').be.equal('400');
-                    res.body.features[0].properties.should.have.property('statusMessage').be.equal('invalid lon value');
+                    res.body.features[0].properties.should.have.property('statusMessage').be.equal('Invalid longitude (lon) value.');
+                    done();
+                });
+        });
+
+        it('should not return profile data if lon parameter is not provided', function(done) {
+            request(server)
+                .get('/profile.json?lat=38.5&azimuth=45.5&start=10&end=1000&num_points=10&src=ned_1&unit=m&outputcache=false')
+                .expect('Content-Type', /json/)
+                .expect(400)
+                .end(function(err, res) {
+                    if (err) {
+                        throw err;
+                    }
+
+                    res.body.features[0].properties.should.have.property('statusMessage').be.equal('Missing longitude (lon) value.');
                     done();
                 });
         });
@@ -112,12 +130,26 @@ describe('Profile API test', function() {
                         throw err;
                     }
 
-                    res.body.features[0].properties.should.have.property('statusCode').be.equal('400');
-                    res.body.features[0].properties.should.have.property('statusMessage').be.equal('lon value out of range');
+                    res.body.features[0].properties.should.have.property('statusMessage').be.equal('Longitude value is out of range (-180 < lon < 180).');
                     done();
                 });
         });
 
+        it('should not return profile data if lon has more than 10 decimal places', function(done) {
+
+            request(server)
+                .get('/profile.json?lat=38&lon=-98.01234567891&azimuth=45.5&start=10&end=100&num_points=100&src=ned_1&unit=m&outputcache=false')
+                .expect('Content-Type', /json/)
+                .expect(400)
+                .end(function(err, res) {
+                    if (err) {
+                        throw err;
+                    }
+
+                    res.body.features[0].properties.should.have.property('statusMessage').be.equal('Number of decimal places for lon is larger than 10.');
+                    done();
+                });
+        });
     });
 
     describe('format parameter', function(done) {
@@ -146,8 +178,7 @@ describe('Profile API test', function() {
                         throw err;
                     }
 
-                    res.body.features[0].properties.should.have.property('statusCode').be.equal('400');
-                    res.body.features[0].properties.should.have.property('statusMessage').be.equal('missing azimuth');
+                    res.body.features[0].properties.should.have.property('statusMessage').be.equal('Missing azimuth.');
                     done();
                 });
         });
@@ -162,8 +193,7 @@ describe('Profile API test', function() {
                         throw err;
                     }
 
-                    res.body.features[0].properties.should.have.property('statusCode').be.equal('400');
-                    res.body.features[0].properties.should.have.property('statusMessage').be.equal('invalid azimuth value');
+                    res.body.features[0].properties.should.have.property('statusMessage').be.equal('Invalid azimuth value.');
                     done();
                 });
         });
@@ -178,15 +208,14 @@ describe('Profile API test', function() {
                         throw err;
                     }
 
-                    res.body.features[0].properties.should.have.property('statusCode').be.equal('400');
-                    res.body.features[0].properties.should.have.property('statusMessage').be.equal('azimuth value out of range');
+                    res.body.features[0].properties.should.have.property('statusMessage').be.equal('Azimuth value out of range.');
                     done();
                 });
         });
 
         it('should set azimuth to 0 if provided azimuth value = 360', function(done) {
             request(server)
-                .get('/profile.json?lat=38.5&lon=-98.5&azimuth=360&start=10&end=1000&num_points=10&src=ned_1&unit=m&outputcache=false')
+                .get('/profile.json?lat=37.4399740523&lon=-97.4267578125&azimuth=360&start=10&end=100&num_points=100&src=ned_1&unit=m&outputcache')
                 .expect('Content-Type', /json/)
                 .expect(200)
                 .end(function(err, res) {
@@ -194,7 +223,6 @@ describe('Profile API test', function() {
                         throw err;
                     }
 
-                    res.body.features[0].properties.should.have.property('statusCode').be.equal('200');
                     res.body.features[0].properties.should.have.property('azimuth').be.equal(0);
                     done();
                 });
@@ -212,8 +240,7 @@ describe('Profile API test', function() {
                         throw err;
                     }
 
-                    res.body.features[0].properties.should.have.property('statusCode').be.equal('400');
-                    res.body.features[0].properties.should.have.property('statusMessage').be.equal('invalid start value');
+                    res.body.features[0].properties.should.have.property('statusMessage').be.equal('Invalid start value.');
                     done();
                 });
         });
@@ -230,8 +257,7 @@ describe('Profile API test', function() {
                         throw err;
                     }
 
-                    res.body.features[0].properties.should.have.property('statusCode').be.equal('400');
-                    res.body.features[0].properties.should.have.property('statusMessage').be.equal('invalid end value');
+                    res.body.features[0].properties.should.have.property('statusMessage').be.equal('Invalid end value.');
                     done();
                 });
         });
@@ -246,8 +272,7 @@ describe('Profile API test', function() {
                         throw err;
                     }
 
-                    res.body.features[0].properties.should.have.property('statusCode').be.equal('400');
-                    res.body.features[0].properties.should.have.property('statusMessage').be.equal('end is not larger than start');
+                    res.body.features[0].properties.should.have.property('statusMessage').be.equal('End is not larger than start.');
                     done();
                 });
         });
@@ -294,7 +319,7 @@ describe('Profile API test', function() {
                         throw err;
                     }
 
-                    res.body.features[0].properties.should.have.property('statusMessage').be.equal('invalid src - must be ned_1 or globe30');
+                    res.body.features[0].properties.should.have.property('statusMessage').be.equal('Invalid src - must be ned_1 or globe30.');
                     done();
                 });
         });
@@ -356,7 +381,7 @@ describe('Profile API test', function() {
                         throw err;
                     }
 
-                    res.body.features[0].properties.should.have.property('statusMessage').be.equal('invalid unit - must be m, ft, or mi');
+                    res.body.features[0].properties.should.have.property('statusMessage').be.equal('Invalid unit - must be m, ft, or mi.');
                     done();
                 });
         });
@@ -373,8 +398,7 @@ describe('Profile API test', function() {
                         throw err;
                     }
 
-                    res.body.features[0].properties.should.have.property('statusCode').be.equal('400');
-                    res.body.features[0].properties.should.have.property('statusMessage').be.equal('missing end');
+                    res.body.features[0].properties.should.have.property('statusMessage').be.equal('Missing end.');
                     done();
                 });
         });
@@ -391,8 +415,7 @@ describe('Profile API test', function() {
                         throw err;
                     }
 
-                    res.body.features[0].properties.should.have.property('statusCode').be.equal('400');
-                    res.body.features[0].properties.should.have.property('statusMessage').be.equal('missing num_points');
+                    res.body.features[0].properties.should.have.property('statusMessage').be.equal('Missing num_points.');
                     done();
                 });
         });
@@ -407,8 +430,7 @@ describe('Profile API test', function() {
                         throw err;
                     }
 
-                    res.body.features[0].properties.should.have.property('statusCode').be.equal('400');
-                    res.body.features[0].properties.should.have.property('statusMessage').be.equal('invalid num_points value');
+                    res.body.features[0].properties.should.have.property('statusMessage').be.equal('Invalid num_points value.');
                     done();
                 });
         });
@@ -423,8 +445,7 @@ describe('Profile API test', function() {
                         throw err;
                     }
 
-                    res.body.features[0].properties.should.have.property('statusCode').be.equal('400');
-                    res.body.features[0].properties.should.have.property('statusMessage').be.equal('num_points is smaller than 2');
+                    res.body.features[0].properties.should.have.property('statusMessage').be.equal('num_points is smaller than 2.');
                     done();
                 });
         });

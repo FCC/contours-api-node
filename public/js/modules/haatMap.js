@@ -24,7 +24,7 @@
             haatMeta += '<dd>' + dataHAAT.lat + '</dd>';
             haatMeta += '<dt>Longitude:</dt>';
             haatMeta += '<dd>' + dataHAAT.lon + '</dd>';
-            haatMeta += '<dt># of radials:</dt>';
+            haatMeta += '<dt>No. of radials:</dt>';
             haatMeta += '<dd>' + dataHAAT.nradial + '</dd>';
             haatMeta += '<dt>RCAMSL:</dt>';
             haatMeta += '<dd>' + dataHAAT.rcamsl + '</dd>';

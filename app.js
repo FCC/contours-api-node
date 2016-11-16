@@ -9,7 +9,7 @@ var http = require("http");
 var https = require("https");
 var url = require('url');
 var express = require('express');
-var slash   = require('express-slash');
+
 var path = require('path');
 var fsr = require('file-stream-rotator');
 var fs = require('fs');
@@ -22,6 +22,8 @@ var helmet = require('helmet');
 var bodyparser = require('body-parser');
 var package_json = require('./package.json');
 
+var dotenv = require('dotenv').load();
+	
 var contour = require('./controllers/contour.js');
 var elevation = require('./controllers/elevation.js');
 var haat = require('./controllers/haat.js');
@@ -31,17 +33,20 @@ var distance = require('./controllers/distance.js');
 var contours = require('./controllers/contours.js');
 var tvfm_curves = require('./controllers/tvfm_curves.js');
 var entity = require('./controllers/entity.js');
-
+var conductivity = require('./controllers/conductivity.js');
+var gwave = require('./controllers/gwave.js');
+var amr = require('./controllers/amr.js');
 
 // **********************************************************
 // config
 
-var configEnv = require('./config/env.json');
+//var configEnv = require('./config/env.json');
 
 var NODE_ENV = process.env.NODE_ENV;
 //console.log('NODE_ENV : '+ NODE_ENV );
 
-var NODE_PORT =  process.env.PORT || configEnv[NODE_ENV].NODE_PORT;
+//var NODE_PORT =  process.env.NODE_PORT
+var NODE_PORT = process.env.PORT;
 
 // **********************************************************
 // console start
@@ -49,7 +54,7 @@ var NODE_PORT =  process.env.PORT || configEnv[NODE_ENV].NODE_PORT;
 console.log('package_json.name : '+ package_json.name );
 console.log('package_json.version : '+ package_json.version );
 console.log('package_json.description : '+ package_json.description );
-console.log('ElastiCache EndPoint: '+configEnv[NODE_ENV].ELASTICACHE_ENDPOINT);
+console.log('ElastiCache EndPoint: '+process.env.ELASTICACHE_ENDPOINT);
 
 //console.log('NODE_PORT : '+ NODE_PORT );
 //console.log('PG_DB : '+ PG_DB );
@@ -59,24 +64,17 @@ console.log('ElastiCache EndPoint: '+configEnv[NODE_ENV].ELASTICACHE_ENDPOINT);
 
 var app = express();
 
-app.enable('strict routing');
-
-var router = express.Router({
-    caseSensitive: false,
-    strict       : true
-});
-
 app.use(cors());
 app.use(helmet());
 
-var memcached = new Memcached(configEnv[NODE_ENV].ELASTICACHE_ENDPOINT);
-var memcached_lifetime = Number(configEnv[NODE_ENV].ELASTICACHE_LIFETIME);
+var memcached = new Memcached(process.env.ELASTICACHE_ENDPOINT);
+var memcached_lifetime = Number(process.env.ELASTICACHE_LIFETIME);
 var cached_param = 'outputcache';
 
 // **********************************************************
 // log
 
-var logDirectory = __dirname + '/log';
+var logDirectory = path.join(__dirname,'/log');
 
 fs.existsSync(logDirectory) || fs.mkdirSync(logDirectory);
 
@@ -96,32 +94,50 @@ app.use(bodyparser.urlencoded({ extended: false }));
 
 // **********************************************************
 // route
-app.use(router);
-app.use(slash());
-app.use('/', express.static(__dirname + '/public'));
-app.use('/contour-demo', express.static(__dirname + '/public/contour-demo.html'));
 
-// redirect for /contour-demo/
-router.get('/contour-demo', function(req, res, next) {
-    res.sendFile(__dirname + '/public/contour-demo.html');
-    next();
+app.get('/amrProcess/:lat/:lon', function(req, res){
+amr.amrProcess(req, res);
+});
+
+app.get('/interferingContours/:id', function(req, res){
+amr.interferingContours(req, res);
+});
+
+app.get('/fmContours/:id', function(req, res){
+amr.fmContours(req, res);
+});
+
+app.get('/amContour/:callsign', function(req, res){
+amr.amContour(req, res);
+});
+
+app.get('/fmForAvailableChannel/:channel/:uuid0', function(req, res){
+amr.fmForAvailableChannel(req, res);
+});
+
+app.get('/amCallsigns/:callsign/:count', function(req, res){
+amr.amCallsigns(req, res);
+});
+
+app.get('/allAMCallsignList', function(req, res){
+amr.allAMCallsignList(req, res);
+});
+
+app.use('/', express.static(path.join(__dirname, '/public')));
+app.use('/contour-demo', express.static(path.join(__dirname ,'/public/contour-demo.html')));
+
+app.get('/contour-demo/', function(req, res, next) {   
+    res.redirect(301, '/api/contours/contour-demo');        
 });
 
 app.use('/api/contours', function(req, res, next) {
-    if (NODE_ENV === 'LOCAL' || NODE_ENV === 'DEV') {
-        var redURL = req.originalUrl.split('api/contours')[1];
-        res.redirect(301, redURL);
-    }
 
-    next();
-});
-
-// redirect for /api/contours/
-router.get('/api/contours', function(req, res, next) {
-    if (NODE_ENV === 'LOCAL' || NODE_ENV === 'DEV') {
-        var redURL = req.originalUrl.split('api/contours')[1];
-        res.redirect(301, redURL);
+    if (NODE_ENV === 'LOCAL' || NODE_ENV === 'DEV') { console.log('********************************* ' + NODE_ENV);
+        if(req.originalUrl.split('api/contours')[1] === ''){
+			res.redirect(301, '/');
+		}
     }
+	res.redirect(301, req.originalUrl.split('api/contours')[1]);
 
     next();
 });
@@ -131,7 +147,7 @@ app.param('uuid', function(req, res, next, uuid){
     if(!serverCheck.checkUUID(uuid)){
         return serverSend.sendErr(res, 'json', 'not_found');
     } else {
-        next();
+        return next();
     }
 })
 
@@ -144,11 +160,11 @@ app.param('ext', function(req, res, next, ext) {
         if(!serverCheck.checkExt(ext)){
             return serverSend.sendErr(res, 'json', 'invalid_ext');
         } else {
-            next();
+            return next();
         }
     }
     else {
-        next();
+        return next();
     }
 });
 
@@ -419,9 +435,34 @@ app.get('/distance.json', function(req, res){
     });   
 });
 
-/*app.get('/entity.json', function(req, res){
-    entity.getEntity(req, res);
-});*/
+app.get('/entity.json', function(req, res){
+    entity.getEntity(req, res, function(error, response) {
+    if (error) {
+        res.status(400).send({"status": "error", "statusCode": 400, "statusMessage": error});
+    }
+    else  {
+    res.send(response);
+    }
+    });
+});
+
+app.get('/conductivity.json', function(req, res){
+    conductivity.fetchConductivity(req, res, function(error, response) {
+    if (error) {
+        res.status(400).send({"status": "error", "statusCode": 400, "statusMessage": error});
+    }
+    else  {
+    res.status(200).send(response);
+    }
+    });
+});
+
+app.get('/amField.json', function(req, res){
+    gwave.getAmField(req, res);
+});
+
+
+
 
 // **********************************************************
 // error
@@ -438,7 +479,7 @@ app.use(function(req, res) {
 
     res.status(404);
     // res.sendFile('/public/404.html');
-    res.sendFile('404.html', { root: __dirname + '/public' });
+    res.sendFile('404.html', { root: path.join(__dirname, '/public')});
     // res.send(err_res);    
 });
 
@@ -455,7 +496,7 @@ app.use(function(err, req, res, next) {
     };  
     
     res.status(500);
-    res.sendFile('500.html', { root: __dirname + '/public' });
+    res.sendFile('500.html', { root: path.join(__dirname, '/public')});
     // res.send(err_res);
 });
 
@@ -480,7 +521,7 @@ function getCachedData(req, req_key, success){
     var outputcache = req.query.outputcache;
     console.log('Cache req_key = '+req_key);
     console.log('outputcache param = '+outputcache);
-    if(outputcache && outputcache == 'false'){
+    if(outputcache && outputcache === 'false'){
         return success(null, null);
     }
     else {
@@ -508,7 +549,7 @@ function getElevationData(req, res, success) {
         console.error('\n\n getElevationData err '+err);  
         return success(err, null);
     }  
-};
+}
 
 function getHaatData(req, res, success) {
     console.log('app getHaatData');
@@ -525,7 +566,7 @@ function getHaatData(req, res, success) {
         console.error('\n\n getHaatData err '+err);  
         return success(err, null);
     }  
-};
+}
 
 function getProfileData(req, res, success) {
     console.log('app getProfileData');
@@ -542,7 +583,7 @@ function getProfileData(req, res, success) {
         console.error('\n\n getProfileData err '+err);  
         return success(err, null);
     }  
-};
+}
 
 function getCoverageData(req, res, success) {
     console.log('app getCoverageData');
@@ -559,7 +600,7 @@ function getCoverageData(req, res, success) {
         console.error('\n\n getCoverageData err '+err);  
         return success(err, null);
     }  
-};
+}
 
 function getDistanceData(req, res, success) {
     console.log('app getDistanceData');
@@ -576,7 +617,7 @@ function getDistanceData(req, res, success) {
         console.error('\n\n getCoverageData err '+err);  
         return success(err, null);
     }  
-};
+}
 
 function getContourData(req, res, success) {
     console.log('app getContourData');

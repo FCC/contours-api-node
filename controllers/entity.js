@@ -63,6 +63,8 @@ function getEntity(req, res, callback) {
 	var nradial = req.query.nradial;
 	var pop = req.query.pop;
 	var area = req.query.area;
+	var field = req.query.field;
+	var curve = req.query.curve;
 
 	if(nradial === undefined){
 		nradial = '360';
@@ -178,6 +180,26 @@ function getEntity(req, res, callback) {
 		});
 		return;		
 	}
+
+	if (field != undefined  && !field.match(/^\d+$/)) {
+		console.log('\n' + 'invalid field value');
+		res.status(400).send({
+			'status': 'error',
+			'statusCode':'400',
+			'statusMessage': 'Invalid field value.'
+		});
+		return;
+	}
+
+	if (curve != undefined  && !curve.match(/^\d+$/)) {
+		console.log('\n' + 'invalid curve value');
+		res.status(400).send({
+			'status': 'error',
+			'statusCode':'400',
+			'statusMessage': 'Invalid curve value.'
+		});
+		return;
+	}
 	
 	
 	if (src == undefined) {
@@ -200,7 +222,9 @@ function getEntity(req, res, callback) {
 		"src": src_use,
 		"nradial": nradial,
 		"unit": unit_use,
-		"pop": pop
+		"pop": pop,
+		"field": field,
+		"curve": curve
 	}
 	
 	var q, eng_data_table;
@@ -267,6 +291,7 @@ function getEntity(req, res, callback) {
 			}
 			
 			console.log('\n' + 'Query Results='+recordData);
+			console.log('\n' + 'getOneContour queryParams='+queryParams);
 			
 			var asyncTasks = [];
 			for (i = 0; i < recordData.length; i++) {
@@ -500,6 +525,7 @@ console.log('\n' + 'getOneContour recordData='+JSON.stringify(recordData));
 		channel_use = recordData.fac_channel;
 	}
 	
+	console.log('\n'+'vsd_service='+recordData.vsd_service[0]);
 	var isDigitalTv = false;
 	if (recordData.vsd_service[0] && recordData.vsd_service[0].toUpperCase() === 'D') {
 		isDigitalTv = true;
@@ -508,6 +534,10 @@ console.log('\n' + 'getOneContour recordData='+JSON.stringify(recordData));
 	if (isDigitalTv) {
 		curve_use = 2;
 	}
+	if (queryParams.curve != undefined) {
+		curve_use = queryParams.curve;
+	}	
+	console.log('\n' + 'isDigitalTv='+isDigitalTv+',curve='+curve_use);
 	
 	var erp_use;
 	if (recordData.effective_erp) {
@@ -532,7 +562,10 @@ console.log('\n' + 'getOneContour recordData='+JSON.stringify(recordData));
 	//console.log('\n' + 'erp_use', erp_use)
 	
 	var field_use;
-	if (recordData.serviceType == 'fm') {
+	if (queryParams.field != undefined) {
+		field_use = queryParams.field;
+	}
+	else if (recordData.serviceType == 'fm') {
 		if (recordData.station_class == 'B') {
 			field_use = 54;
 		}
@@ -568,7 +601,7 @@ console.log('\n' + 'getOneContour recordData='+JSON.stringify(recordData));
 			field_use = 74;
 		}
 	}
-	
+	console.log('\n' + 'field_use='+field_use);
 	var service_use;
 	if (recordData.serviceType == 'fm') {
 		service_use = recordData.asd_service;

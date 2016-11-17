@@ -36,10 +36,6 @@ var pgp_contours = require('pg-promise')(options);
 var contours = require('./contours.js');
 
 
-//var tv_stations = require('../data/tv_stations.json');
-//var fm_stations = require('../data/fm_stations.json');
-//var am_stations = require('../data/am_stations.json');
-
 function getEntity(req, res, callback) {
 
 	console.log('\n' + '============ getEntity ============');
@@ -67,6 +63,8 @@ function getEntity(req, res, callback) {
 	var nradial = req.query.nradial;
 	var pop = req.query.pop;
 	var area = req.query.area;
+	var field = req.query.field;
+	var curve = req.query.curve;
 
 	if(nradial === undefined){
 		nradial = '360';
@@ -182,6 +180,26 @@ function getEntity(req, res, callback) {
 		});
 		return;		
 	}
+
+	if (field != undefined  && !field.match(/^\d+$/)) {
+		console.log('\n' + 'invalid field value');
+		res.status(400).send({
+			'status': 'error',
+			'statusCode':'400',
+			'statusMessage': 'Invalid field value.'
+		});
+		return;
+	}
+
+	if (curve != undefined  && !curve.match(/^\d+$/)) {
+		console.log('\n' + 'invalid curve value');
+		res.status(400).send({
+			'status': 'error',
+			'statusCode':'400',
+			'statusMessage': 'Invalid curve value.'
+		});
+		return;
+	}
 	
 	
 	if (src == undefined) {
@@ -204,7 +222,9 @@ function getEntity(req, res, callback) {
 		"src": src_use,
 		"nradial": nradial,
 		"unit": unit_use,
-		"pop": pop
+		"pop": pop,
+		"field": field,
+		"curve": curve
 	}
 	
 	var q, eng_data_table;
@@ -271,6 +291,7 @@ function getEntity(req, res, callback) {
 			}
 			
 			console.log('\n' + 'Query Results='+recordData);
+			console.log('\n' + 'getOneContour queryParams='+queryParams);
 			
 			var asyncTasks = [];
 			for (i = 0; i < recordData.length; i++) {
@@ -304,338 +325,6 @@ function getEntity(req, res, callback) {
 				
 			});
 			
-			
-			
-			
-			// getOneContour(db_contours, db_lms, queryParams, recordData, function(error, data) {
-				// if (error) {
-					// callback(error, null);
-				// }
-				// else {
-				// callback(null, data);
-				
-				// }
-			
-			
-			// });
-			
-			
-			
-			//console.log('\n' + recordData);
-			
-			return;
-			
-			if ([recordData.lat_deg,
-			recordData.lat_min,
-			recordData.lat_sec,
-			recordData.lat_dir,
-			recordData.lon_deg,
-			recordData.lon_min,
-			recordData.lon_sec,
-			recordData.lon_dir].indexOf(undefined) >= 0) {
-				console.log('\n' + 'record lat/lon not available');
-				callback('record lat/lon not available', null);
-				return;
-			}
-			
-			if (recordData.rcamsl_horiz_mtr == undefined && recordData.rcamsl_vert_mtr == undefined) {
-				console.log('\n' + 'rcamsl not available');
-				callback('rcamsl not available', null);
-				return;
-			}
-			
-			if (recordData.effective_erp == undefined && recordData.horiz_erp == undefined && recordData.vert_erp == undefined) {
-				console.log('\n' + 'ERP not available');
-				callback('ERP not available', null);
-				return;
-			}
-			
-			if (recordData.fac_channel == undefined && recordData.station_channel == undefined) {
-				console.log('\n' + 'channel not available');
-				callback('channel not available', null);
-				return;
-			}
-			
-			if (recordData.serviceType == 'fm' && recordData.station_class == undefined) {
-				console.log('\n' + 'station class not available');
-				callback('station class not available', null);
-				return;
-			}
-			
-			if (recordData.antenna_type == 'D' && recordData.antenna_id == undefined) {
-				console.log('\n' + 'antenna id not available');
-				callback('antenna id not available', null);
-				return;
-			}
-			
-			var rcamsl_use;
-
-			if (recordData.rcamsl_vert_mtr != undefined && recordData.rcamsl_horiz_mtr != undefined) {
-				if (recordData.rcamsl_horiz_mtr >= recordData.rcamsl_vert_mtr) {
-					rcamsl_use = recordData.rcamsl_horiz_mtr;
-				}
-				else {
-					rcamsl_use = recordData.rcamsl_horiz_mtr;
-				}
-			}
-			else if (recordData.rcamsl_horiz_mtr != undefined) {
-				rcamsl_use = recordData.rcamsl_horiz_mtr;
-			}
-			else if (recordData.rcamsl_vert_mtr != undefined) {
-				rcamsl_use = recordData.rcamsl_vert_mtr;
-			}
-
-			//console.log('\n' + 'rcamsl', rcamsl_use);
-			
-			var channel_use = recordData.station_channel;
-			
-			var isDigitalTv = false;
-			if (recordData.vsd_service == 'DT' || recordData.vsd_service == 'DTV') {
-				isDigitalTv = true;
-			}
-			var curve_use = 0;
-			if (isDigitalTv) {
-				curve_use = 2;
-			}
-			
-			//console.log('\n' + 'curve', curve_use);
-			
-			var erp_use;
-			if (recordData.effective_erp) {
-				erp_use = recordData.effective_erp;
-			}
-			else if (recordData.vert_erp && recordData.horiz_erp) {
-				if (recordData.vert_erp >= recordData.horiz_erp) {
-					erp_use = recordData.vert_erp;
-				}
-				else {
-					erp_use = recordData.horiz_erp;
-				}				
-			}
-			else if (recordData.vert_erp) {
-				erp_use = recordData.vert_erp;
-			}
-			else if (recordData.horiz_erp) {
-				erp_use = recordData.horiz_erp;
-			}
-			
-			
-			//console.log('\n' + 'erp_use', erp_use)
-			
-			var field_use;
-			if (serviceType == 'fm') {
-				if (recordData.station_class == 'B') {
-					field_use = 54;
-				}
-				else if (recordData.station_class == 'B1') {
-					field_use = 57;
-				}
-				else if (['A', 'C3', 'C2', 'C1', 'C'].indexOf(recordData.station_class) >= 0) {
-					field_use = 60;
-				}
-				else {
-					field_use = 60;
-				}
-			}
-			else if (serviceType == 'tv' && isDigitalTv) {
-				if (channel_use >= 2 && channel_use <= 6) {
-					field_use = 28;
-				}
-				else if (channel_use >= 7 && channel_use <= 13) {
-					field_use = 36;
-				}
-				else if (channel_use >= 14 && channel_use <= 69) {
-					field_use = 41;
-				}
-			}
-			else if (serviceType == 'tv' && !isDigitalTv) {
-				if (channel_use >= 2 && channel_use <= 6) {
-					field_use = 68;
-				}
-				else if (channel_use >= 7 && channel_use <= 13) {
-					field_use = 71;
-				}
-				else if (channel_use >= 14 && channel_use <= 69) {
-					field_use = 74;
-				}
-			}
-			
-			var service_use;
-			if (serviceType == 'fm') {
-				service_use = recordData.asd_service;
-			}
-			else if (serviceType == 'tv') {
-				service_use = recordData.vsd_service;
-			}
-			if (!service_use) {
-				service_use = 'None';
-			}
-			
-			var dom_status_use;
-			if (serviceType == 'fm') {
-				dom_status_use = recordData.fm_dom_status;
-			}
-			else if (serviceType == 'tv') {
-				dom_status_use = recordData.tv_dom_status;
-			}
-			if (!dom_status_use) {
-				dom_status_use = 'None';
-			}
-						
-			var eng_record_type_use = recordData.eng_record_type;
-			if (!eng_record_type_use) {
-				eng_record_type_use = 'None';
-			}
-
-			
-			var lat_nad27 = getDecimalLatLon(recordData.lat_deg, recordData.lat_min, recordData.lat_sec, recordData.lat_dir);
-			var lon_nad27 = getDecimalLatLon(recordData.lon_deg, recordData.lon_min, recordData.lon_sec, recordData.lon_dir);
-			
-			//console.log('\n' + lat_nad27, lon_nad27);
-			
-			//convert from NAD27 to WGS84
-			q = "SELECT ST_AsText(ST_Transform(ST_GeomFromText('POINT(" + lon_nad27 + " " + lat_nad27 + ")', 4267),4326))";
-			//console.log('\n' + q)
-			db_contours.any(q)
-				.then(function (data) {
-				
-				//console.log('\n' + data)
-				var dum = data[0].st_astext.replace(/^.*\(/, '').replace(/\(.*$/, '');
-				var lon = parseFloat(dum.split(' ')[0]);
-				var lat = parseFloat(dum.split(' ')[1]);
-				
-				lat = mathjs.round(lat, 10);
-				lon = mathjs.round(lon, 10);
-				
-				//console.log('\n' + lat, lon);
-				
-				var inputData = {
-					"serviceType": recordData.serviceType,
-					"callsign": recordData.fac_callsign,
-					"facilityId": recordData.facility_id,
-					"applicationId": recordData.application_id,
-					"service": service_use,
-					"dom_status": dom_status_use,
-					"eng_record_type": eng_record_type_use,
-					"lat": lat,
-					"lon": lon,
-					"nradial": nradial,
-					"rcamsl": rcamsl_use,
-					"field": field_use,
-					"curve": curve_use,
-					"channel": channel_use,
-					"erp": erp_use,
-					"src": src_use,
-					"unit": "m"
-				};
-				
-				console.log('\n' + 'inputData='+inputData);
-				
-				//check input data
-				var inputOk = true;
-				var invalidParam = '';
-				for (var key in inputData) {
-					if (inputData[key] == undefined) {
-						inputOk = false;
-						invalidParam = key;
-					}
-				}
-				
-				if (!inputOk) {
-					console.log('\n' + 'invalid station data');
-					callback('invalid station data', null);
-					return;
-				
-				}
-				
-				
-				//get antenna patetrn for directional antenna
-				q = "SELECT * FROM " + LMS_SCHEMA + ".gis_ant_pattern WHERE antenna_id = " + recordData.antenna_id + " ORDER BY azimuth";
-				if(idType == 'applIdUuid'){
-					q = "SELECT antfv.aafv_azimuth azimuth, antfv.aafv_field_value field_value FROM" +
-						" common_schema.application a," + 
-						" mass_media.app_location loc," + 
-						" mass_media.app_antenna ant," + 
-						" mass_media.app_antenna_frequency antf," +
-						" mass_media.app_antenna_field_value antfv" +
-						" WHERE loc.aloc_aapp_application_id = a.aapp_application_id" +
-						" AND loc.aloc_loc_record_id = ant.aant_aloc_loc_record_id" +
-						" AND ant.aant_antenna_record_id = antf.aafq_aant_antenna_record_id" +
-						" AND ant.aant_antenna_record_id = antfv.aafv_aant_antenna_record_id" +
-						" AND a.aapp_application_id = '" + recordData.application_id + "' order by azimuth";
-				}
-				console.log('\n' + 'antenna patetrn for directional antenna Query='+q);
-				
-				db_lms.any(q)
-				.then(function (data) {
-					console.log('\n' + 'pattern', data)
-					var pattern = getPatternString(data);
-					
-					var url = "coverage.json?serviceType=" + inputData.serviceType + "&lat=" + inputData.lat + "&lon=" + inputData.lon +
-							"&nradial=" + inputData.nradial + "&rcamsl=" + inputData.rcamsl + "&field=" + inputData.field + "&channel=" + inputData.channel +
-							"&erp=" + inputData.erp + "&curve=" + inputData.curve + "&src=" + inputData.src + "&unit=" + inputData.unit + "&pattern=" + pattern;
-
-					if (area === 'true') {
-						url += "&area=true";
-					}
-					if (pop === 'true') {
-						url += "&pop=true";
-					}
-					
-							
-					console.log('\n' + 'coverage URL: '+url);
-					
-					var contours_req = new Object;
-					
-					contours_req = 
-						{"query":
-							{
-								"serviceType": inputData.serviceType.toString(),
-								"lat": inputData.lat.toString(),
-								"lon": inputData.lon.toString(),
-								"nradial": inputData.nradial.toString(),
-								"rcamsl": inputData.rcamsl.toString(),
-								"field": inputData.field.toString(),
-								"channel": inputData.channel.toString(),
-								"erp": inputData.erp.toString(),
-								"curve": inputData.curve.toString(),
-								"src": inputData.src.toString(),
-								"unit": inputData.unit.toString(),
-								"pattern": pattern.toString(),
-								"pop": pop.toString()
-							}
-						};
-					
-					try {
-						contours.getContours(contours_req, res, function(data){
-						console.log('\n' + 'coverage response in entity='+JSON.stringify(data));
-						if(data){
-							callback(null, data);    
-						}
-						return;           
-						});
-					}
-					catch(err){
-						callback('error calling coverage', null);  
-						return;
-					}
-						
-					})
-					.catch(function (err) {
-						console.log('\n' + err);
-						res.status(400)
-						callback(err, null);
-						return;
-					});
-					
-
-
-				})
-				.catch(function (err) {
-					console.log('\n' + err);
-					callback(err, null);
-					return;
-				});
 		})
 		.catch(function (err) {
 			console.log('\n' + err);
@@ -763,49 +452,6 @@ function getPatternString(data) {
 	return pattern;
 }
 
-function callCoverage(res, root_url, inputData, pattern) {
-
-	//console.log('\n' + inputData);
-	var url = root_url + "/coverage.json?serviceType=" + inputData.serviceType + "&lat=" + inputData.lat + "&lon=" + inputData.lon +
-				"&nradial=" + inputData.nradial + "&rcamsl=" + inputData.rcamsl + "&field=" + inputData.field + "&channel=" + inputData.channel +
-				"&erp=" + inputData.erp + "&curve=" + inputData.curve + "&src=" + inputData.src + "&unit=" + inputData.unit + "&pattern=" + pattern;
-	
-	console.log('\n' + url);
-	
-	request(url, function (error, response, body) {
-		if(error){
-			console.log('\n' + 'coverage call error:', error);
-			res.status(400)
-			.json({
-				"status": "error", 
-				"statusCode": "400", 
-				"statusMessage": "Coverage call error: " + error  + invalidParam + "."
-			});
-			return;
-		}
-		
-		body = JSON.parse(body);
-		
-		//re-build properties
-		var properties = {
-			"callsign": inputData.callsign,
-			"facility_id": inputData.facilityId,
-			"application_id": inputData.applicationId,
-			"service": inputData.service,
-			"dom_status": inputData.dom_status,
-			"eng_record_type": inputData.eng_record_type
-		}
-		for (var key in body.features[0].properties) {
-			properties[key] = body.features[0].properties[key];
-		}
-		body.features[0].properties = properties;
-		
-	
-		res.send(body);
-	});
-
-}
-
 
 var getOneContour = function (db_contours, db_lms, idType, queryParams, recordData) {return function(callback) {
 
@@ -879,16 +525,19 @@ console.log('\n' + 'getOneContour recordData='+JSON.stringify(recordData));
 		channel_use = recordData.fac_channel;
 	}
 	
+	console.log('\n'+'vsd_service='+recordData.vsd_service[0]);
 	var isDigitalTv = false;
-	if (recordData.vsd_service[0] === 'DT' || recordData.vsd_service[0] === 'DTV') {
+	if (recordData.vsd_service[0] && recordData.vsd_service[0].toUpperCase() === 'D') {
 		isDigitalTv = true;
 	}
 	var curve_use = 0;
 	if (isDigitalTv) {
 		curve_use = 2;
 	}
-	
-	//console.log('\n' + 'curve', curve_use);
+	if (queryParams.curve != undefined) {
+		curve_use = queryParams.curve;
+	}	
+	console.log('\n' + 'isDigitalTv='+isDigitalTv+',curve='+curve_use);
 	
 	var erp_use;
 	if (recordData.effective_erp) {
@@ -913,7 +562,10 @@ console.log('\n' + 'getOneContour recordData='+JSON.stringify(recordData));
 	//console.log('\n' + 'erp_use', erp_use)
 	
 	var field_use;
-	if (recordData.serviceType == 'fm') {
+	if (queryParams.field != undefined) {
+		field_use = queryParams.field;
+	}
+	else if (recordData.serviceType == 'fm') {
 		if (recordData.station_class == 'B') {
 			field_use = 54;
 		}
@@ -949,7 +601,7 @@ console.log('\n' + 'getOneContour recordData='+JSON.stringify(recordData));
 			field_use = 74;
 		}
 	}
-	
+	console.log('\n' + 'field_use='+field_use);
 	var service_use;
 	if (recordData.serviceType == 'fm') {
 		service_use = recordData.asd_service;

@@ -122,7 +122,10 @@ function getContour(req, res, callback) {
 	else if (idType === 'facilityid') {
 		filter = 'facility_id=' + idValue;
 	}
-
+	
+	filter = filter.replace('%','\\%25');
+	filter = filter.replace('_','\\%5F');
+	
 	if (serviceType === 'am') {
 		if(idType === 'applicationid'){
 			ret_obj = {

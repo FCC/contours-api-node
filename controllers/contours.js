@@ -7,7 +7,7 @@
 
 var dotenv = require('dotenv').load();
 var NODE_ENV = process.env.NODE_ENV;
-var NODE_PORT =  process.env.NODE_PORT;
+var NODE_PORT =  process.env.PORT;
 var host =  process.env.HOST;
 var geo_host =  process.env.GEO_HOST;
 var geo_space = process.env.GEO_SPACE;
@@ -286,16 +286,29 @@ function getContours(req, res, callback) {
             return callback(returnJson);
 		}
 		
+		if(pattern !== undefined){
+			if ( parseInt(pattern.split(';').length) <8) {
+			dataObj.statusMessage = 'Pattern  provided has too few radials must contain at least 8.';
+			returnError(dataObj, function(ret){                                                       
+                 returnJson = GeoJSON.parse(ret, {});
+            });
+            return callback(returnJson);
+		}
+		}
+		
 		lat = parseFloat(lat);
 		lon = parseFloat(lon);
 		field = parseFloat(field);
 		erp = parseFloat(erp);
 		if (channel !== undefined) {
-			channel = parseInt(channel);//Missing radix parameter
+			channel = parseInt(channel,10);
+		}
+		if (pattern) {
+			nradial = parseInt(pattern.split(';').length,10);
 		}
 		rcamsl = parseFloat(rcamsl);
-		nradial = parseInt(nradial);//Missing radix parameter
-		curve = parseInt(curve);//Missing radix parameter
+		nradial = parseInt(nradial,10);
+		curve = parseInt(curve,10);
 		
 		var full_pattern = getFullAntennaPattern(nradial, pattern);
 		

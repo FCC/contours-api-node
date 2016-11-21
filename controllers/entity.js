@@ -525,9 +525,9 @@ console.log('\n' + 'getOneContour recordData='+JSON.stringify(recordData));
 		channel_use = recordData.fac_channel;
 	}
 	
-	console.log('\n'+'vsd_service='+recordData.vsd_service[0]);
+	//console.log('\n'+'vsd_service='+recordData.vsd_service[0]);
 	var isDigitalTv = false;
-	if (recordData.vsd_service[0] && recordData.vsd_service[0].toUpperCase() === 'D') {
+	if (recordData.vsd_service && recordData.vsd_service[0] && recordData.vsd_service[0].toUpperCase() === 'D') {
 		isDigitalTv = true;
 	}
 	var curve_use = 0;
@@ -672,6 +672,10 @@ console.log('\n' + 'getOneContour recordData='+JSON.stringify(recordData));
 			"src": queryParams.src,
 			"unit": queryParams.unit,
 		};
+		
+		if (!inputData.antenna_id) {
+			inputData.antenna_id = -999;
+		}
 		
 		console.log('\n' + 'contour inputData='+JSON.stringify(inputData));
 		

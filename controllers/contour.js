@@ -107,6 +107,9 @@ function getContour(req, res, callback) {
 	var typeName = geo_space +':' + serviceType + '_contours';
 	var filter;
 	
+	idValue = idValue.replace('%','\\%25');
+	idValue = idValue.replace('_','\\%5F');
+	
 	if (idType === 'applicationid') {
 		filter = 'application_id=' + idValue;
 	}
@@ -122,9 +125,6 @@ function getContour(req, res, callback) {
 	else if (idType === 'facilityid') {
 		filter = 'facility_id=' + idValue;
 	}
-	
-	filter = filter.replace('%','\\%25');
-	filter = filter.replace('_','\\%5F');
 	
 	if (serviceType === 'am') {
 		if(idType === 'applicationid'){

@@ -54,7 +54,17 @@ var NODE_PORT = process.env.PORT;
 console.log('package_json.name : '+ package_json.name );
 console.log('package_json.version : '+ package_json.version );
 console.log('package_json.description : '+ package_json.description );
-console.log('ElastiCache EndPoint: '+process.env.ELASTICACHE_ENDPOINT);
+console.log('## ENV ## CONTEXT_PATH: '+process.env.CONTEXT_PATH);
+console.log('## ENV ## GEO_HOST: '+process.env.GEO_HOST);
+console.log('## ENV ## GEO_SPACE: '+process.env.GEO_SPACE);
+console.log('## ENV ## ELASTICACHE_ENDPOINT: '+process.env.ELASTICACHE_ENDPOINT);
+console.log('## ENV ## ELASTICACHE_LIFETIME: '+process.env.ELASTICACHE_LIFETIME);
+console.log('## ENV ## EFS_ELEVATION_DATASET: '+process.env.EFS_ELEVATION_DATASET);
+console.log('## ENV ## CONTOURS_PG: '+process.env.CONTOURS_PG);
+console.log('## ENV ## CONTOURS_SCHEMA: '+process.env.CONTOURS_SCHEMA);
+console.log('## ENV ## LMS_PG: '+process.env.LMS_PG);
+console.log('## ENV ## LMS_SCHEMA: '+process.env.LMS_SCHEMA);
+
 
 //console.log('NODE_PORT : '+ NODE_PORT );
 //console.log('PG_DB : '+ PG_DB );

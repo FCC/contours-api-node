@@ -79,16 +79,16 @@ function getContour(req, res, callback) {
 
 	// **********************************************************
 
-	var stationClass = 'B'; //default
+	//var stationClass = 'B'; //default
 	var timePeriod = 'daytime'; //default
 	var contour_level = 0.5;
 
 	if (serviceType === 'am') {
 	
 		if (req.query.stationClass) {
-			stationClass = req.query.stationClass.toUpperCase();
+			var stationClass = req.query.stationClass.toUpperCase();
 		}
-		if (req.query.timePeriod) {
+		if (req.param.timePeriod) {
 			timePeriod = req.query.timePeriod + 'time'.toLowerCase();
 		}		
 		if (stationClass === 'A') {
@@ -142,7 +142,10 @@ function getContour(req, res, callback) {
 			};  
 			return callback(ret_obj, null);
 		}else{
-			filter += '+AND+contour_level=' + contour_level + '+AND+time_period=\'' + timePeriod + '\'+AND+class=\''+stationClass+'\'';
+			filter += '+AND+contour_level=' + contour_level + '+AND+time_period=\'' + timePeriod + '\'';
+			if(stationClass !== undefined){
+				filter+= '+AND+class=\''+stationClass+'\'';
+			}
 		}
 	}else if(serviceType !== 'am'){
 		if(idType === 'antennaid'){

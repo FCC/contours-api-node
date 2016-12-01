@@ -36,6 +36,7 @@ var entity = require('./controllers/entity.js');
 var conductivity = require('./controllers/conductivity.js');
 var gwave = require('./controllers/gwave.js');
 var amr = require('./controllers/amr.js');
+var amPattern = require('./controllers/amPattern.js');
 
 // **********************************************************
 // config
@@ -471,7 +472,9 @@ app.get('/amField.json', function(req, res){
     gwave.getAmField(req, res);
 });
 
-
+app.get('/getAmPattern.json', function(req, res){
+    amPattern.getAmPattern(req, res);
+});
 
 
 // **********************************************************

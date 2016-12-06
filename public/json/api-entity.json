@@ -73,7 +73,7 @@
                     "description": "Population calculation",
                     "required": false,
                     "type": "boolean",
-                    "default": "true",
+                    "default": "false",
                     "enum": [
                         "true",
                         "false"
@@ -109,7 +109,7 @@
                     "description": "Coverage area",
                     "required": false,
                     "type": "boolean",
-                    "default": "true",
+                    "default": "false",
                     "enum": [
                         "true",
                         "false"

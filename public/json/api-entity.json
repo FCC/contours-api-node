@@ -79,6 +79,29 @@
                         "false"
                     ]
                 }, {
+                    "name": "field",
+                    "x-label": "Field Strength (dBu)",
+                    "x-display": true,
+                    "in": "query",
+                    "description": "field strength (dBu)",
+                    "required": false,
+                    "type": "number",
+                    "default": ""
+                }, {
+                    "name": "curve",
+                    "x-label": "Curve",
+                    "x-display": true,
+                    "in": "query",
+                    "description": "Type of propagation curve, range is 0-2.<br /><br /><b>0:</b> use F(50, 50) curve<br /><br /><b>1:</b>  use F(50, 10) curve<br /><br /><b>2:</b> use F(50, 90) curve",
+                    "required": false,
+                    "type": "string",
+                    "default": "0",
+                    "enum": [
+                        "0",
+                        "1",
+                        "2"
+                    ]
+                }, {
                     "name": "area",
                     "x-label": "Coverage Area",
                     "x-display": true,

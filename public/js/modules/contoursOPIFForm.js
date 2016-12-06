@@ -56,13 +56,11 @@
 
             // reset fields to default values when Service or Input Type changes
             opifForm.on('change', '.js-opif, .js-inputType', function() {
-                // var serviceVal = this.value;
-
                 opifForm
                     .find('input').val('')
                     .end()
                     .find('select:gt(1)').each(function(index, el) {
-                        el.value = index === 2 ? 'ned' : 'true';
+                        el.value = index === 3 ? 'ned' : 'false';
                     });                
             });
 
@@ -74,7 +72,11 @@
             });
 
             // show Call Sign field as default
-            $('#ent-callsign').closest('div').slideDown();            
+            $('#ent-callsign').closest('div').slideDown(); 
+
+            $('#ent-pop [value="false"]').attr('selected', true);
+            $('#ent-area [value="false"]').attr('selected', true);
+            
 
             $('#form-params').on('click.contoursOPIFAPI', '[data-api="contoursOPIF"]', ContourMap.getContour);
 
@@ -84,8 +86,8 @@
             $.ajax({
                 url: 'json/api-entity.json',
                 async: true,
-                type: "GET",
-                dataType: "json",
+                type: 'GET',
+                dataType: 'json',
                 success: function(data) {
                     var paramsData = data.paths['/entity.{format}'].get.parameters;
 

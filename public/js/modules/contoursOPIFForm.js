@@ -77,6 +77,8 @@
             $('#ent-pop [value="false"]').attr('selected', true);
             $('#ent-area [value="false"]').attr('selected', true);
             
+            // add default option to Curve field
+            $('#ent-curve').prepend('<option value="" selected></option>');
 
             $('#form-params').on('click.contoursOPIFAPI', '[data-api="contoursOPIF"]', ContourMap.getContour);
 

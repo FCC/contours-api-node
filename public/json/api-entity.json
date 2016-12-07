@@ -95,7 +95,7 @@
                     "description": "Type of propagation curve, range is 0-2.<br /><br /><b>0:</b> use F(50, 50) curve<br /><br /><b>1:</b>  use F(50, 10) curve<br /><br /><b>2:</b> use F(50, 90) curve",
                     "required": false,
                     "type": "string",
-                    "default": "0",
+                    "default": "",
                     "enum": [
                         "0",
                         "1",

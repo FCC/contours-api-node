@@ -303,9 +303,11 @@ function getContours(req, res, callback) {
 		if (channel !== undefined) {
 			channel = parseInt(channel,10);
 		}
-		if (pattern) {
-			nradial = parseInt(pattern.split(';').length,10);
-		}
+		
+		//if (pattern) {
+		//	nradial = parseInt(pattern.split(';').length,10);
+		//}
+		
 		rcamsl = parseFloat(rcamsl);
 		nradial = parseInt(nradial,10);
 		curve = parseInt(curve,10);

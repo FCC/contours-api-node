@@ -4,6 +4,9 @@
 
 // **********************************************************
 
+var conductivity = require('./conductivity.js');
+var gwave = require('./gwave.js');
+
 var dotenv = require('dotenv').load();
 var NODE_ENV = process.env.NODE_ENV;
 var NODE_PORT =  process.env.PORT;
@@ -551,12 +554,23 @@ var amPattern = function(callsign, callback) {
 				items.push(item);
 			}
 			
+			console.log('antData', result.antData);	
+			
 			var inputData = {
 				"callsign": result.stationData[0].fac_callsign,
 				"facility_id": result.stationData[0].facility_id,
 				"station_class": result.stationData[0].station_class,
 				"application_id": result.antData[0].application_id,
 				"ant_sys_id": result.antData[0].ant_sys_id,
+				"fac_frequency": result.stationData[0].fac_frequency,
+				"lat_deg": result.antData[0].lat_deg,
+				"lat_min": result.antData[0].lat_min,
+				"lat_sec": result.antData[0].lat_sec,
+				"lat_dir": result.antData[0].lat_dir,
+				"lon_deg": result.antData[0].lon_deg,
+				"lon_min": result.antData[0].lon_min,
+				"lon_sec": result.antData[0].lon_sec,
+				"lon_dir": result.antData[0].lon_dir,
 				"domestic_pattern": result.antData[0].domestic_pattern,
 				"rms_theoretical": result.antData[0].rms_theoretical,
 				"q_factor": Math.round(Q*100)/100,
@@ -596,13 +610,7 @@ var q;
 		console.log('\n' + 'connection to LMS DB failed' + e);
 	}
 	
-	try {
-		var db_contours = pgp_contours(CONTOURS_PG);
-		console.log('\n' + 'connected to CONTOURS DB');
-	}
-	catch(e) {
-		console.log('\n' + 'connection to CONTOURS DB failed' + e);
-	}
+
 	
 	var eng_data_table = LMS_SCHEMA + ".gis_am_eng_data";
 	q = "SELECT a.*, b.* from " + LMS_SCHEMA + ".gis_facility a, " + eng_data_table + 
@@ -670,8 +678,112 @@ var q;
 		callback(err, null);
 	});
 
+}
+
+var amContour = function(callsign, callback) {
+		amPattern(callsign, function(error, result) {
+		if (error) {
+			callback(error, null);
+		}
+		else {
+		
+			var patternData = result;
+			var latlonArray = [patternData.inputData.lat_deg,
+								patternData.inputData.lat_min,
+								patternData.inputData.lat_sec,
+								patternData.inputData.lat_dir,
+								patternData.inputData.lon_deg,
+								patternData.inputData.lon_min,
+								patternData.inputData.lon_sec,
+								patternData.inputData.lon_dir
+								];
+								
+			if (latlonArray.indexOf(null) >= 0) {
+				callback('missing antenna lat/lon data', null);
+				return;
+			}
+			
+			try {
+				var db_contours = pgp_contours(CONTOURS_PG);
+				console.log('\n' + 'connected to CONTOURS DB');
+			}
+			catch(e) {
+				console.log('\n' + 'connection to CONTOURS DB failed' + e);
+				callback('connection to CONTOURS DB failed' + e, null);
+				return;
+			}
+			
+			var lat_nad27 = getDecimalLatLon(patternData.inputData.lat_deg, patternData.inputData.lat_min, patternData.inputData.lat_sec, patternData.inputData.lat_dir);
+			var lon_nad27 = getDecimalLatLon(patternData.inputData.lon_deg, patternData.inputData.lon_min, patternData.inputData.lon_sec, patternData.inputData.lon_dir);
+			var q = "SELECT ST_AsGeoJson(ST_Transform(ST_GeomFromText('POINT(" + lon_nad27 + " " + lat_nad27 + ")', 4267),4326)) as latlon";
+			console.log('\n' + 'NAD27 to WGS84 Query='+q);
+			db_contours.any(q)
+				.then(function (data) {
+					var latlon84 = JSON.parse(data[0].latlon);
+					var lat_84 = latlon84.coordinates[1];
+					var lon_84 = latlon84.coordinates[0];
+					var nradial = 72;
+					var distance = 1200;
+					conductivity.getConductivity(lat_84, lon_84, nradial, distance, function(error, result) {
+						if (error) {
+						callback(error, null);
+						}
+						else {
+						var conductivityData = result;
+						conductivityData.conductivity[0] = {
+							"azimuth": 0,
+							"zones": [
+									{"conductivity": 10,
+									"distance": 20},
+									{"conductivity": 5,
+									"distance": 50},
+									{"conductivity": 15,
+									"distance": 1200}
+								]
+						
+						
+							}
+						
+						for (var i = 0; i < conductivityData.conductivity.length*0 + 1; i++) {
+							console.log('i', i);
+							
+							var azimuth = conductivityData.conductivity[i].azimuth;
+							var zones = conductivityData.conductivity[i].zones;
+							
+							for (var j = 0; j < zones.length; j++) {
+							console.log(j, zones[j].conductivity, zones[j].distance)
+							
+							}
+							
+							
+							
+							var field = gwave.amField(zones[0].conductivity, 15, 1, zones[0].distance, 100);
+							
+							console.log('field', field)
+
+						
+						}
+						
+						
+						callback(null, result);
+						
+						}
+
+					});
+				
+				})
+				.catch(function (err) {
+					console.log('\n' + err);
+					callback(err, null);
+					return;
+				});
+		}
+
+	});
 
 }
+
+
 
 
 var getAmPattern = function(req, res) {
@@ -693,9 +805,40 @@ var getAmPattern = function(req, res) {
 }
 
 
+var getAmContour = function(req, res) {
+	console.log('================== getAmContour API =============');
+
+	var callsign = req.query.callsign;
+	
+	callsign = callsign.toUpperCase();
+	
+	amContour(callsign, function(error, result) {
+		if (error) {
+			res.send({"error": error});
+		}
+		else {
+		
+			var patternData = result;
+			res.send(patternData);
+		}
+
+	});
+}
+
+function getDecimalLatLon(deg, min, sec, dir) {
+
+	var value = parseFloat(deg) + parseFloat(min)/60.0 + parseFloat(sec)/3600.0;
+	if (dir == 'W' || dir == 'S') {
+		value = -1 * value;
+		
+	}
+	
+	return value;
+}
+
 module.exports.congen = congen;
 module.exports.getAmPattern = getAmPattern;
-
+module.exports.getAmContour = getAmContour;
 
 
 

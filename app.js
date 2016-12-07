@@ -476,6 +476,10 @@ app.get('/getAmPattern.json', function(req, res){
     amPattern.getAmPattern(req, res);
 });
 
+app.get('/getAmContour.json', function(req, res){
+    amPattern.getAmContour(req, res);
+});
+
 
 // **********************************************************
 // error

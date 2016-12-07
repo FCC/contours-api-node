@@ -372,6 +372,7 @@ function getContours(req, res, callback) {
 					}
 					
 					dist = tvfm_curves.tvfmfs_metric(erp*full_pattern[i], haat, channel_use, field, distance_tmp, fs_or_dist, curve, flag);
+				
 					if (isNaN(dist)) {
 						console.log('error in distance calculation');
 						dataObj.statusMessage = 'Error in distance calculation.';

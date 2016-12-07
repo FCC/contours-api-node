@@ -6,7 +6,7 @@
     var OPIFContourForm = {
         bindEvents: function() {
             var opifForm = $('#frm-contoursOPIF');
-            var inputTypeFields = opifForm.find('input').closest('div').not(':last');
+            var inputTypeFields = opifForm.find('input').closest('div').not(':eq(3), :eq(4)');
 
             var idTypes = {
                 facilityid: 'Facility ID',

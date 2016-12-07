@@ -213,8 +213,8 @@ function getContours(req, res, callback) {
             return callback(returnJson);
 		}
 		
-		if ( !erp.match(/^\d+\.?\d*$/)) {
-			dataObj.statusMessage = 'Invalid erp value.';
+		if ( !erp.match(/^\d*\.?\d*$/)) {
+			dataObj.statusMessage = 'Invalid erp value.';			
 			returnError(dataObj, function(ret){                                                       
                  returnJson = GeoJSON.parse(ret, {});
             });

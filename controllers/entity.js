@@ -295,7 +295,9 @@ function getEntity(req, res, callback) {
 			
 			var asyncTasks = [];
 			for (i = 0; i < recordData.length; i++) {
-				asyncTasks.push(getOneContour(db_contours, db_lms, idType, queryParams, recordData[i]));
+				if (recordData[i].vsd_service !== 'DX') {
+					asyncTasks.push(getOneContour(db_contours, db_lms, idType, queryParams, recordData[i]));	
+				}				
 			}
 			
 			console.log('\n' + 'async task=', asyncTasks)
@@ -689,9 +691,7 @@ console.log('\n' + 'getOneContour recordData='+JSON.stringify(recordData));
 		if (!inputData.antenna_id) {
 			inputData.antenna_id = -999;
 		}
-		
 		console.log('\n' + 'contour inputData='+JSON.stringify(inputData));
-		
 		//check input data
 		var inputOk = true;
 		var invalidParam = '';

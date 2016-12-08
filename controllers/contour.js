@@ -142,7 +142,9 @@ function getContour(req, res, callback) {
 			};  
 			return callback(ret_obj, null);
 		}else{
-			filter += '+AND+contour_level=' + contour_level + '+AND+time_period=\'' + timePeriod + '\'';
+			//filter += ' AND contour_level=' + contour_level + ' AND time_period=\'' + timePeriod + '\'';
+			filter += '+AND+(class<>\'A\'+AND+contour_level=0.025)+OR+(class=\'A\'+AND+contour_level=0.5)';
+			
 			if(stationClass !== undefined){
 				filter+= '+AND+class=\''+stationClass+'\'';
 			}
@@ -156,11 +158,13 @@ function getContour(req, res, callback) {
 			};  
 			return callback(ret_obj, null);
 		}
+
+		
 	}
 	
 	console.log('filter ' + filter);
 
-	var getUrl = geo_host + '/' + geo_space + '/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=' + typeName + '&maxFeatures=1&sortBy=filenumber+D&outputFormat=' + outputFormat + '&cql_filter=' + filter; 
+	var getUrl = geo_host + '/' + geo_space + '/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=' + typeName + '&maxFeatures=1&sortBy=area+D&outputFormat=' + outputFormat + '&cql_filter=' + filter; 
 
 	console.log('getUrl ' + getUrl);	
 	

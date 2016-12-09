@@ -223,6 +223,7 @@ function getEntity(req, res, callback) {
 		"nradial": nradial,
 		"unit": unit_use,
 		"pop": pop,
+		"area": area,
 		"field": field,
 		"curve": curve
 	}
@@ -760,7 +761,8 @@ console.log('\n' + 'getOneContour recordData='+JSON.stringify(recordData));
 						"src": inputData.src.toString(),
 						"unit": inputData.unit.toString(),
 						"pattern": pattern.toString(),
-						"pop": queryParams.pop.toString()
+						"pop": queryParams.pop.toString(),
+						"area": queryParams.area.toString()
 					}
 				};
 				

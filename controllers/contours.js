@@ -71,6 +71,7 @@ function getContours(req, res, callback) {
 		}
 		
 		var pop = req.query.pop;
+		var areaFlag = req.query.area;
 		
 		
 		var dataObj = new Object;		
@@ -351,6 +352,8 @@ function getContours(req, res, callback) {
 				
 				var dist_arr = [];
 				var dist;
+				var azimuth;
+				var relativeField;
 				var haat;
 				var latlon;
 				var latlon_1st;
@@ -362,7 +365,9 @@ function getContours(req, res, callback) {
 				if (serviceType === 'fm') {
 					channel_use = 6;
 				}
+				var contourData = [];
 				for (var i = 0; i < haat_data.features[0].properties.haat_azimuth.length; i++) {
+					azimuth = haat_data.features[0].properties.azimuth[i];
 					haat = haat_data.features[0].properties.haat_azimuth[i];
 					if (haat > 1600) {
 						haat = 1600;
@@ -371,7 +376,10 @@ function getContours(req, res, callback) {
 						haat = 30;
 					}
 					
-					dist = tvfm_curves.tvfmfs_metric(erp*full_pattern[i], haat, channel_use, field, distance_tmp, fs_or_dist, curve, flag);
+					relativeField = math.round(erp*full_pattern[i]*full_pattern[i], 6);
+					dist = tvfm_curves.tvfmfs_metric(relativeField, haat, channel_use, field, distance_tmp, fs_or_dist, curve, flag);
+				
+					//console.log('azimuth', azimuth, 'haat', haat, 'dist', dist)
 				
 					if (isNaN(dist)) {
 						console.log('error in distance calculation');
@@ -391,6 +399,17 @@ function getContours(req, res, callback) {
 					}
 		
 					coordinates.push([math.round(latlon[1], 10), math.round(latlon[0],10)]);
+					
+					contourData.push({"x": math.round(latlon[1], 6),
+										"y": math.round(latlon[0], 6),
+										"z": 0,
+										"distance": math.round(dist, 4),
+										"haat": haat,
+										"erp": erp,
+										"relativeField": relativeField,
+										"azimuth": azimuth
+									});
+					
 				}
 				coordinates.push([math.round(latlon_1st[1], 10), math.round(latlon_1st[0], 10)]);
 				
@@ -419,7 +438,7 @@ function getContours(req, res, callback) {
 					dataObj.unit = unit;
 					dataObj.elevation_data_source = haat_data.features[0].properties.elevation_data_source;
 					dataObj.elapsed_time = endTime - startTime;	
-
+					dataObj.contourData = contourData;
 					/*dataObj.crs = {"type": "EPSG",
 										"properties": {
 											"code": "4326"
@@ -427,18 +446,54 @@ function getContours(req, res, callback) {
 
 					var geom = JSON.stringify({"type": "MultiPolygon", "coordinates": coordinates});
 					
-					area.getArea(geom, function(error, response) {
-						if (error) {
-						console.log("Area API error: ", error)
-							dataObj.area = -999;
-							dataObj.area_unit = response.area_unit;
-						}
-						else {
-							dataObj.area = response.area;
-							dataObj.area_unit = response.area_unit;
-						}
-						
-						
+					console.log('areaFlag', areaFlag)
+					if (areaFlag === 'true') {
+						area.getArea(geom, function(error, response) {
+							if (error) {
+							console.log("Area API error: ", error)
+								dataObj.area = -999;
+								dataObj.area_unit = response.area_unit;
+							}
+							else {
+								dataObj.area = response.area;
+								dataObj.area_unit = response.area_unit;
+							}
+								
+							if (pop === 'true') {
+								population.getPopulation(geom, function(error, response) {
+									if (error) {
+										dataObj.population = -999;
+									}
+									else {
+										dataObj.population = response.population;
+									}
+									
+									console.log('output dataObj='+dataObj);
+
+									var return_data = [dataObj];
+									GeoJSON.defaults = {MultiPolygon: coordinates, include: ['status','statusCode','statusMessage']};
+									
+									var return_json = GeoJSON.parse(return_data, {MultiPolygon: 'coordinates', include: ['status','statusCode','statusMessage', 
+									'antenna_lat','antenna_lon','field','erp','serviceType','curve','channel','rcamsl','nradial','unit','elevation_data_source','area','area_unit','population','elapsed_time', 'contourData']}); 
+									
+									callback(return_json);
+			
+								});
+							}
+							else {
+								console.log('output dataObj='+dataObj);
+								var return_data = [dataObj];
+								GeoJSON.defaults = {MultiPolygon: coordinates, include: ['status','statusCode','statusMessage']};
+								
+								var return_json = GeoJSON.parse(return_data, {MultiPolygon: 'coordinates', include: ['status','statusCode','statusMessage', 
+								'antenna_lat','antenna_lon','field','erp','serviceType','curve','channel','rcamsl','nradial','unit','elevation_data_source','area','area_unit','elapsed_time', 'contourData']}); 
+								
+								return callback(return_json);
+							}
+						});
+					}
+					else {
+
 						if (pop === 'true') {
 							population.getPopulation(geom, function(error, response) {
 								if (error) {
@@ -454,7 +509,7 @@ function getContours(req, res, callback) {
 								GeoJSON.defaults = {MultiPolygon: coordinates, include: ['status','statusCode','statusMessage']};
 								
 								var return_json = GeoJSON.parse(return_data, {MultiPolygon: 'coordinates', include: ['status','statusCode','statusMessage', 
-								'antenna_lat','antenna_lon','field','erp','serviceType','curve','channel','rcamsl','nradial','unit','elevation_data_source','area','area_unit','population','elapsed_time']}); 
+								'antenna_lat','antenna_lon','field','erp','serviceType','curve','channel','rcamsl','nradial','unit','elevation_data_source','population','elapsed_time', 'contourData']}); 
 								
 								callback(return_json);
 		
@@ -466,14 +521,11 @@ function getContours(req, res, callback) {
 							GeoJSON.defaults = {MultiPolygon: coordinates, include: ['status','statusCode','statusMessage']};
 							
 							var return_json = GeoJSON.parse(return_data, {MultiPolygon: 'coordinates', include: ['status','statusCode','statusMessage', 
-							'antenna_lat','antenna_lon','field','erp','serviceType','curve','channel','rcamsl','nradial','unit','elevation_data_source','area','area_unit','elapsed_time']}); 
+							'antenna_lat','antenna_lon','field','erp','serviceType','curve','channel','rcamsl','nradial','unit','elevation_data_source','elapsed_time', 'contourData']}); 
 							
 							return callback(return_json);
 						}
-						
-						
-					});
-					
+					}
 				}
 			}
 			else {				

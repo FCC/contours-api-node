@@ -477,11 +477,11 @@ var getQ = function(pwr, K, fld) {
 
 
 
-var amPattern = function(callsign, callback) {
+var amPattern = function(idType, idValue, nradial, callback) {
 
 	var i;
 
-	getAmStationData(callsign, function(error, result) {
+	getAmStationData(idType, idValue, function(error, result) {
 		if (error) {
 			callback(error, null);
 		}
@@ -527,11 +527,16 @@ var amPattern = function(callsign, callback) {
 			console.log('K=', K, 'Q=', Q);
 
 			var azimuths = [];
+			var azimuth;
 			var Eths = [];
 			var Estds = [];
 			var item;
 			var items = [];
-			for (var azimuth = 0; azimuth < 360; azimuth += 5) {
+			
+			var deltaAz = 360/nradial;
+			
+			for (var n = 0; n < nradial; n++) {
+				azimuth = n * deltaAz;
 				azimuths.push(azimuth);
 				
 				var v = mathjs.complex(0,0);
@@ -553,8 +558,7 @@ var amPattern = function(callsign, callback) {
 				item = {"azimuth": azimuth, "Eth": mathjs.round(Eth, 2), "Estd": mathjs.round(Estd, 2)};
 				items.push(item);
 			}
-			
-			console.log('antData', result.antData);	
+
 			
 			var inputData = {
 				"callsign": result.stationData[0].fac_callsign,
@@ -577,28 +581,126 @@ var amPattern = function(callsign, callback) {
 				"k_factor": Math.round(K*100)/100,
 				"hours_operation": result.antData[0].hours_operation,
 				"power": result.antData[0].power,
-				"number_of_tower": result.towerData.length
+				"number_of_tower": result.towerData.length,
+				"nradial": nradial
 			}
 			
-			var ret = {
-				"inputData": inputData,
-				"amPattern": items
-			};
+			//get aug
+			try {
+				var db_lms = pgp_lms(LMS_PG);
+				console.log('\n' + 'connected to LMS DB');
+			}
+			catch(e) {
+				console.log('\n' + 'connection to LMS DB failed' + e);
+			}
 			
-			callback(null, ret);
+			var q = "SELECT * FROM mass_media.gis_am_augs WHERE ant_sys_id = " + result.antData[0].ant_sys_id;
+			db_lms.any(q)
+			.then(function (data) {
+				var augData = data;	
+				var amPattern = applyAmAugs(items, augData);
 			
-			console.log('done');
+				var ret = {
+					"inputData": inputData,
+					"amPattern": amPattern
+				};
+				
+				callback(null, ret);
+				
+				console.log('done');
+			
+			})
+			.catch(function (err) {
+				console.log('\n' + err);
+				callback(err, null);
+			});
 		
 		}
 	
 	
 	});
-	
-	
-
 }
 
-var getAmStationData = function(callsign, callback) {
+
+var applyAmAugs = function(items, augData) {
+	console.log('apply am aug')
+	var i, j, azimuth, center_azimuth, span, radiation_aug, augmentation, Estd;
+	var dEaug = [];
+	for (i = 0; i < items.length; i++) {
+		dEaug[i] = 0;
+	}
+	
+	for (i = 0; i < augData.length; i++) {
+	
+		center_azimuth = augData[i].azimuth_deg;
+		span = augData[i].span_deg;
+		radiation_aug = augData[i].radiation_aug;
+		Estd = getEstd(center_azimuth, items);
+		
+		for (j = 0; j < items.length; j++) {
+			azimuth = items[j].azimuth;
+			augmentation = calAug(azimuth, center_azimuth, span, radiation_aug, Estd, items[j].Estd);
+			dEaug[j] += augmentation - items[j].Estd;
+
+		}
+	}
+	
+	for (j = 0; j < items.length; j++) {
+	items[j].Eaug = mathjs.round(items[j].Estd + dEaug[j], 2);
+	}
+	
+	return items;
+}
+
+
+var getEstd = function(az, items) {
+
+	var i, az1, az2, e1, e2;
+	
+	for (i = 0; i < items.length-1; i++) {
+		if (az >= items[i].azimuth && az <= items[i+1].azimuth) {
+			az1 = items[i].azimuth;
+			az2 = items[i+1].azimuth;
+			e1 = items[i].Estd;
+			e2 = items[i+1].Estd;
+		}
+	}
+	if (az < items[0].azimuth || az > items[items.length-1].azimuth) {
+		az1 = items[0].azimuth;
+		az2 = items[items.length-1].azimuth;
+		e1 = items[0].Estd;
+		e2 = items[items.length-1].Estd;
+		if (az < az1) {
+			az1 += 360;
+			az += 360;
+		}
+		else {
+			az1 += 360;
+		}
+	}
+	
+	var e = e1 + (e2 - e1)*(az - az1)/(az2 - az1);
+	
+	return e;
+}
+
+
+
+var calAug = function(azimuth, center_azimuth, span, radiation_aug, Estd_center, Estd) {
+
+	var D = Math.abs(azimuth - center_azimuth);
+	if (D >= span/2.0) {
+		return Estd;
+	}
+	var Eaug = radiation_aug;
+	var value = Math.sqrt(Estd*Estd + (Eaug*Eaug - Estd_center*Estd_center)*Math.cos(Math.PI*D/span)*Math.cos(Math.PI*D/span));
+	
+	return value;
+}
+
+
+
+var getAmStationData = function(idType, idValue, callback) {
 
 var q;
 
@@ -610,13 +712,24 @@ var q;
 		console.log('\n' + 'connection to LMS DB failed' + e);
 	}
 	
-
+	if (idType === 'callsign') {
+		var eng_data_table = LMS_SCHEMA + ".gis_am_eng_data";
+		q = "SELECT a.*, b.* from " + LMS_SCHEMA + ".gis_facility a, " + eng_data_table + 
+		" b WHERE a.facility_id = b.facility_id and a.fac_callsign = '" + idValue + "' ";
+		//+ "and b.am_dom_status = 'L' and a.fac_status = 'LICEN'";
+	}
+	else if (idType === 'facilityid') {
+		var eng_data_table = LMS_SCHEMA + ".gis_am_eng_data";
+		q = "SELECT a.*, b.* from " + LMS_SCHEMA + ".gis_facility a, " + eng_data_table + 
+		" b WHERE a.facility_id = b.facility_id and a.facility_id = '" + idValue + "' ";
+		//+ "and b.am_dom_status = 'L' and a.fac_status = 'LICEN'";
+	}
+	else {
+		console.log('\n' + 'invalid idType ' + idType);
+		callback('invalid idType ' + idType, null);
+		return;
+	}
 	
-	var eng_data_table = LMS_SCHEMA + ".gis_am_eng_data";
-	q = "SELECT a.*, b.* from " + LMS_SCHEMA + ".gis_facility a, " + eng_data_table + 
-	" b WHERE a.facility_id = b.facility_id and a.fac_callsign = '" + callsign + "' ";
-	//+ "and b.am_dom_status = 'L' and a.fac_status = 'LICEN'";
-
 	db_lms.any(q)
 	.then(function (data) {
 		if (data.length == 0) {
@@ -789,11 +902,58 @@ var amContour = function(callsign, callback) {
 var getAmPattern = function(req, res) {
 	console.log('================== getAmPattern API =============');
 
-	var callsign = req.query.callsign;
+	var idType = req.query.idType
+	var idValue = req.query.idValue;
+	var nradial = req.query.nradial;
 	
-	callsign = callsign.toUpperCase();
+	if (idType == undefined) {
+		console.log('\n' + 'missing idType');
+		res.status(400).send({
+			'status': 'error',
+			'statusCode':'400',
+			'statusMessage': 'missing idType.'
+		});
+		return;
+	}
 	
-	amPattern(callsign, function(error, result) {
+	if (idType != undefined && ["callsign", "facilityid"].indexOf(idType.toLowerCase()) < 0 ) {
+		console.log('\n' + 'Invalid idType value, must be callsign or facilityid');
+		res.status(400).send({
+			'status': 'error',
+			'statusCode':'400',
+			'statusMessage': 'Invalid idType value, must be callsign or facilityid'
+		});
+		return;
+	}
+	
+	if (nradial == undefined) {
+		nradial = 360;
+	}
+
+	if ( !(''+nradial).match(/^\d+$/)) {
+		console.log('\n' + 'Invalid nradial value');
+		res.status(400).send({
+		'status': 'error',
+		'statusCode':'400',
+		'statusMessage': 'Invalid nradial value.'
+		});
+		return;
+	}
+	
+	if ( nradial < 8 || nradial > 360) {
+		console.log('\n' + 'Invalid nradial value range, must be [8, 360]');
+		res.status(400).send({
+		'status': 'error',
+		'statusCode':'400',
+		'statusMessage': 'Invalid nradial value range, must be [8, 360]'
+		});
+		return;
+	}
+	
+	idType = idType.toLowerCase();
+	idValue = idValue.toUpperCase();
+	
+	amPattern(idType, idValue, nradial, function(error, result) {
 		if (error) {
 			res.send({"error": error});
 		}

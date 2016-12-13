@@ -940,6 +940,8 @@ var getAmPattern = function(req, res) {
 		return;
 	}
 	
+	nradial = parseInt(nradial);
+	
 	if ( nradial < 8 || nradial > 360) {
 		console.log('\n' + 'Invalid nradial value range, must be [8, 360]');
 		res.status(400).send({

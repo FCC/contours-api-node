@@ -52,7 +52,7 @@
             Map.map.on('click', function(event) {
                 var apiType = $('#apiType').val();
 
-                if (apiType !== 'contoursOPIF' ) {
+                if (apiType !== 'entity' ) {
                     Map.createTempMarker(event);
                 }
             });

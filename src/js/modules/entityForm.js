@@ -3,9 +3,9 @@
 
     var ContourMap = require('./contourMap.js');
 
-    var OPIFContourForm = {
+    var EntityForm = {
         bindEvents: function() {
-            var opifForm = $('#frm-contoursOPIF');
+            var opifForm = $('#frm-entity');
             var inputTypeFields = opifForm.find('input').closest('div').not(':eq(3), :eq(4)');
 
             var idTypes = {
@@ -74,13 +74,16 @@
             // show Call Sign field as default
             $('#ent-callsign').closest('div').slideDown(); 
 
+            // indicate required fields
+            $('label[for="ent-callsign"], label[for="ent-facilityId"], label[for="ent-applicationId"]').addClass('required');
+
             $('#ent-pop [value="false"]').attr('selected', true);
             $('#ent-area [value="false"]').attr('selected', true);
             
             // add default option to Curve field
             $('#ent-curve').prepend('<option value="" selected></option>');
 
-            $('#form-params').on('click.contoursOPIFAPI', '[data-api="contoursOPIF"]', ContourMap.getContour);
+            $('#form-params').on('click.entityAPI', '[data-api="entity"]', ContourMap.getContour);
 
         },
         getParams: function() {
@@ -93,7 +96,7 @@
                 success: function(data) {
                     var paramsData = data.paths['/entity.{format}'].get.parameters;
 
-                    OPIFContourForm.createTemplate(paramsData);
+                    EntityForm.createTemplate(paramsData);
                 }
             });
         },
@@ -107,12 +110,12 @@
             fields.params = data;
             fieldsetHTML = template(fields);
 
-            $('#frm-contoursOPIF').append(fieldsetHTML);
+            $('#frm-entity').append(fieldsetHTML);
 
-            OPIFContourForm.bindEvents();
+            EntityForm.bindEvents();
         }
     };
 
-    module.exports = OPIFContourForm;
+    module.exports = EntityForm;
 
 }());

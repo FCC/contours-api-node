@@ -4,7 +4,7 @@
     var APIForm = require('./modules/apiForm.js');
     var Map = require('./modules/map.js');
     var ContourEnterpriseForm = require('./modules/contoursEnterpriseForm.js');
-    var ContourOPIFForm = require('./modules/contoursOPIFForm.js');
+    var EntityForm = require('./modules/entityForm.js');
     var ElevationForm = require('./modules/elevationForm.js');
     var HAATForm = require('./modules/haatForm.js');
     var ProfileForm = require('./modules/profileForm.js');
@@ -13,7 +13,7 @@
     Map.init();
     ElevationForm.getParams();    
     ContourEnterpriseForm.getParams();
-    ContourOPIFForm.getParams(); 
+    EntityForm.getParams(); 
     HAATForm.getParams();        
     ProfileForm.getParams();
 }());

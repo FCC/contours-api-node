@@ -5,8 +5,8 @@
 
     var EntityForm = {
         bindEvents: function() {
-            var opifForm = $('#frm-entity');
-            var inputTypeFields = opifForm.find('input').closest('div').not(':eq(3), :eq(4)');
+            var entityForm = $('#frm-entity');
+            var inputTypeFields = entityForm.find('input').closest('div').not(':eq(3), :eq(4)');
 
             var idTypes = {
                 facilityid: 'Facility ID',
@@ -26,20 +26,20 @@
             selectTpl += '</select>';
             selectTpl += '</div>';
 
-            opifForm.find('div').eq(0).after(selectTpl);
+            entityForm.find('div').eq(0).after(selectTpl);
 
             // hide Input Type fields by default
             inputTypeFields.hide();
             
 
             // display Input Type options based on selection
-            opifForm.on('change', '.js-inputType', function() {
+            entityForm.on('change', '.js-inputType', function() {
                 inputTypeFields.hide();
                 $('#' + this.value).closest('div').slideDown();
             });
 
             // create custom field ID and for attribute values
-            opifForm
+            entityForm
                 .find('label').each(function(index, el) {
                     var attrVal = $(el).attr('for');
 
@@ -52,11 +52,11 @@
                     $(el).attr('id', 'ent-' + idVal);
                 })
                 .end()
-                .find('select').eq(0).addClass('js-opif');
+                .find('select').eq(0).addClass('js-entity');
 
             // reset fields to default values when Service or Input Type changes
-            opifForm.on('change', '.js-opif, .js-inputType', function() {
-                opifForm
+            entityForm.on('change', '.js-entity, .js-inputType', function() {
+                entityForm
                     .find('input').val('')
                     .end()
                     .find('select:gt(1)').each(function(index, el) {
@@ -65,7 +65,7 @@
             });
 
             // hide Input Type fields except Call Sign when Service Type changes
-            opifForm.on('change', '.js-opif', function() {
+            entityForm.on('change', '.js-entity', function() {
                 $('.js-inputType').val('ent-callsign');
                 inputTypeFields.hide();
                 $('#ent-callsign').closest('div').slideDown();

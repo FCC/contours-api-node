@@ -14,9 +14,9 @@
             // var serviceType = $('#serviceType').val();
             // var amParams = '';
 
-            if (apiType === 'contoursOPIF') {
+            if (apiType === 'entity') {
                 contourAPI = './entity.json?';
-                contourAPI += $('.fields-contoursOPIF').find('input, select')
+                contourAPI += $('.fields-entity').find('input, select')
                     .filter(function() {
                         if (this.value !== '') {
                             return this;
@@ -73,8 +73,8 @@
 
             Map.map.fitBounds(Map.contourJSON.getBounds());
 
-            if ($('#apiType').val() === 'contoursOPIF') {
-                ContourMap.createOPIFMarker(data);
+            if ($('#apiType').val() === 'entity') {
+                ContourMap.createEntityMarker(data);
             } else {
                 ContourMap.createMarker(data);
             }
@@ -123,7 +123,7 @@
                 .bindPopup(contourMeta);
 
         },
-        createOPIFMarker: function(data) {
+        createEntityMarker: function(data) {
             var contourMeta = '';
 
             Map.featureLayer = L.mapbox.featureLayer().addTo(Map.map);

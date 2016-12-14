@@ -223,6 +223,7 @@ function getEntity(req, res, callback) {
 		"nradial": nradial,
 		"unit": unit_use,
 		"pop": pop,
+		"area": area,
 		"field": field,
 		"curve": curve
 	}
@@ -295,7 +296,9 @@ function getEntity(req, res, callback) {
 			
 			var asyncTasks = [];
 			for (i = 0; i < recordData.length; i++) {
-				asyncTasks.push(getOneContour(db_contours, db_lms, idType, queryParams, recordData[i]));
+				if (recordData[i].vsd_service !== 'DX') {
+					asyncTasks.push(getOneContour(db_contours, db_lms, idType, queryParams, recordData[i]));	
+				}				
 			}
 			
 			console.log('\n' + 'async task=', asyncTasks)
@@ -412,6 +415,7 @@ function getRecord(serviceType, idType, data) {
 			recordData[i].eng_record_type = data[recordIndex[i]].eng_record_type;
 			recordData[i].antenna_id = data[recordIndex[i]].antenna_id;
 			recordData[i].antenna_type = data[recordIndex[i]].antenna_type;
+			recordData[i].ant_rotation = data[recordIndex[i]].ant_rotation;
 			recordData[i].rcamsl_horiz_mtr = data[recordIndex[i]].rcamsl_horiz_mtr;
 			recordData[i].rcamsl_vert_mtr = data[recordIndex[i]].rcamsl_vert_mtr;
 			recordData[i].effective_erp = data[recordIndex[i]].effective_erp;
@@ -441,12 +445,24 @@ function getDecimalLatLon(deg, min, sec, dir) {
 
 }
 
-function getPatternString(data) {
+function getPatternString(data, ant_rotation) {
 	var i;
 	var pattern = '';
+	var az;
+	var az_value = [];
 	for (i = 0; i < data.length; i++) {
-		pattern += data[i].azimuth + ',' + data[i].field_value + ';';
+		az = data[i].azimuth + ant_rotation;
+		if (az >= 360) {
+			az -= 360;
+		}
+		az_value.push([az, data[i].field_value]);
 	}
+	az_value = az_value.sort(function(a,b) {return a[0]-b[0];});
+
+	for (i = 0; i < az_value.length; i++) {
+		pattern += az_value[i][0] + ',' + az_value[i][1] + ';';
+	}
+	
 	pattern = pattern.replace(/;$/, '');
 	
 	return pattern;
@@ -676,9 +692,7 @@ console.log('\n' + 'getOneContour recordData='+JSON.stringify(recordData));
 		if (!inputData.antenna_id) {
 			inputData.antenna_id = -999;
 		}
-		
 		console.log('\n' + 'contour inputData='+JSON.stringify(inputData));
-		
 		//check input data
 		var inputOk = true;
 		var invalidParam = '';
@@ -716,7 +730,13 @@ console.log('\n' + 'getOneContour recordData='+JSON.stringify(recordData));
 		db_lms.any(q)
 		.then(function (data) {
 			console.log('\n' + 'Query data [pattern] =', data)
-			var pattern = getPatternString(data);
+			var ant_rotation = recordData.ant_rotation;
+			if (ant_rotation == null) {
+				ant_rotation = 0;
+			}
+			
+			console.log('rotation', ant_rotation);
+			var pattern = getPatternString(data, ant_rotation);
 			
 			var url = "coverage.json?serviceType=" + inputData.serviceType + "&lat=" + inputData.lat + "&lon=" + inputData.lon +
 					"&nradial=" + inputData.nradial + "&rcamsl=" + inputData.rcamsl + "&field=" + inputData.field + "&channel=" + inputData.channel +
@@ -741,7 +761,8 @@ console.log('\n' + 'getOneContour recordData='+JSON.stringify(recordData));
 						"src": inputData.src.toString(),
 						"unit": inputData.unit.toString(),
 						"pattern": pattern.toString(),
-						"pop": queryParams.pop.toString()
+						"pop": queryParams.pop.toString(),
+						"area": queryParams.area.toString()
 					}
 				};
 				

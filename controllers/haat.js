@@ -438,6 +438,9 @@ function readDataFile(n, filepath, src, latlon, output_data) {
 						//console.log('globe30 row=' + row + ' col=' + col + ' pos=' + position + ' elev=' + elev);
 
 						elev = Math.round(100*data.slice(position, position+length).readInt16LE(0))/100;
+						if (elev < 0.0) {
+							elev = 0.0;
+						}
 						output_data.push([latlon[i][0], latlon[i][1], latlon[i][2], latlon[i][3], elev]);
 					}
 				}

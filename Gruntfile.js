@@ -9,6 +9,7 @@ module.exports = function(grunt) {
     // Configurable paths
     var paths = {
         tmp: '.tmp',
+        src: './src',
         assets: './public'
     };
 
@@ -80,7 +81,7 @@ module.exports = function(grunt) {
         postcss: {
             options: {
                 map: {
-                    inline: false                    
+                    inline: false
                 },
                 processors: [
                     require('autoprefixer')({ browsers: ['last 4 version'] })
@@ -114,7 +115,7 @@ module.exports = function(grunt) {
                     // 'bower_components/bootstrap/js/tab.js',
                 ],
                 dest: './public/js/vendor/bootstrap.min.js'
-            }         
+            }
         },
 
         // Add a banner to the top of the generated LESS file.
@@ -138,17 +139,55 @@ module.exports = function(grunt) {
                 }
             },
             dev: {
-                src: ['<%= paths.assets %>/js/main.js'],
+                src: ['<%= paths.src %>/js/main.js'],
                 dest: '<%= paths.assets %>/js/app.js'
             },
-            production: {
+            prod: {
                 options: {
                     browserifyOptions: {
-                        debug: true
+                        debug: false
                     }
                 },
-                src: '<%= browserify.dev.src %>',
+                src: ['<%= paths.src %>/js/main.js'],
                 dest: '<%= paths.assets %>/js/app.js'
+            }
+        },
+
+        uglify: {
+            options: {
+                mangle: {
+                    except: ['jQuery', 'Handlebars']
+                },
+                sourceMap: false
+            },
+            my_target: {
+
+                files: {
+                    '<%= paths.assets %>/js/app.min.js': ['<%= paths.assets %>/js/app.js']
+                }
+            }
+        },
+
+        'string-replace': {
+            dev: {
+                src: '<%= paths.assets %>/contour-demo.html',
+                dest: '<%= paths.assets %>/',
+                options: {
+                    replacements: [{
+                        pattern: 'app.min.js',
+                        replacement: 'app.js'
+                    }]
+                }
+            },
+            prod: {
+                src: '<%= paths.assets %>/contour-demo.html',
+                dest: '<%= paths.assets %>/',
+                options: {
+                    replacements: [{
+                        pattern: 'app.js',
+                        replacement: 'app.min.js'
+                    }]
+                }
             }
         },
 
@@ -166,6 +205,9 @@ module.exports = function(grunt) {
                     }
                 ]
             }
+        },
+        clean: {
+            release: ['<%= paths.assets %>/js/app.js', '<%= paths.assets %>/css/*.map']
         }
     });
 
@@ -175,7 +217,20 @@ module.exports = function(grunt) {
         'usebanner',
         'postcss',
         'concat',
-        'browserify:dev'
+        'browserify:dev',
+        'string-replace:dev'
+    ]);
+
+    grunt.registerTask('build:release', [
+        'jshint',
+        'less',
+        'usebanner',
+        'postcss',
+        'concat',
+        'browserify:prod',
+        'uglify',
+        'string-replace:prod',
+        'clean:release'
     ]);
 
     grunt.registerTask('default', [

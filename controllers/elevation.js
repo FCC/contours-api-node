@@ -295,7 +295,14 @@ function getElevation(req, res, callback) {
 				console.log(datatype+' file exist in file system');
 
 				var elevation = utility.getElevFromFile(datatype, filepath, lat, lon);
-				
+
+				if( unit === 'mi'){
+					elevation = Math.round(1000*elevation*0.000621371)/1000;
+				}
+				else if(unit === 'ft'){
+					elevation = Math.round(1000*elevation*3.28084)/1000;
+				}
+
 				dataObj.status = 'success';
             	dataObj.statusCode = '200';
             	dataObj.statusMessage = 'ok';

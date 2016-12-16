@@ -7,6 +7,7 @@
 var conductivity = require('./conductivity.js');
 var gwave = require('./gwave.js');
 var db_lms = require('./db_lms.js');
+var db_contour = require('./db_contour.js');
 
 var dotenv = require('dotenv').load();
 var NODE_ENV = process.env.NODE_ENV;

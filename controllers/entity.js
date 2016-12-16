@@ -25,35 +25,15 @@ if (NODE_ENV == 'DEV' || NODE_ENV == 'LOCAL') {
 var async = require('async');
 var request = require('request');
 var mathjs = require('mathjs');
-var promise = require('bluebird');
-var options = {
-  // Initialization Options
-  promiseLib: promise
-};
-var pgp_lms = require('pg-promise')(options);
-var pgp_contours = require('pg-promise')(options);
 
+var db_lms = require('./db_lms.js');
+var db_contours = require('./db_contour.js');
 var contours = require('./contours.js');
 
 
 function getEntity(req, res, callback) {
 
 	console.log('\n' + '============ getEntity ============');
-	try {
-		var db_lms = pgp_lms(LMS_PG);
-		console.log('\n' + 'connected to LMS DB');
-	}
-	catch(e) {
-		console.log('\n' + 'connection to LMS DB failed' + e);
-	}
-	
-	try {
-		var db_contours = pgp_contours(CONTOURS_PG);
-		console.log('\n' + 'connected to CONTOURS DB');
-	}
-	catch(e) {
-		console.log('\n' + 'connection to CONTOURS DB failed' + e);
-	}
 
 	var serviceType = req.query.serviceType;	
 	var callsign = req.query.callsign;

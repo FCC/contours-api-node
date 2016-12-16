@@ -16,11 +16,11 @@ var options = {
   // Initialization Options
   promiseLib: promise
 };
-var pgp_lms = require('pg-promise')(options);
+var pgp = require('pg-promise')(options);
 
 try {
-	var db_lms = pgp_lms(LMS_PG);
-	console.log('\n' + 'connected to LMS DB');
+	var db_lms = pgp(LMS_PG);
+	console.log('\n' + 'connected to LMS DB from db_lms.js');
 }
 catch(e) {
 	console.log('\n' + 'connection to LMS DB failed' + e);

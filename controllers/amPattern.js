@@ -442,6 +442,7 @@ var congen = function(pat, pwr, rms, fld, spc, orn, trs, phs, hgt, tls, a, b, c,
 	var con = con_smlrms.con;
 	var smlrms = con_smlrms.smlrms;
 	if (true || pat === 'T' || pat === 'A' && rms > 0) {
+	//if ( pat === 'T' && rms > 0) {
 		con = rms/smlrms;
 	}
 	// Get a value for con even for ND (theoretical) patterns.
@@ -525,6 +526,8 @@ var applyAmAugs = function(items, augData) {
 	
 	for (i = 0; i < augData.length; i++) {
 	
+		console.log('i', i, 'total', augData.length)
+		
 		center_azimuth = augData[i].azimuth_deg;
 		span = augData[i].span_deg;
 		radiation_aug = augData[i].radiation_aug;
@@ -535,6 +538,7 @@ var applyAmAugs = function(items, augData) {
 			augmentation = calAug(azimuth, center_azimuth, span, radiation_aug, Estd, items[j].Estd);
 			
 			dEaug[j] += augmentation - items[j].Estd;
+			//console.log('i', i, 'j', j, 'az', azimuth, 'd', augmentation)
 
 		}
 	}
@@ -542,6 +546,8 @@ var applyAmAugs = function(items, augData) {
 	for (j = 0; j < items.length; j++) {
 	items[j].Eaug = mathjs.round(items[j].Estd + dEaug[j], 2);
 	}
+	
+	//console.log('items', items)
 	
 	return items;
 }
@@ -587,8 +593,16 @@ var calAug = function(azimuth, center_azimuth, span, radiation_aug, Estd_center,
 		return Estd;
 	}
 	var Eaug = radiation_aug;
-	var value = Math.sqrt(Estd*Estd + (Eaug*Eaug - Estd_center*Estd_center)*Math.cos(Math.PI*D/span)*Math.cos(Math.PI*D/span));
-	
+
+	var value = Estd*Estd + (Eaug*Eaug - Estd_center*Estd_center)*Math.cos(Math.PI*D/span)*Math.cos(Math.PI*D/span);
+	if (value >= 0) {
+		var value = Math.sqrt(value);
+	}
+	else {
+		value = Estd;
+	}
+	//console.log('Estd', Estd, 'Eaug', Eaug, 'Estd_center', Estd_center, 'D', D, 'span', span, 'value', value)
+
 	return value;
 }
 
@@ -929,6 +943,7 @@ var makeOneAmPattern = function(stationData, antData, towerData, nradial, callba
 		phs.push(towerData[i].phasing_deg);
 		orn.push(towerData[i].orientation_deg);
 		tls.push(towerData[i].top_loaded_switch);
+
 		topload_a.push(towerData[i].topload_a);
 		topload_b.push(towerData[i].topload_b);
 		topload_c.push(towerData[i].topload_c);
@@ -966,8 +981,10 @@ var makeOneAmPattern = function(stationData, antData, towerData, nradial, callba
 		var v = mathjs.complex(0,0);
 		for (i = 0; i < fld.length; i++) {
 			var beta = getBeta(phs[i], spc[i], orn[i], azimuth);
+			console.log('az', azimuth, 'i', i, 'beta', beta)
 			var alpha = 90 - beta;
-			if (alpha > -180) {
+			console.log('alpha', alpha)
+			if (alpha < -180) {
 				alpha += 360;
 			}
 			x = fld[i] * mathjs.cos(alpha*Math.PI/180);

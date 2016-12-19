@@ -30,8 +30,13 @@
                 }
             });
 
+            // add default option to src field
+            $('#src').prepend('<option value="" selected></option>');
+
+            $('#pop [value="false"]').attr('selected', true);
+            $('#area [value="false"]').attr('selected', true);
+
             $('#form-params').on('click.contoursEnterpriseAPI', '[data-api="contoursEnterprise"]', ContourMap.getContour);
-            
         },
         getParams: function() {
             // get parameters (form fields) from Swagger JSON

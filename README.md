@@ -15,9 +15,15 @@
    npm test
    ```
    
-5. Build the docs (HTML, LESS/CSS, JS).  
+5. Build the docs (HTML, LESS/CSS, JS).
+
+   Development
    ```
    grunt
+   ```
+   Production
+   ```
+   grunt build:release
    ```
    
 6. Run the app.  

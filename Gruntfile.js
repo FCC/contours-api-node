@@ -26,7 +26,7 @@ module.exports = function(grunt) {
                 tasks: ['less', 'usebanner', 'postcss', 'copy']
             },
             scripts: {
-                files: ['<%= paths.assets %>/js/main.js', '<%= paths.assets %>/js/modules/**/*.js'],
+                files: ['<%= paths.src %>/js/main.js', '<%= paths.src %>/js/modules/**/*.js'],
                 tasks: ['jshint', 'concat', 'browserify:dev']
             }
         },

@@ -130,10 +130,10 @@
                     ]
                 }, {
                     "name": "area",
-                    "x-label": "Coverage area calculation",
+                    "x-label": "Coverage area",
                     "x-display": true,
                     "in": "query",
-                    "description": "Coverage area",
+                    "description": "Coverage area calculation",
                     "required": false,
                     "type": "boolean",
                     "default": "false",

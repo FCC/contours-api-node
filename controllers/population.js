@@ -8,26 +8,13 @@ var dotenv = require('dotenv').load();
 var CONTOURS_PG = process.env.CONTOURS_PG;
 var CONTOURS_SCHEMA = process.env.CONTOURS_SCHEMA;
 
-var promise = require('bluebird');
-var options = {
-  // Initialization Options
-  promiseLib: promise
-};
-var pgp = require('pg-promise')(options);
+var db = require('./db_contour.js');
 
 var getPopulation = function(geom, callback) { // geom is a geojson string
 	console.log("============== Population API ===============");
 
 	var i, j;
-	try {
-		var db = pgp(CONTOURS_PG);
-		console.log('connected to CONTOURS PG');
-	}
-	catch(e) {
-		console.log('connection to CONTOURS PG failed' + e);
-		callback(e, {"population": null});
-	}
-	
+
 	getStateList(db, geom, function(error, response) {
 		if (error) {
 			callback(error, {"population": null});
@@ -311,12 +298,6 @@ var getFullStatePopulation = function(db, fullStateList, callback) {
 		callback(null, {"population": 0});
 	}
 }
-
-
-
-
-
-
 
 
 module.exports.getPopulation = getPopulation;

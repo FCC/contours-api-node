@@ -98,7 +98,7 @@
                     "x-display": true,
                     "in": "query",
                     "description": "Type of propagation curve, range is 0-2.<br /><br /><b>0:</b> use F(50, 50) curve<br /><br /><b>1:</b>  use F(50, 10) curve<br /><br /><b>2:</b> use F(50, 90) curve",
-                    "required": false,
+                    "required": true,
                     "type": "string",
                     "default": "",
                     "enum": [
@@ -116,6 +116,32 @@
                     "type": "string",
                     "default": ""                    
                 }, {
+                    "name": "pop",
+                    "x-label": "Population",
+                    "x-display": true,
+                    "in": "query",
+                    "description": "Population calculation",
+                    "required": false,
+                    "type": "boolean",
+                    "default": "false",
+                    "enum": [
+                        "true",
+                        "false"
+                    ]
+                }, {
+                    "name": "area",
+                    "x-label": "Coverage area calculation",
+                    "x-display": true,
+                    "in": "query",
+                    "description": "Coverage area",
+                    "required": false,
+                    "type": "boolean",
+                    "default": "false",
+                    "enum": [
+                        "true",
+                        "false"
+                    ]
+                }, {
                     "name": "src",
                     "x-label": "Source",
                     "x-display": true,
@@ -123,7 +149,7 @@
                     "description": "National Elevation Dataset (NED) available at resolutions of 1 arc-second (ned_1) and 1/3 arc-second (ned_13). In most of Alaska, data are available at 2-arc-second (ned_2) grid spacing.<br><br>Global dataset (globe30).",
                     "required": false,
                     "type": "string",
-                    "default": "ned",
+                    "default": "",
                     "enum": [
                         "ned_1",
                         "ned_2",

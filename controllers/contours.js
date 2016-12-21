@@ -102,10 +102,6 @@ function getContours(req, res, callback) {
             });
             return callback(returnJson);
 		}
-		
-		if (src === undefined) {
-			src = 'ned_1';
-		}
 		if (unit === undefined) {
 			unit = 'm';
 		}

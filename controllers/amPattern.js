@@ -129,9 +129,9 @@ var getfth = function(theta,ht,a,b,c,d,tls) {
 				q = theta;
 				cq = Math.cos(q);
 				sq = Math.sin(q);
-				x_real= -( (2*a_1*cq)/(a_1*a_1 - sq*sq) ) * ( (-Math.cos(a_1 * (b[i]-a[i]))) + (2*Math.cos(a_1*b[i])*Math.cos(a[i]*sq)) - (Math.cos(ht[i]*sq))  );
-				inner3terms = Math.sin( a_1*(b[i]-a[i]) ) -  2* Math.sin(a_1*b[i])*Math.cos(a[i]*sq) + sq * Math.sin( ht[i]*sq )/a_1;
-				y_imag= (d_8 * cq) * ( Math.sin(ht[i]+sq)/sq + a_1/(a_1*a_1 - sq*sq) * inner3terms );
+				var x_real= -( (2*a_1*cq)/(a_1*a_1 - sq*sq) ) * ( (-Math.cos(a_1 * (b[i]-a[i]))) + (2*Math.cos(a_1*b[i])*Math.cos(a[i]*sq)) - (Math.cos(ht[i]*sq))  );
+				var inner3terms = Math.sin( a_1*(b[i]-a[i]) ) -  2* Math.sin(a_1*b[i])*Math.cos(a[i]*sq) + sq * Math.sin( ht[i]*sq )/a_1;
+				var y_imag= (d_8 * cq) * ( Math.sin(ht[i]+sq)/sq + a_1/(a_1*a_1 - sq*sq) * inner3terms );
 
 				fth = Math.sqrt(x_real*x_real + y_imag*y_imag)/c_8;
 			}
@@ -436,7 +436,7 @@ var congen = function(pat, pwr, rms, fld, spc, orn, trs, phs, hgt, tls, a, b, c,
 		c[i] = toRadians(c[i]);
 		d[i] = toRadians(d[i]);
 	}
-
+	
     var con_smlrms=getRMS(pwr, fld, spc1, orn1, trs, phs1, hgt1, tls, a, b, c, d);
 
 	var con = con_smlrms.con;
@@ -526,8 +526,6 @@ var applyAmAugs = function(items, augData) {
 	
 	for (i = 0; i < augData.length; i++) {
 	
-		console.log('i', i, 'total', augData.length)
-		
 		center_azimuth = augData[i].azimuth_deg;
 		span = augData[i].span_deg;
 		radiation_aug = augData[i].radiation_aug;
@@ -922,8 +920,9 @@ function getDecimalLatLon(deg, min, sec, dir) {
 var makeOneAmPattern = function(stationData, antData, towerData, nradial, callback) {return function(callback) {
 	//extract ant and tower data
 	
-	console.log('antData', antData);
-	console.log(towerData);
+	//towerData[2].spacing_deg = 200;
+	//console.log('antData', antData);
+	//console.log(towerData);
 	
 	var hgt = [];
 	var fld = [];
@@ -974,6 +973,8 @@ var makeOneAmPattern = function(stationData, antData, towerData, nradial, callba
 	
 	var deltaAz = 360/nradial;
 	
+	//spc[2] =200; //test for KFXN
+	
 	for (var n = 0; n < nradial; n++) {
 		azimuth = n * deltaAz;
 		azimuths.push(azimuth);
@@ -981,9 +982,7 @@ var makeOneAmPattern = function(stationData, antData, towerData, nradial, callba
 		var v = mathjs.complex(0,0);
 		for (i = 0; i < fld.length; i++) {
 			var beta = getBeta(phs[i], spc[i], orn[i], azimuth);
-			console.log('az', azimuth, 'i', i, 'beta', beta)
 			var alpha = 90 - beta;
-			console.log('alpha', alpha)
 			if (alpha < -180) {
 				alpha += 360;
 			}
@@ -1037,6 +1036,8 @@ var makeOneAmPattern = function(stationData, antData, towerData, nradial, callba
 	.then(function (data) {
 		var augData = data;	
 		var amPattern = applyAmAugs(items, augData);
+		
+		amPattern = reformatAmPattern(amPattern, inputData);
 	
 		var ret = {
 			"inputData": inputData,
@@ -1054,6 +1055,40 @@ var makeOneAmPattern = function(stationData, antData, towerData, nradial, callba
 	});
 		
 }};
+
+var reformatAmPattern = function(amPattern, inputData) {
+	var i, item;
+	var pattern = [];
+	for (i = 0; i < amPattern.length; i++) {
+		if (inputData.domestic_pattern === 'A') {
+			item = {
+				"azimuth": amPattern[i].azimuth,
+				"Eth": amPattern[i].Eth,
+				"Estd": amPattern[i].Estd,
+				"Eaug": amPattern[i].Eaug
+			};
+		}
+		else if (inputData.domestic_pattern === 'S') {
+		
+			item = {
+				"azimuth": amPattern[i].azimuth,
+				"Eth": amPattern[i].Eth,
+				"Estd": amPattern[i].Estd
+			};
+		}
+		else {
+			item = {
+				"azimuth": amPattern[i].azimuth,
+				"Eth": amPattern[i].Eth
+			};
+		}
+		
+		pattern.push(item);
+	}
+
+	return pattern;
+
+}
 
 
 module.exports.congen = congen;

@@ -475,8 +475,59 @@ var getQ = function(pwr, K, fld) {
 	}
 
 	var Q = Math.max(term1, term2);
+	
+	console.log('1', term1, '2', term2)
 
 	return Q;
+}
+
+function am_tower_ref(space,orient,tow_ref) {
+// Adjust database spacing (float) and orientation (float) of towers
+// to a common origin.
+// Loosely based on AMNIGHT routine am_tower_ref.f
+// Return adjusted values in electrical degrees.
+// Output orient always between 0 and 360.
+
+var ntow=space.length;
+if  (orient.length!=ntow || tow_ref.length!=ntow) throw new Error('Differing sizes for space, orien, tref arrays.');
+
+var radian=Math.PI/180.;
+var degree=180./Math.PI;
+
+var orient_out_rad=[];
+var space_out_rad=[];
+
+for (var itw=0; itw<ntow; itw++) {
+     orient_out_rad[itw]=orient[itw]*radian;
+     space_out_rad[itw]=space[itw]*radian;
+
+     if (itw>0 && tow_ref[itw]=='1') {
+         var ptw=itw-1;   // Previous tower.
+
+         var tmp1=space_out_rad[itw]*Math.cos(orient_out_rad[itw]) +
+                  space_out_rad[ptw]*Math.cos(orient_out_rad[ptw]);
+
+         var tmp2=space_out_rad[itw]*Math.sin(orient_out_rad[itw]) +
+                  space_out_rad[ptw]*Math.sin(orient_out_rad[ptw]);
+
+         space_out_rad[itw]=Math.sqrt(tmp1*tmp1 + tmp2*tmp2);
+
+         if (tmp1==0. && tmp2==0.) {
+             orient_out_rad[itw]=0.;
+            }
+         else {
+               orient_out_rad[itw]=Math.atan2(tmp2,tmp1);
+              }
+     }
+
+     orient[itw]=orient_out_rad[itw]*degree;
+     if (orient[itw]<0.) orient[itw]=orient[itw]+360.;
+
+     space[itw]=space_out_rad[itw]*degree;
+
+     }
+
+return [space,orient];
 }
 
 
@@ -921,7 +972,7 @@ var makeOneAmPattern = function(stationData, antData, towerData, nradial, callba
 	//extract ant and tower data
 	
 	//towerData[2].spacing_deg = 200;
-	//console.log('antData', antData);
+	console.log('antData', antData);
 	//console.log(towerData);
 	
 	var hgt = [];
@@ -950,6 +1001,10 @@ var makeOneAmPattern = function(stationData, antData, towerData, nradial, callba
 		trs.push(towerData[i].tower_ref_switch);
 	}
 	
+	//var spc_orn = towref(spc, orn, trs);
+	//spc = spc_orn.spc;
+	//orn = spc_orn.orn;
+	
 	var pwr = antData.power;
 	var rms = antData.rms_theoretical;
 	var pat = antData.domestic_pattern;
@@ -974,6 +1029,20 @@ var makeOneAmPattern = function(stationData, antData, towerData, nradial, callba
 	var deltaAz = 360/nradial;
 	
 	//spc[2] =200; //test for KFXN
+	//console.log('spc', spc, 'orn', orn)
+	
+	//var spc_orn = towref(spc, orn, trs);
+	//spc = spc_orn.spc;
+	//orn = spc_orn.orn;
+	//console.log('spc_orn', spc_orn);
+	
+	var spc_orn = am_tower_ref(spc, orn, trs);
+	//console.log('spc_orn', spc_orn)
+	spc = spc_orn[0];
+	orn = spc_orn[1];
+	
+	
+	//console.log('spc', spc, 'orn', orn)
 	
 	for (var n = 0; n < nradial; n++) {
 		azimuth = n * deltaAz;
@@ -1089,6 +1158,9 @@ var reformatAmPattern = function(amPattern, inputData) {
 	return pattern;
 
 }
+
+
+
 
 
 module.exports.congen = congen;

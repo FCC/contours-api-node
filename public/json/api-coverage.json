@@ -174,17 +174,12 @@
                     "x-label": "Format",
                     "x-display": false,
                     "in": "path",
-                    "description": "Format for the returned results.<br /><br />Valid values: json, jsonp, shp, kml, gml, csv. Shapefiles (.shp) download as zip archive (.zip). <br /><br />Defaults to json.",
+                    "description": "Format for the returned results.<br /><br />Defaults to json.",
                     "required": false,
                     "type": "string",
                     "default": "json",
                     "enum": [
-                        "json",
-                        "jsonp",
-                        "shp",
-                        "kml",
-                        "gml",
-                        "csv"
+                        "json"
                     ]
                 }],
                 "responses": {

@@ -1015,7 +1015,14 @@ var makeOneAmPattern = function(stationData, antData, towerData, nradial, callba
 	var x, y;
 	var K = k;
 
-	var Q = getQ(pwr, K, fld);
+	var Q_cal = getQ(pwr, K, fld);
+	
+	if (antData.q_factor_custom_ind != null && antData.q_factor != null) {
+		var Q = antData.q_factor
+	}
+	else {
+		var Q = Q_cal;
+	}
 	
 	console.log('K=', K, 'Q=', Q);
 
@@ -1088,7 +1095,9 @@ var makeOneAmPattern = function(stationData, antData, towerData, nradial, callba
 		"lon_dir": antData.lon_dir,
 		"domestic_pattern": antData.domestic_pattern,
 		"rms_theoretical": antData.rms_theoretical,
-		"q_factor": Math.round(Q*100)/100,
+		"q_factor_db": antData.q_factor,
+		"q_factor_custom_ind": antData.q_factor_custom_ind,
+		"q_factor_calculated": Math.round(Q_cal*100)/100,
 		"k_factor": Math.round(K*100)/100,
 		"hours_operation": antData.hours_operation,
 		"power": antData.power,

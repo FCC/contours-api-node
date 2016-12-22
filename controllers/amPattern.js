@@ -1108,7 +1108,6 @@ var makeOneAmPattern = function(stationData, antData, towerData, nradial, callba
 	}
 	
 	//get aug
-
 	var q = "SELECT * FROM mass_media.gis_am_augs WHERE ant_sys_id = " + antData.ant_sys_id;
 	db_lms.any(q)
 	.then(function (data) {

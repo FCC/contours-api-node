@@ -183,7 +183,7 @@ function getEntity(req, res, callback) {
 	
 	
 	if (src == undefined) {
-		src = 'ned_1';
+		src = '';
 	}
 	
 	var src_use = src;

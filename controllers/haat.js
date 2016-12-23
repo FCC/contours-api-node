@@ -93,7 +93,20 @@ function getHAAT(req, res, callback) {
             return callback(returnJson);
 		}
 
-		src = url.replace(/^.*src=/i, '').replace(/&.*$/, '').toLowerCase();		
+		if (!url.match(/src=/i)) {
+			src = '';
+		}
+		else {
+			src = url.replace(/^.*src=/i, '').replace(/&.*$/, '').toLowerCase();		
+		}
+		
+		if (src != undefined && ['', 'ned_1', 'ned_2', 'globe30'].indexOf(src.toLowerCase()) < 0) {
+			dataObj.statusMessage = 'Invalid src value.';
+            returnError(dataObj, function(ret){
+                 returnJson = GeoJSON.parse(ret, {});
+            });
+            return callback(returnJson);
+		}
 		
 		lat = url.replace(/^.*lat=/i, '').replace(/&.*$/, '');
 		lon = url.replace(/^.*lon=/i, '').replace(/&.*$/, '');

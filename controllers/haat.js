@@ -319,8 +319,7 @@ function getHAAT(req, res, callback) {
             });			
 		}
 		else {
-			console.log('\n\n =======>> Unable to calculate coverage with source=' + (src === undefined ? undefined : src) + '.');
-			dataObj.statusMessage = 'Unable to calculate coverage with source=' + (src === undefined ? undefined : src  + '.');
+			dataObj.statusMessage = 'Unable to calculate results with source=' + (src === undefined ? undefined : src  + '.');
 	        returnError(dataObj, function(ret){
 	             returnJson = GeoJSON.parse(ret, {});
 	        });

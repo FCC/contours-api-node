@@ -175,6 +175,15 @@ function getContours(req, res, callback) {
             return callback(returnJson);
 		}
 		
+		if (src != undefined && ['', 'ned_1', 'ned_2', 'globe30'].indexOf(src.toLowerCase()) < 0) {
+
+				dataObj.statusMessage = 'invalid src value';
+				returnError(dataObj, function(ret){                                                       
+					 returnJson = GeoJSON.parse(ret, {});
+				});
+				return callback(returnJson);
+		}
+		
 		if ( !lat.match(/^-?\d+\.?\d*$/)) {
 			dataObj.statusMessage = 'Invalid lat value.';
 			returnError(dataObj, function(ret){                                                       

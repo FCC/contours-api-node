@@ -20,6 +20,9 @@
 
                     $(el).attr('id', 'haat-' + idVal);
                 });
+
+            // add default option to src fields
+            $('#haat-src').prepend('<option value="" selected></option>');
         },
         getParams: function() {
 

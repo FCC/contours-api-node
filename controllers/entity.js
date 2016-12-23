@@ -89,8 +89,6 @@ function getEntity(req, res, callback) {
 		}
 	}
 	
-	console.log('\n' + v3, numDefined);
-	
 	if (numDefined === 0) {
 		console.log('\n' + 'must provide one of callsign, facilityId, or applicationId');
 		res.status(400).send({
@@ -121,7 +119,7 @@ function getEntity(req, res, callback) {
 		return;
 	}
 	
-	if (src != undefined && ['ned', 'ned_1', 'ned_2', 'globe30'].indexOf(src.toLowerCase()) < 0) {
+	if (src != undefined && ['', 'ned_1', 'ned_2', 'globe30'].indexOf(src.toLowerCase()) < 0) {
 		console.log('\n' + 'invalid src value');
 		res.status(400).send({
 			'status': 'error',
@@ -284,9 +282,8 @@ function getEntity(req, res, callback) {
 			console.log('\n' + 'async task=', asyncTasks)
 			
 			async.parallel(asyncTasks, function(error, result){
-				console.log('\n' + "all done");
+				console.log('\n' + "asyncTasks all done");
 				
-				//console.log('\n' + result)
 				if (error) {
 					callback(error, []);
 				
@@ -771,7 +768,7 @@ console.log('\n' + 'getOneContour recordData='+JSON.stringify(recordData));
 						callback(null, data);    
 					}
 					else {
-						callback(null, data);
+						callback(data.features[0].properties.statusMessage, null);
 					}
 					
 					

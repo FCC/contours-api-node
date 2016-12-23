@@ -16,7 +16,7 @@
 
             if (apiType === 'entity') {
                 contourAPI = './entity.json?';
-                contourAPI += $('.fields-entity').find('input, select')
+                contourAPI += $('.fields-entity').find('input, select').not('.js-inputType')
                     .filter(function() {
                         if (this.value !== '') {
                             return this;

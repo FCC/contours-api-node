@@ -103,10 +103,10 @@
                     ]
                 }, {
                     "name": "area",
-                    "x-label": "Coverage area calculation",
+                    "x-label": "Coverage area",
                     "x-display": true,
                     "in": "query",
-                    "description": "Coverage area",
+                    "description": "Coverage area calculation",
                     "required": false,
                     "type": "boolean",
                     "default": "false",
@@ -119,10 +119,10 @@
                     "x-label": "Source",
                     "x-display": true,
                     "in": "query",
-                    "description": "National Elevation Dataset (NED) available at resolutions of 1 arc-second (ned_1) and 1/3 arc-second (ned_13). In most of Alaska, data are available at 2-arc-second (ned_2) grid spacing.<br><br>Global dataset (globe30).",
+                    "description": "If source is not specified, the best available data source will be used.<br><br>National Elevation Dataset (NED) available at resolutions of 1 arc-second (ned_1) and 1/3 arc-second (ned_13). In most of Alaska, data are available at 2-arc-second (ned_2) grid spacing.<br><br>Global dataset (globe30).",
                     "required": false,
                     "type": "string",
-                    "default": "ned_1",
+                    "default": "",
                     "enum": [
                         "ned_1",
                         "ned_2",
@@ -133,17 +133,12 @@
                     "x-label": "Format",
                     "x-display": false,
                     "in": "path",
-                    "description": "Format for the returned results.<br /><br />Valid values: json, jsonp, shp, kml, gml, csv. Shapefiles (.shp) download as zip archive (.zip). <br /><br />Defaults to json.",
-                    "required": true,
+                    "description": "Format for the returned results.<br /><br />Defaults to json.",
+                    "required": false,
                     "type": "string",
                     "default": "json",
                     "enum": [
-                        "json",
-                        "jsonp",
-                        "shp",
-                        "kml",
-                        "gml",
-                        "csv"
+                        "json"
                     ]
                 }],
                 "responses": {

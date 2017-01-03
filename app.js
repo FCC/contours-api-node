@@ -472,6 +472,10 @@ app.get('/amField.json', function(req, res){
     gwave.getAmField(req, res);
 });
 
+app.get('/amDistance.json', function(req, res){
+    gwave.getAmDistance(req, res);
+});
+
 app.get('/getAmPattern.json', function(req, res){
     amPattern.getAmPattern(req, res);
 });

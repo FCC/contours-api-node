@@ -56,10 +56,10 @@
                     "x-label": "Source",
                     "x-display": true,
                     "in": "query",
-                    "description": "National Elevation Dataset (NED) available at resolutions of 1 arc-second (ned_1) and 1/3 arc-second (ned_13). In most of Alaska, data are available at 2-arc-second (ned_2) grid spacing.<br><br>Global dataset (globe30).",
+                    "description": "If source is not specified, the best available data source will be used.<br><br>National Elevation Dataset (NED) available at resolutions of 1 arc-second (ned_1) and 1/3 arc-second (ned_13). In most of Alaska, data are available at 2-arc-second (ned_2) grid spacing.<br><br>Global dataset (globe30).",
                     "required": false,
                     "type": "string",
-                    "default": "ned_1",
+                    "default": "",
                     "enum": [
                         "ned_1",
                         "ned_2",
@@ -84,8 +84,8 @@
                     "x-label": "Format",
                     "x-display": false,
                     "in": "path",
-                    "description": "Format for the returned results.<br /><br />Valid values: json.",
-                    "required": true,
+                    "description": "Format for the returned results.<br /><br />Defaults to json.",
+                    "required": false,
                     "type": "string",
                     "default": "json",
                     "enum": [

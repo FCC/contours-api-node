@@ -102,8 +102,8 @@
                     "x-label": "Format",
                     "x-display": false,
                     "in": "path",
-                    "description": "Format for the returned results.<br /><br />Valid values: json.",
-                    "required": true,
+                    "description": "Format for the returned results.<br /><br />Defaults to json.",
+                    "required": false,
                     "type": "string",
                     "default": "json",
                     "enum": [

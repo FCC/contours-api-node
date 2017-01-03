@@ -80,8 +80,8 @@
             $('#ent-pop [value="false"]').attr('selected', true);
             $('#ent-area [value="false"]').attr('selected', true);
             
-            // add default option to Curve field
-            $('#ent-curve').prepend('<option value="" selected></option>');
+            // add default option to Curve and src fields
+            $('#ent-curve, #ent-src').prepend('<option value="" selected></option>');
 
             $('#form-params').on('click.entityAPI', '[data-api="entity"]', ContourMap.getContour);
 

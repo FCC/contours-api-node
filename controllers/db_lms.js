@@ -17,9 +17,9 @@ var options = {
   promiseLib: promise
 };
 var pgp = require('pg-promise')(options);
-
+var db_lms = null;
 try {
-	var db_lms = pgp(LMS_PG);
+	db_lms = pgp(LMS_PG);
 	console.log('\n' + 'connected to LMS DB from db_lms.js');
 }
 catch(e) {

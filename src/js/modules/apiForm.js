@@ -49,7 +49,7 @@
             try {
                 errMsg = data.responseJSON.features[0].properties.statusMessage;            
             } catch(e) {
-                errMsg = data.responseJSON.type;
+                errMsg = data.responseJSON.statusMessage;
             }        
 
             $('#modal-loading').modal('hide');

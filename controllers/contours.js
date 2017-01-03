@@ -102,10 +102,11 @@ function getContours(req, res, callback) {
             });
             return callback(returnJson);
 		}
-		
+
 		if (src === undefined) {
-			src = 'ned_1';
+			src = '';
 		}
+
 		if (unit === undefined) {
 			unit = 'm';
 		}
@@ -172,6 +173,15 @@ function getContours(req, res, callback) {
                  returnJson = GeoJSON.parse(ret, {});
             });
             return callback(returnJson);
+		}
+		
+		if (src != undefined && ['', 'ned_1', 'ned_2', 'globe30'].indexOf(src.toLowerCase()) < 0) {
+
+				dataObj.statusMessage = 'invalid src value';
+				returnError(dataObj, function(ret){                                                       
+					 returnJson = GeoJSON.parse(ret, {});
+				});
+				return callback(returnJson);
 		}
 		
 		if ( !lat.match(/^-?\d+\.?\d*$/)) {
@@ -354,6 +364,7 @@ function getContours(req, res, callback) {
 				var dist;
 				var azimuth;
 				var relativeField;
+				var ERPincludingRelativeField;
 				var haat;
 				var latlon;
 				var latlon_1st;
@@ -376,7 +387,8 @@ function getContours(req, res, callback) {
 						haat = 30;
 					}
 					
-					relativeField = math.round(erp*full_pattern[i]*full_pattern[i], 6);
+					relativeField = full_pattern[i];
+					ERPincludingRelativeField = math.round(erp*full_pattern[i]*full_pattern[i], 6);
 					dist = tvfm_curves.tvfmfs_metric(relativeField, haat, channel_use, field, distance_tmp, fs_or_dist, curve, flag);
 				
 					//console.log('azimuth', azimuth, 'haat', haat, 'dist', dist)
@@ -406,6 +418,7 @@ function getContours(req, res, callback) {
 										"distance": math.round(dist, 4),
 										"haat": haat,
 										"erp": erp,
+										"ERPincludingRelativeField": ERPincludingRelativeField,
 										"relativeField": relativeField,
 										"azimuth": azimuth
 									});

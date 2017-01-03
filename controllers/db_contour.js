@@ -17,9 +17,9 @@ var options = {
   promiseLib: promise
 };
 var pgp = require('pg-promise')(options);
-
+var db_contour = null;
 try {
-	var db_contour = pgp(CONTOURS_PG);
+	db_contour = pgp(CONTOURS_PG);
 	console.log('\n' + 'connected to CONTOURS DB from db_contour.js');
 }
 catch(e) {

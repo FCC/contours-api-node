@@ -93,10 +93,19 @@ function getHAAT(req, res, callback) {
             return callback(returnJson);
 		}
 
-		src = url.replace(/^.*src=/i, '').replace(/&.*$/, '').toLowerCase();
-		src = src.toLowerCase();
-		if (src != "ned_1" && src != "globe30") {
-			src = "ned_1";
+		if (!url.match(/src=/i)) {
+			src = '';
+		}
+		else {
+			src = url.replace(/^.*src=/i, '').replace(/&.*$/, '').toLowerCase();		
+		}
+		
+		if (src != undefined && ['', 'ned_1', 'ned_2', 'globe30'].indexOf(src.toLowerCase()) < 0) {
+			dataObj.statusMessage = 'Invalid src value.';
+            returnError(dataObj, function(ret){
+                 returnJson = GeoJSON.parse(ret, {});
+            });
+            return callback(returnJson);
 		}
 		
 		lat = url.replace(/^.*lat=/i, '').replace(/&.*$/, '');
@@ -196,7 +205,7 @@ function getHAAT(req, res, callback) {
 		rcamsl = parseFloat(rcamsl);
 		nradial = parseInt(nradial);
 		src = src.toLowerCase();
-		
+
 		console.log('src=' + src + ' lat=' + lat + ' lon=' + lon + ' rcamsl=' + rcamsl + ' nradial=' + nradial + ' format=' + format + ' unit=' + unit);
 
 		var num_points_per_radial = 51;
@@ -277,12 +286,10 @@ function getHAAT(req, res, callback) {
 		inputData['unit'] = unit;
 		inputData['format'] = format;
 		inputData['azimuths'] = azimuths;
-		
 
-		
-		
-		if (src != 'globe30' && filenames_no_ned_1.length == 0) {
+		if (src === 'ned_1' && filenames_no_ned_1.length === 0 || src === '' && filenames_no_ned_1.length === 0 ) {
 			src = 'ned_1';
+			inputData.src = src;
 			processDataFiles(res, dataObj, inputData, output_data, filenames_ned_1, startTime, function(data){
             	if(data){
                 	return callback(data);    
@@ -290,7 +297,7 @@ function getHAAT(req, res, callback) {
             	return callback(null);
             });			
 		}
-		else if (src != 'globe30' && filenames_no_ned_2.length == 0) {
+		else if (src === 'ned_2' && filenames_no_ned_2.length === 0 || src === '' && filenames_no_ned_2.length === 0) {
 			src = 'ned_2';
 			inputData.src = src;
 			processDataFiles(res, dataObj, inputData, output_data, filenames_ned_2, startTime, function(data){
@@ -301,7 +308,7 @@ function getHAAT(req, res, callback) {
             });
 			
 		}
-		else {
+		else if (src === 'globe30' || src === '') {
 			src = 'globe30';
 			inputData.src = src;
 			useGlobeData(res, dataObj, inputData, output_data, filenames_globe, startTime, function(data){
@@ -311,7 +318,13 @@ function getHAAT(req, res, callback) {
             	return callback(null);
             });			
 		}
-		
+		else {
+			dataObj.statusMessage = 'Unable to calculate results with source=' + (src === undefined ? undefined : src  + '.');
+	        returnError(dataObj, function(ret){
+	             returnJson = GeoJSON.parse(ret, {});
+	        });
+	        return callback(returnJson);
+		}
 		
 	}
 	catch(err) {			

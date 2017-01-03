@@ -807,28 +807,26 @@ var amContour = function(idType, idValue, nradial, callback) {
 						}
 						else {
 						var conductivityData = result;
-						conductivityData.conductivity[0] = {
-							"azimuth": 0,
-							"zones": [
-									{"conductivity": 10,
-									"distance": 20},
-									{"conductivity": 5,
-									"distance": 50},
-									{"conductivity": 15,
-									"distance": 1200}
-								]
-						
-						
-							}
+						//conductivityData.conductivity[0] = {
+						//	"azimuth": 0,
+						//	"zones": [
+						//			{"conductivity": 10,
+						//			"distance": 20},
+						//			{"conductivity": 5,
+						//			"distance": 50},
+						//			{"conductivity": 15,
+						//			"distance": 1200}
+						//		]
+						//	}
 						
 						for (var i = 0; i < conductivityData.conductivity.length; i++) {
-							console.log('i', i);
 							
 							var azimuth = conductivityData.conductivity[i].azimuth;
 							var zones = conductivityData.conductivity[i].zones;
+							console.log('i', i, 'az', azimuth);
 							
 							for (var j = 0; j < zones.length; j++) {
-							console.log(j, zones[j].conductivity, zones[j].distance)
+							//console.log(j, zones[j].conductivity, zones[j].distance)
 							
 							}
 							
@@ -847,24 +845,30 @@ var amContour = function(idType, idValue, nradial, callback) {
 							var freq = patternData.inputData.fac_frequency/1000;
 							var power = patternData.amPattern[i].Eaug;
 							while(!isDone) {
-								console.log('zone_number', zone_number)
+								//console.log('zone_number', zone_number)
 								if (zone_number == 0) {
+									dist_delta[zone_number] = 0
 									dist_to_required_field.push(gwave.amDistance(zones[zone_number].conductivity, 15, freq, field, power));
 									dist_to_break.push(zones[zone_number].distance);
 									field_at_break.push(gwave.amField(zones[zone_number].conductivity, 15, freq, dist_to_break[zone_number], power));
 									dist_to_previous_field.push(0);
-									dist_delta.push(0);
 									//console.log('field_at_break', field_at_break[zone_number])
 									//field_at_break.push(
 								}
 								else {
-									dist_to_previous_field.push(gwave.amDistance(zones[zone_number].conductivity, 15, freq, field_at_break[zone_number-1], power));
+									dist_to_previous_field_0 = gwave.amDistance(zones[zone_number].conductivity, 15, freq, field_at_break[zone_number-1], power)
+									dist_to_previous_field.push(dist_to_previous_field_0);
 									dist_delta.push(dist_to_previous_field[zone_number] - dist_to_break[zone_number-1]);
-									dist_to_break.push(zones[zone_number].distance + dist_delta[zone_number]);
+									dist_to_break.push(zones[zone_number].distance + mathjs.sum(dist_delta));
 									field_at_break.push(gwave.amField(zones[zone_number].conductivity, 15, freq, dist_to_break[zone_number], power));
-									console.log('dist_to_previous_field', dist_to_previous_field[zone_number], 'dist_to_break', dist_to_break[zone_number-1], 'dist_delta',dist_delta[zone_number], 'field_at_break', field_at_break[zone_number] )
+									//console.log('dist_to_previous_field', dist_to_previous_field[zone_number], 'dist_to_break', dist_to_break[zone_number-1], 'dist_delta',dist_delta[zone_number], 'field_at_break', field_at_break[zone_number] )
 									dist_to_required_field.push(gwave.amDistance(zones[zone_number].conductivity, 15, freq, field, power));
 								}
+								//console.log('field_at_break', field_at_break)
+								//console.log('dist_to_previous_field', dist_to_previous_field)
+								//console.log('dist_delta', dist_delta)
+								//console.log('dist_to_break', dist_to_break)
+								
 								//console.log('zone', zone_number, 'dist_to_required_field',dist_to_required_field[zone_number], 'dist_to_previous_field', dist_to_previous_field[zone_number], 'dist_delta', dist_delta[zone_number], 'dist_to_break', dist_to_break[zone_number], 'field_at_break', field_at_break[zone_number]);
 								if (field_at_break[zone_number] <= field) {
 									distance = dist_to_required_field[zone_number] - mathjs.sum(dist_delta) ;

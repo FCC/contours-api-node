@@ -763,14 +763,16 @@ var q;
 
 }
 
-var amContour = function(callsign, callback) {
-		amPattern(callsign, function(error, result) {
+var amContour = function(idType, idValue, nradial, callback) {
+	amPattern(idType, idValue, nradial, function(error, result) {
 		if (error) {
 			callback(error, null);
 		}
 		else {
 		
-			var patternData = result;
+			var patternData = result[0];
+
+			
 			var latlonArray = [patternData.inputData.lat_deg,
 								patternData.inputData.lat_min,
 								patternData.inputData.lat_sec,
@@ -786,30 +788,22 @@ var amContour = function(callsign, callback) {
 				return;
 			}
 			
-			try {
-				var db_contours = pgp_contours(CONTOURS_PG);
-				console.log('\n' + 'connected to CONTOURS DB');
-			}
-			catch(e) {
-				console.log('\n' + 'connection to CONTOURS DB failed' + e);
-				callback('connection to CONTOURS DB failed' + e, null);
-				return;
-			}
 			
 			var lat_nad27 = getDecimalLatLon(patternData.inputData.lat_deg, patternData.inputData.lat_min, patternData.inputData.lat_sec, patternData.inputData.lat_dir);
 			var lon_nad27 = getDecimalLatLon(patternData.inputData.lon_deg, patternData.inputData.lon_min, patternData.inputData.lon_sec, patternData.inputData.lon_dir);
 			var q = "SELECT ST_AsGeoJson(ST_Transform(ST_GeomFromText('POINT(" + lon_nad27 + " " + lat_nad27 + ")', 4267),4326)) as latlon";
 			console.log('\n' + 'NAD27 to WGS84 Query='+q);
-			db_contours.any(q)
+			db_contour.any(q)
 				.then(function (data) {
 					var latlon84 = JSON.parse(data[0].latlon);
 					var lat_84 = latlon84.coordinates[1];
 					var lon_84 = latlon84.coordinates[0];
-					var nradial = 72;
+					//var nradial = 72;
 					var distance = 1200;
 					conductivity.getConductivity(lat_84, lon_84, nradial, distance, function(error, result) {
 						if (error) {
 						callback(error, null);
+						return;
 						}
 						else {
 						var conductivityData = result;
@@ -827,7 +821,7 @@ var amContour = function(callsign, callback) {
 						
 							}
 						
-						for (var i = 0; i < conductivityData.conductivity.length*0 + 1; i++) {
+						for (var i = 0; i < conductivityData.conductivity.length; i++) {
 							console.log('i', i);
 							
 							var azimuth = conductivityData.conductivity[i].azimuth;
@@ -839,11 +833,62 @@ var amContour = function(callsign, callback) {
 							}
 							
 							
-							
-							var field = gwave.amField(zones[0].conductivity, 15, 1, zones[0].distance, 100);
-							
-							console.log('field', field)
+						
+							var field = 0.5;
+							var dist_to_required_field = [];
+							var dist_to_break = [];
+							var field_at_break = [];
+							var field_at_break_0;
+							var dist_to_previous_field = [];
+							var dist_to_previous_field_0;
+							var dist_delta = [];
+							var zone_number = 0;
+							var isDone = false;
+							var freq = patternData.inputData.fac_frequency/1000;
+							var power = patternData.amPattern[i].Eaug;
+							while(!isDone) {
+								console.log('zone_number', zone_number)
+								if (zone_number == 0) {
+									dist_to_required_field.push(gwave.amDistance(zones[zone_number].conductivity, 15, freq, field, power));
+									dist_to_break.push(zones[zone_number].distance);
+									field_at_break.push(gwave.amField(zones[zone_number].conductivity, 15, freq, dist_to_break[zone_number], power));
+									dist_to_previous_field.push(0);
+									dist_delta.push(0);
+									//console.log('field_at_break', field_at_break[zone_number])
+									//field_at_break.push(
+								}
+								else {
+									dist_to_previous_field.push(gwave.amDistance(zones[zone_number].conductivity, 15, freq, field_at_break[zone_number-1], power));
+									dist_delta.push(dist_to_previous_field[zone_number] - dist_to_break[zone_number-1]);
+									dist_to_break.push(zones[zone_number].distance + dist_delta[zone_number]);
+									field_at_break.push(gwave.amField(zones[zone_number].conductivity, 15, freq, dist_to_break[zone_number], power));
+									console.log('dist_to_previous_field', dist_to_previous_field[zone_number], 'dist_to_break', dist_to_break[zone_number-1], 'dist_delta',dist_delta[zone_number], 'field_at_break', field_at_break[zone_number] )
+									dist_to_required_field.push(gwave.amDistance(zones[zone_number].conductivity, 15, freq, field, power));
+								}
+								//console.log('zone', zone_number, 'dist_to_required_field',dist_to_required_field[zone_number], 'dist_to_previous_field', dist_to_previous_field[zone_number], 'dist_delta', dist_delta[zone_number], 'dist_to_break', dist_to_break[zone_number], 'field_at_break', field_at_break[zone_number]);
+								if (field_at_break[zone_number] <= field) {
+									distance = dist_to_required_field[zone_number] - mathjs.sum(dist_delta) ;
+									
+									//console.log('distance=', distance)
+									isDone = true;
+								}
+								else {
+								
+									//console.log('do more');
+									zone_number++;
+									//isDone = true;
+								
+								}
 
+								
+							}
+							
+							console.log('distance final=', distance)
+							
+							
+
+						
+						
 						
 						}
 						
@@ -940,11 +985,60 @@ var getAmPattern = function(req, res) {
 var getAmContour = function(req, res) {
 	console.log('================== getAmContour API =============');
 
-	var callsign = req.query.callsign;
+	var idType = req.query.idType
+	var idValue = req.query.idValue;
+	var nradial = req.query.nradial;
 	
-	callsign = callsign.toUpperCase();
+	if (idType == undefined) {
+		console.log('\n' + 'missing idType');
+		res.status(400).send({
+			'status': 'error',
+			'statusCode':'400',
+			'statusMessage': 'missing idType.'
+		});
+		return;
+	}
 	
-	amContour(callsign, function(error, result) {
+	if (idType != undefined && ["callsign", "facilityid"].indexOf(idType.toLowerCase()) < 0 ) {
+		console.log('\n' + 'Invalid idType value, must be callsign or facilityid');
+		res.status(400).send({
+			'status': 'error',
+			'statusCode':'400',
+			'statusMessage': 'Invalid idType value, must be callsign or facilityid'
+		});
+		return;
+	}
+	
+	if (nradial == undefined) {
+		nradial = 360;
+	}
+
+	if ( !(''+nradial).match(/^\d+$/)) {
+		console.log('\n' + 'Invalid nradial value');
+		res.status(400).send({
+		'status': 'error',
+		'statusCode':'400',
+		'statusMessage': 'Invalid nradial value.'
+		});
+		return;
+	}
+	
+	nradial = parseInt(nradial);
+	
+	if ( nradial < 8 || nradial > 360) {
+		console.log('\n' + 'Invalid nradial value range, must be [8, 360]');
+		res.status(400).send({
+		'status': 'error',
+		'statusCode':'400',
+		'statusMessage': 'Invalid nradial value range, must be [8, 360]'
+		});
+		return;
+	}
+	
+	idType = idType.toLowerCase();
+	idValue = idValue.toUpperCase();
+	
+	amContour(idType, idValue, nradial, function(error, result) {
 		if (error) {
 			res.send({"error": error});
 		}

@@ -1242,14 +1242,14 @@ var radius_factor = 1.333333;  // 4/3 four-thirds earth
 var dist_critical = 80 * Math.pow(radius_factor, 0.6667) / Math.pow( freq_mhz, 0.3333);
 
 var gwcon = gwconst(sigma, epsilon, freq_mhz, radius_factor, distance);
-console.log(gwcon)
+//console.log(gwcon)
 
 i_method = 1;
 if (distance > dist_critical) {
 	i_method = 2;
 }
 
-console.log('i_method=', i_method);
+//console.log('i_method=', i_method);
 
 if (i_method === 1) {
 	A = surface(gwcon.P, gwcon.B, gwcon.K);
@@ -1264,6 +1264,73 @@ var mvm = fs1km * A / distance;
 return mvm;
 
 }
+
+
+var amDistance = function(conductivity, dielectric, freq, field, fs1km) {
+
+	//console.log('in amDistance');
+	var dist, f, f1, f2;
+	var dist1 = 1;
+	var dist2;
+	var distance;
+	var f1 = amField(conductivity, dielectric, freq, dist1, fs1km);
+	for (dist = 10; dist < 10000; dist += 100) {
+		f = amField(conductivity, dielectric, freq, dist, fs1km);
+		if (f == field) {
+			f1 = f;
+			f2 = f;
+			dist1 = dist;
+			dist2 = dist;
+		}
+		else if (f > field) {
+			f1 = f;
+			dist1 = dist;
+		}
+		else {
+			f2 = f;
+			dist2 = dist;
+			break;
+		}
+	}
+	
+	if (dist1 == dist2) {
+		distance = dist1;
+	}
+	else {
+		
+		var num_iter = 0;
+		while ( Math.max(Math.abs(f1 - field), Math.abs(f2 - field))/field > 0.01) {
+			dist = (dist1 + dist2) / 2;
+			f = amField(conductivity, dielectric, freq, dist, fs1km);
+			//console.log('dist', dist, 'field', field, 'f1', f1, 'f2', f2);
+			
+			if (f <= field) {
+				dist2 = dist;
+				f2 = f;
+			}
+			else {
+				dist1 = dist;
+				f1 = f;
+			}
+			
+			num_iter++;
+			
+		}
+		
+		distance = (dist1 + dist2) / 2;
+	
+	
+	}
+	
+	
+	
+	
+	var ret = {"f1": f1, "dist1": dist1, "f2": f2, "dist2":dist2, "num_iter": num_iter, "distance": distance};
+	
+	return distance;
+
+}
+
 
 var getAmField = function(req, res) {
 	console.log('============= getAmField API ===========\n');
@@ -1402,6 +1469,145 @@ var getAmField = function(req, res) {
 
 }
 
+var getAmDistance = function(req, res) {
+	console.log('============= getAmDistance API ===========\n');
+	var conductivity = req.query.conductivity;
+	var dielectric = req.query.dielectric;
+	var freq = req.query.freq;
+	var field = req.query.field;
+	var fs1km = req.query.fs1km;
+	
+	if (conductivity === undefined) {
+		console.log('conductivity missing');
+		res.status(400).send({
+			'status': 'error',
+			'statusCode':'400',
+			'statusMessage': 'conductivity missing'
+		});
+		return;
+	}
+	
+	if (dielectric === undefined) {
+		console.log('dielectric missing');
+		res.status(400).send({
+			'status': 'error',
+			'statusCode':'400',
+			'statusMessage': 'dielectric missing'
+		});
+		return;
+	}
+	
+	if (freq === undefined) {
+		console.log('freq missing');
+		res.status(400).send({
+			'status': 'error',
+			'statusCode':'400',
+			'statusMessage': 'freq missing'
+		});
+		return;
+	}
+	
+	if (field === undefined) {
+		console.log('field missing');
+		res.status(400).send({
+			'status': 'error',
+			'statusCode':'400',
+			'statusMessage': 'field missing'
+		});
+		return;
+	}
+	
+	if (fs1km === undefined) {
+		console.log('fs1km missing');
+		res.status(400).send({
+			'status': 'error',
+			'statusCode':'400',
+			'statusMessage': 'fs1km missing'
+		});
+		return;
+	}
+	
+	if (!isValidNumber(conductivity)) {
+		console.log('invalid conductivity value');
+		res.status(400).send({
+			'status': 'error',
+			'statusCode':'400',
+			'statusMessage': 'invalid conductivity value'
+		});
+		return;
+	}
+	
+	if (!isValidNumber(dielectric)) {
+		console.log('invalid dielectric value');
+		res.status(400).send({
+			'status': 'error',
+			'statusCode':'400',
+			'statusMessage': 'invalid dielectric value'
+		});
+		return;
+	}
+	
+	if (!isValidNumber(freq)) {
+		console.log('invalid freq value');
+		res.status(400).send({
+			'status': 'error',
+			'statusCode':'400',
+			'statusMessage': 'invalid freq value'
+		});
+		return;
+	}
+	
+	if (!isValidNumber(field)) {
+		console.log('invalid distance value');
+		res.status(400).send({
+			'status': 'error',
+			'statusCode':'400',
+			'statusMessage': 'invalid field value'
+		});
+		return;
+	}
+	
+	if (!isValidNumber(fs1km)) {
+		console.log('invalid fs1km value');
+		res.status(400).send({
+			'status': 'error',
+			'statusCode':'400',
+			'statusMessage': 'invalid fs1km value'
+		});
+		return;
+	}
+	
+	conductivity = parseFloat(conductivity);
+	dielectric = parseFloat(dielectric);
+	freq = parseFloat(freq);
+	field = parseFloat(field);
+	fs1km = parseFloat(fs1km);
+	
+
+	var distance = amDistance(conductivity, dielectric, freq, field, fs1km);
+	
+	var response = {
+		"input": {
+			"conductivity": conductivity,
+			"dielectric": dielectric,
+			"freq": freq,
+			"field": field,
+			"fs1km": fs1km,
+			"conductivity_unit": "milliSiemens/meter",
+			"freq_unit": "MHz",
+			"field_unit": "millivolt/meter",
+			"fs1km_unit": "millivolt/meter"
+		},
+		"distance": distance,
+		"unit": "km"
+	};
+	
+	res.status(200).send(response);
+
+}
+
+
+
 var isValidNumber = function(a) {
 	a = '' + a;
 	if ( a.match(/^\d+\.+\d+$/)  || a.match(/^\.+\d+$/) || a.match(/^\d+\.$/) || a.match(/^\d+$/) ) {
@@ -1419,7 +1625,10 @@ var isValidNumber = function(a) {
 //console.log('field', field);
 
 module.exports.amField = amField;
+module.exports.amDistance = amDistance;
 module.exports.getAmField = getAmField;
+module.exports.getAmDistance = getAmDistance;
+
 
 
 

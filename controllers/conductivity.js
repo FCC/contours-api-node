@@ -8,6 +8,8 @@ var dotenv = require('dotenv').load();
 var CONTOURS_PG = process.env.CONTOURS_PG;
 var CONTOURS_SCHEMA = process.env.CONTOURS_SCHEMA;
 
+var db_contour = require('./db_contour.js');
+
 console.log(CONTOURS_PG)
 
 var promise = require('bluebird');
@@ -20,7 +22,7 @@ var async = require('async');
 
 //var getLineConductivity = function(lineOption, callback) {
 
-var getLineConductivity = function(db, lineOption){ return function(callback) {
+var getLineConductivity = function(lineOption){ return function(callback) {
 
 
 	var i, lat1, lon1, lat2, lon2;
@@ -41,7 +43,7 @@ var getLineConductivity = function(db, lineOption){ return function(callback) {
 	var line = "ST_GeomFromText('LineString(" + line + ")', 4326)";
 	
 	
-	findIntersects(db, line, function(error, response) {
+	findIntersects(line, function(error, response) {
 		if (error) {
 			callback(error, []);
 		}
@@ -51,7 +53,7 @@ var getLineConductivity = function(db, lineOption){ return function(callback) {
 			var asyncTasks = [];
 			for (i = 0; i < response.length; i++) {
 			//console.log(i)
-				asyncTasks.push(findIntersection(db, line, response[i]));
+				asyncTasks.push(findIntersection(line, response[i]));
 			}
 			//console.log(asyncTasks)
 			
@@ -120,12 +122,12 @@ var getLatLonFromDist = function(lat1, lon1, az, d) {
 
 }
 
-var findIntersects = function(db, line, callback) {
+var findIntersects = function(line, callback) {
 	var q = "SELECT * FROM " + CONTOURS_SCHEMA + ".conductivity_m3 WHERE ST_Intersects(geom, " + line + ")";
 	
 	//console.log(q)
 	
-	db.any(q)
+	db_contour.any(q)
 		.then(function (data) {
 			callback(null, data);	
 		})
@@ -135,12 +137,12 @@ var findIntersects = function(db, line, callback) {
 };
 
 
-var findIntersection = function (db, line, seg) {return function(callback) {
+var findIntersection = function (line, seg) {return function(callback) {
 
 	var q = "SELECT ST_AsGeoJSON(ST_Intersection(geom, " + line + ")) as data FROM " + CONTOURS_SCHEMA + ".conductivity_m3 " +
 			"WHERE seg_id = " + seg.seg_id;
 			
-	db.any(q)
+	db_contour.any(q)
 		.then(function (data) {
 		//console.log('data', data)
 		var result = {"seg": seg, "intersection": data}
@@ -316,16 +318,6 @@ var getZones = function(this_line, opposite_line) {
 
 var getConductivity = function(latStart, lonStart, nradial, distance, callback) {
 
-try {
-	var db = pgp(CONTOURS_PG);
-	console.log('connected to CONTOURS PG');
-}
-catch(e) {
-	console.log('connection to CONTOURS PG failed' + e);
-	callback(e, {"conductivity": []});
-}
-
-
 var asyncTasks = [];
 var lineOption, azimuth;
 var i, ii, zones;
@@ -333,7 +325,7 @@ var delta = 360/nradial;
 for (i = 0; i <nradial; i++) {
 	azimuth = i * delta;
 	lineOption = {"latStart": latStart, "lonStart": lonStart, "azimuth": azimuth, "distance": distance};
-	asyncTasks.push(getLineConductivity(db, lineOption));
+	asyncTasks.push(getLineConductivity(lineOption));
 }
 
 //console.log(asyncTasks);

@@ -7,7 +7,6 @@
 
 
 var mathjs = require('mathjs');
-var gwave_distance = require('../data/gwave_distance.json');
 var gwave_field = require('../data/gwave_field.json');
 var gwconst = function( sigma, epsilon, freq_mhz, radius_factor, dist) {
 

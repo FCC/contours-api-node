@@ -7,7 +7,8 @@
 
 
 var mathjs = require('mathjs');
-
+var gwave_distance = require('../data/gwave_distance.json');
+var gwave_field = require('../data/gwave_field.json');
 var gwconst = function( sigma, epsilon, freq_mhz, radius_factor, dist) {
 
 	//*************************************************************
@@ -1221,21 +1222,113 @@ var TAUSTEP = function(TA, DELL, DELDE ) {
 }                                    
                                    
 
+var amField = function(conductivity, dielectric, freq_mhz, distance, fs1km) {
+
+	var startTime = new Date().getTime();
+	var dist;
+	var i, j, index_distance, index_distance_1, index_distance_2, index_cond, index_cond_1, index_cond_2;
+	var distance_arr = gwave_field.distance;
+	var num_distance = distance_arr.length;
+	var freq_khz_str = Math.floor(freq_mhz * 100 + 0.5) * 10 + '';
+	var field_arr = gwave_field[freq_khz_str];
+	var conductivity_arr = [];
+	for (var key in field_arr) {
+		conductivity_arr.push(parseFloat(key));
+	}
+	conductivity_arr = conductivity_arr.sort(function(a, b){return a-b;});
+
+	for (i = 0; i < num_distance; i++) {
+		if (distance == distance_arr[i]) {
+			index_distance = i;
+		}
+	}
+		
+	if (index_distance === undefined) {
+		if (distance <= distance_arr[0]) {
+			index_distance = 0;
+		}
+		else if (distance >= distance_arr[num_distance-1]) {
+			index_distance = num_distance - 1;
+		}
+		else {
+			for (i = 0; i < num_distance - 1; i++) {
+				if (distance >= distance_arr[i] && distance <= distance_arr[i+1]) {
+					index_distance_1 = i;
+					index_distance_2 = i + 1;
+				}
+			}
+		}
+	}
+	
+	var num_conductivity = conductivity_arr.length;
+	for (i = 0; i < num_conductivity; i++) {
+		if (conductivity == conductivity_arr[i]) {
+			index_cond = i;
+		}
+	}
+	
+	if (index_cond === undefined) {
+	
+		if (conductivity <= conductivity_arr[0]) {
+			index_cond = 0;
+		}
+		else if (conductivity >= conductivity_arr[num_conductivity-1]) {
+			index_cond = num_field-1;
+		}
+		else {
+			for (i = 0; i < num_conductivity - 1; i++) {
+				if ( conductivity >= conductivity_arr[i] && conductivity <= conductivity_arr[i+1]) {
+					index_cond_1 = i;
+					index_cond_2 = i + 1;
+				}
+			}
+		}
+	
+	}
+	
+	if (index_cond !== undefined) {
+		if (index_distance !== undefined) {
+			var fs = gwave_field[freq_khz_str+''][conductivity_arr[index_cond]][index_distance];
+		}
+		else {
+			var fs1 = gwave_field[freq_khz_str+''][conductivity_arr[index_cond]][index_distance_1];
+			var fs2 = gwave_field[freq_khz_str+''][conductivity_arr[index_cond]][index_distance_2];
+			var fs = fs1 + (fs2 - fs1)*(distance - distance_arr[index_distance_1])/(distance_arr[index_distance_2] - distance_arr[index_distance_1]);
+		}
+	}
+	else {
+		if (index_distance !== undefined) {
+			var fs1 = gwave_field[freq_khz_str+''][conductivity_arr[index_cond_1]][index_distance];
+			var fs2 = gwave_field[freq_khz_str+''][conductivity_arr[index_cond_2]][index_distance];
+			var fs = fs1 + (fs2 - fs1)*(conductivity - parseFloat(conductivity_arr[index_cond_1]))/(parseFloat(conductivity_arr[index_cond_2]) - parseFloat(conductivity_arr[index_cond_1]));
+			}
+		else {
+			var fs1 = gwave_field[freq_khz_str+''][conductivity_arr[index_cond_1]][index_distance_1];
+			var fs2 = gwave_field[freq_khz_str+''][conductivity_arr[index_cond_2]][index_distance_1];
+			var fs_d1 = fs1 + (fs2 - fs1)*(conductivity - parseFloat(conductivity_arr[index_cond_1]))/(parseFloat(conductivity_arr[index_cond_2]) - parseFloat(conductivity_arr[index_cond_1]));
+			var fs1 = gwave_field[freq_khz_str+''][conductivity_arr[index_cond_1]][index_distance_2];
+			var fs2 = gwave_field[freq_khz_str+''][conductivity_arr[index_cond_2]][index_distance_2];
+			var fs_d2 = fs1 + (fs2 - fs1)*(conductivity - parseFloat(conductivity_arr[index_cond_1]))/(parseFloat(conductivity_arr[index_cond_2]) - parseFloat(conductivity_arr[index_cond_1]));
+			var fs = fs_d1 + (fs_d2 - fs_d1)*(distance - distance_arr[index_distance_1])/(distance_arr[index_distance_2] - distance_arr[index_distance_1]);
+		}
+	}
+	
+	if (fs !== undefined) {
+		//scale by power and rounding
+		fs = fs * fs1km / 100.0;
+		fs = Math.floor(fs*10000 + 0.5)/10000;
+	}
+
+	var endTime = new Date().getTime();
+	var dt = endTime - startTime;
+	
+	return fs;
+}
 
 
+var amFieldFromFormula = function(sigma, epsilon, freq_mhz, distance, fs1km) {
 
-
-
-
-
-
-
-
-
-
-
-var amField = function(sigma, epsilon, freq_mhz, distance, fs1km) {
-
+var startTime = new Date().getTime();
 var i_method, A;
 
 var radius_factor = 1.333333;  // 4/3 four-thirds earth
@@ -1261,6 +1354,11 @@ else {
 
 var mvm = fs1km * A / distance;
 
+var endTime = new Date().getTime();
+var dt = endTime - startTime;
+
+console.log("field: " + mvm + " time: " + dt);
+
 return mvm;
 
 }
@@ -1269,6 +1367,7 @@ return mvm;
 var amDistance = function(conductivity, dielectric, freq, field, fs1km) {
 
 	//console.log('in amDistance');
+	var startTime = new Date().getTime();
 	var dist, f, f1, f2;
 	var dist1 = 1;
 	var dist2;
@@ -1327,9 +1426,118 @@ var amDistance = function(conductivity, dielectric, freq, field, fs1km) {
 	
 	var ret = {"f1": f1, "dist1": dist1, "f2": f2, "dist2":dist2, "num_iter": num_iter, "distance": distance};
 	
+	var endTime = new Date().getTime();
+	
+	var dt = endTime - startTime;
+	
+	//console.log("distance: " + distance + " time; " + dt);
+	
 	return distance;
 
 }
+
+var amDistance1 = function(conductivity, dielectric, freq, field, fs1km) {
+
+	var startTime = new Date().getTime();
+	var dist;
+	var i, j, index_field, index_field_1, index_field_2, index_cond, index_cond_1, index_cond_2;
+	var field_arr = gwave_distance.field;
+	var num_field = field_arr.length;
+	var freq_khz_str = freq * 1000 + '';
+	var distance_arr = gwave_distance[freq_khz_str];
+	var conductivity_arr = [];
+	for (var key in distance_arr) {
+		conductivity_arr.push(parseFloat(key));
+	}
+	conductivity_arr = conductivity_arr.sort(function(a, b){return a-b;});
+
+	for (i = 0; i < num_field; i++) {
+		if (field == field_arr[i]) {
+			index_field = i;
+		}
+	}
+	
+	if (index_field === undefined) {
+		if (field <= field_arr[0]) {
+			index_field = 0;
+		}
+		else if (field >= field_arr[num_field-1]) {
+			index_field = num_field-1;
+		}
+		else {
+			for (i = 0; i < num_field - 1; i++) {
+				if (field >= field_arr[i] && field <= field_arr[i+1]) {
+					index_field_1 = i;
+					index_field_2 = i + 1;
+				}
+			}
+		}
+	}
+	
+	var num_conductivity = conductivity_arr.length;
+	for (i = 0; i < num_conductivity; i++) {
+		if (conductivity == conductivity_arr[i]) {
+			index_cond = i;
+		}
+	}
+	
+	if (index_cond === undefined) {
+	
+		if (conductivity <= conductivity_arr[0]) {
+			index_cond = 0;
+		}
+		else if (conductivity >= conductivity_arr[num_conductivity-1]) {
+			index_cond = num_field-1;
+		}
+		else {
+			for (i = 0; i < num_conductivity - 1; i++) {
+				if ( conductivity >= conductivity_arr[i] && conductivity <= conductivity_arr[i+1]) {
+					index_cond_1 = i;
+					index_cond_2 = i + 1;
+				}
+			}
+		}
+	
+	}
+	
+	if (index_cond !== undefined) {
+		if (index_field !== undefined) {
+			var dist = gwave_distance[freq_khz_str+''][conductivity_arr[index_cond]][index_field];
+		}
+		else {
+			var dist1 = gwave_distance[freq_khz_str+''][conductivity_arr[index_cond]][index_field_1];
+			var dist2 = gwave_distance[freq_khz_str+''][conductivity_arr[index_cond]][index_field_2];
+			var dist = dist1 + (dist2 - dist1)*(field - field_arr[index_field_1])/(field_arr[index_field_2] - field_arr[index_field_1]);
+		}
+	}
+	else {
+		if (index_field !== undefined) {
+			var dist1 = gwave_distance[freq_khz_str+''][conductivity_arr[index_cond_1]][index_field];
+			var dist2 = gwave_distance[freq_khz_str+''][conductivity_arr[index_cond_2]][index_field];
+			var dist = dist1 + (dist2 - dist1)*(conductivity - parseFloat(conductivity_arr[index_cond_1]))/(parseFloat(conductivity_arr[index_cond_2]) - parseFloat(conductivity_arr[index_cond_1]));
+		}
+		else {
+			var dist1 = gwave_distance[freq_khz_str+''][conductivity_arr[index_cond_1]][index_field_1];
+			var dist2 = gwave_distance[freq_khz_str+''][conductivity_arr[index_cond_2]][index_field_1];
+			var dist_f1 = dist1 + (dist2 - dist1)*(conductivity - parseFloat(conductivity_arr[index_cond_1]))/(parseFloat(conductivity_arr[index_cond_2]) - parseFloat(conductivity_arr[index_cond_1]));
+			var dist1 = gwave_distance[freq_khz_str+''][conductivity_arr[index_cond_1]][index_field_2];
+			var dist2 = gwave_distance[freq_khz_str+''][conductivity_arr[index_cond_2]][index_field_2];
+			var dist_f2 = dist1 + (dist2 - dist1)*(conductivity - parseFloat(conductivity_arr[index_cond_1]))/(parseFloat(conductivity_arr[index_cond_2]) - parseFloat(conductivity_arr[index_cond_1]));
+			var dist = dist_f1 + (dist_f2 - dist_f1)*(field - field_arr[index_field_1])/(field_arr[index_field_2] - field_arr[index_field_1]);
+		}
+	}
+	
+	if (dist !== undefined) {
+		dist = Math.floor(dist*100 + 0.5)/100;
+	}
+
+	var endTime = new Date().getTime();
+	var dt = endTime - startTime;
+	
+	console.log("distance: " + dist + " time: " + dt);
+	return dist;
+}
+
 
 
 var getAmField = function(req, res) {
@@ -1625,6 +1833,7 @@ var isValidNumber = function(a) {
 //console.log('field', field);
 
 module.exports.amField = amField;
+module.exports.amFieldFromFormula = amFieldFromFormula;
 module.exports.amDistance = amDistance;
 module.exports.getAmField = getAmField;
 module.exports.getAmDistance = getAmDistance;

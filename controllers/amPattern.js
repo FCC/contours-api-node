@@ -770,9 +770,7 @@ var amContour = function(idType, idValue, nradial, callback) {
 		}
 		else {
 		
-			var patternData = result[0];
-
-			
+			var patternData = result[0];		
 			var latlonArray = [patternData.inputData.lat_deg,
 								patternData.inputData.lat_min,
 								patternData.inputData.lat_sec,
@@ -788,7 +786,6 @@ var amContour = function(idType, idValue, nradial, callback) {
 				return;
 			}
 			
-			
 			var lat_nad27 = getDecimalLatLon(patternData.inputData.lat_deg, patternData.inputData.lat_min, patternData.inputData.lat_sec, patternData.inputData.lat_dir);
 			var lon_nad27 = getDecimalLatLon(patternData.inputData.lon_deg, patternData.inputData.lon_min, patternData.inputData.lon_sec, patternData.inputData.lon_dir);
 			var q = "SELECT ST_AsGeoJson(ST_Transform(ST_GeomFromText('POINT(" + lon_nad27 + " " + lat_nad27 + ")', 4267),4326)) as latlon";
@@ -798,14 +795,20 @@ var amContour = function(idType, idValue, nradial, callback) {
 					var latlon84 = JSON.parse(data[0].latlon);
 					var lat_84 = latlon84.coordinates[1];
 					var lon_84 = latlon84.coordinates[0];
+					lat_84 = Math.floor(lat_84*1000000+0.5)/1000000;
+					lon_84 = Math.floor(lon_84*1000000+0.5)/1000000;
 					//var nradial = 72;
 					var distance = 1200;
+					console.log('start getting conductivity');
+					
 					conductivity.getConductivity(lat_84, lon_84, nradial, distance, function(error, result) {
 						if (error) {
 						callback(error, null);
 						return;
 						}
 						else {
+						console.log('done getting conductivity');
+						
 						var conductivityData = result;
 						//conductivityData.conductivity[0] = {
 						//	"azimuth": 0,
@@ -818,12 +821,14 @@ var amContour = function(idType, idValue, nradial, callback) {
 						//			"distance": 1200}
 						//		]
 						//	}
-						
+
+						var coordinates = [];
+						var contourData = [];
 						for (var i = 0; i < conductivityData.conductivity.length; i++) {
 							
 							var azimuth = conductivityData.conductivity[i].azimuth;
 							var zones = conductivityData.conductivity[i].zones;
-							console.log('i', i, 'az', azimuth);
+							//console.log('i', i, 'az', azimuth);
 							
 							for (var j = 0; j < zones.length; j++) {
 							//console.log(j, zones[j].conductivity, zones[j].distance)
@@ -833,6 +838,9 @@ var amContour = function(idType, idValue, nradial, callback) {
 							
 						
 							var field = 0.5;
+							if (patternData.inputData.station_class != "A") {
+								field = 0.025;
+							}
 							var dist_to_required_field = [];
 							var dist_to_break = [];
 							var field_at_break = [];
@@ -843,13 +851,21 @@ var amContour = function(idType, idValue, nradial, callback) {
 							var zone_number = 0;
 							var isDone = false;
 							var freq = patternData.inputData.fac_frequency/1000;
-							var power = patternData.amPattern[i].Eaug;
+							var power = patternData.amPattern[i].Eth;
+							if (patternData.inputData.domestic_pattern == 'S') {
+								power = patternData.amPattern[i].Estd;
+							}
+							else if (patternData.inputData.domestic_pattern == 'A') {
+								power = patternData.amPattern[i].Eaug;
+							}
+							
 							while(!isDone) {
 								//console.log('zone_number', zone_number)
 								if (zone_number == 0) {
 									dist_delta[zone_number] = 0
 									dist_to_required_field.push(gwave.amDistance(zones[zone_number].conductivity, 15, freq, field, power));
 									dist_to_break.push(zones[zone_number].distance);
+									//console.log('cond=', zones[zone_number].conductivity, 'freq', freq, 'field', field, 'power', power)
 									field_at_break.push(gwave.amField(zones[zone_number].conductivity, 15, freq, dist_to_break[zone_number], power));
 									dist_to_previous_field.push(0);
 									//console.log('field_at_break', field_at_break[zone_number])
@@ -887,17 +903,47 @@ var amContour = function(idType, idValue, nradial, callback) {
 								
 							}
 							
-							console.log('distance final=', distance)
+							distance = Math.floor(distance*10 + 0.5)/10;
+							
+							var latlon = getLatLonFromDist(lat_84, lon_84, azimuth, distance)
+							coordinates.push([latlon[1], latlon[0]]);
+							contourData.push({
+								"x": latlon[1],
+								"y": latlon[0],
+								"z": 0,
+								"distance": distance,
+								"fs1km": power,
+								"azimuth": azimuth
 							
 							
-
-						
-						
-						
+							});
+							//console.log('distance final=', distance, ' latlon', latlon)
+							
 						}
 						
+						var properties = patternData.inputData;
+						properties.antenna_lat = lat_84;
+						properties.antenna_lon = lon_84;
+						properties.contourData = contourData;
+						var contour_geojson = {
+												"type": "FeatureCollection",
+												"features": [
+															{
+																"type": "Feature",
+																"geometry": {
+																	"type": "MultiPolygon",
+																	"coordinates": [[coordinates]]
+																	},
+																"properties": properties
+															}
+												]
+												
+							};
+							
+						//console.log(contour_geojson);
+						console.log('done making contour');
 						
-						callback(null, result);
+						callback(null, contour_geojson);
 						
 						}
 
@@ -1265,7 +1311,23 @@ var reformatAmPattern = function(amPattern, inputData) {
 
 }
 
+function getLatLonFromDist(lat1, lon1, az, d) {
+//az: azimuth in degrees
+//d: distance in km
 
+    lat1 = lat1 * Math.PI / 180.0;
+    lon1 = lon1 * Math.PI / 180.0;
+    az = az * Math.PI / 180.0;
+
+    var R = 6371; //earth radius in kms
+    var lat2 = Math.asin(Math.sin(lat1) * Math.cos(d / R) + Math.cos(lat1) * Math.sin(d / R) * Math.cos(az));
+    var lon2 = lon1 + Math.atan2(Math.sin(az) * Math.sin(d / R) * Math.cos(lat1), Math.cos(d / R) - Math.sin(lat1) * Math.sin(lat2));
+
+    lat2 = lat2 * 180 / Math.PI;
+    lon2 = lon2 * 180 / Math.PI;
+
+    return [lat2, lon2]
+}
 
 
 

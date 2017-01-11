@@ -58,7 +58,7 @@ var getLineConductivity = function(lineOption){ return function(callback) {
 			//console.log(asyncTasks)
 			
 			async.parallel(asyncTasks, function(error, result){
-				//console.log("all done");
+				//console.log("findInterseection asyncTasks all done");
 				if (error) {
 					callback(error, []);
 				
@@ -144,16 +144,13 @@ var findIntersection = function (line, seg) {return function(callback) {
 			
 	db_contour.any(q)
 		.then(function (data) {
-		//console.log('data', data)
 		var result = {"seg": seg, "intersection": data}
-		callback(null, result);	
+		callback(null, result);
 		})
 		.catch(function (err) {
-			callback(err, []);
+			console.log('err in conductivity: ' + err + ' seg_id=' + seg.seg_id);
+			//callback(err, []);
 		});
-	
-
-
 	};
 
 }
@@ -331,7 +328,8 @@ for (i = 0; i <nradial; i++) {
 //console.log(asyncTasks);
 
 async.parallel(asyncTasks, function(error, result){
-	console.log("all done");
+	//console.log("conductivity - getLineConductivity asyncTasks all done");
+	//console.log('getLineConductivity asyncTasks error: ' + error)
 	
 	//console.log(result)
 	if (error) {

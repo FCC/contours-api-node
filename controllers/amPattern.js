@@ -570,33 +570,22 @@ var amPattern = function(idType, idValue, nradial, callback) {
 var applyAmAugs = function(items, augData) {
 	console.log('apply am aug')
 	var i, j, azimuth, center_azimuth, span, radiation_aug, augmentation, Estd;
-	var dEaug = [];
+	var Eaug, dEsq, dEsqSum;
+	
 	for (i = 0; i < items.length; i++) {
-		dEaug[i] = 0;
-	}
-	
-	for (i = 0; i < augData.length; i++) {
-	
-		center_azimuth = augData[i].azimuth_deg;
-		span = augData[i].span_deg;
-		radiation_aug = augData[i].radiation_aug;
-		Estd = getEstd(center_azimuth, items);
-		
-		for (j = 0; j < items.length; j++) {
-			azimuth = items[j].azimuth;
-			augmentation = calAug(azimuth, center_azimuth, span, radiation_aug, Estd, items[j].Estd);
-			
-			dEaug[j] += augmentation - items[j].Estd;
-			//console.log('i', i, 'j', j, 'az', azimuth, 'd', augmentation)
-
+		azimuth = items[i].azimuth;
+		dEsqSum = 0;
+		for (j = 0; j < augData.length; j++) {
+			center_azimuth = augData[j].azimuth_deg;
+			span = augData[j].span_deg;
+			radiation_aug = augData[j].radiation_aug;
+			Estd = getEstd(center_azimuth, items);
+			dEsq = calAug(azimuth, center_azimuth, span, radiation_aug, Estd);
+			dEsqSum += dEsq;
 		}
+		Eaug = Math.sqrt(items[i].Estd*items[i].Estd + dEsqSum);
+		items[i].Eaug = mathjs.round(Eaug, 2);
 	}
-	
-	for (j = 0; j < items.length; j++) {
-	items[j].Eaug = mathjs.round(items[j].Estd + dEaug[j], 2);
-	}
-	
-	//console.log('items', items)
 	
 	return items;
 }
@@ -635,24 +624,20 @@ var getEstd = function(az, items) {
 
 
 
-var calAug = function(azimuth, center_azimuth, span, radiation_aug, Estd_center, Estd) {
+var calAug = function(azimuth, center_azimuth, span, radiation_aug, Estd_center) {
 
 	var D = Math.abs(azimuth - center_azimuth);
+	if (D > 180) {
+		D = 360 - D;
+	}
 	if (D >= span/2.0) {
-		return Estd;
+		return 0;
 	}
 	var Eaug = radiation_aug;
 
-	var value = Estd*Estd + (Eaug*Eaug - Estd_center*Estd_center)*Math.cos(Math.PI*D/span)*Math.cos(Math.PI*D/span);
-	if (value >= 0) {
-		var value = Math.sqrt(value);
-	}
-	else {
-		value = Estd;
-	}
-	//console.log('Estd', Estd, 'Eaug', Eaug, 'Estd_center', Estd_center, 'D', D, 'span', span, 'value', value)
+	var dEsq = (Eaug*Eaug - Estd_center*Estd_center)*Math.cos(Math.PI*D/span)*Math.cos(Math.PI*D/span);
 
-	return value;
+	return dEsq;
 }
 
 

@@ -6,6 +6,8 @@
 
 var conductivity = require('./conductivity.js');
 var gwave = require('./gwave.js');
+var area = require('./area.js');
+var population = require('./population.js');
 var db_lms = require('./db_lms.js');
 var db_contour = require('./db_contour.js');
 
@@ -747,7 +749,7 @@ var q;
 	});
 }
 
-var amContour = function(idType, idValue, nradial, callback) {
+var amContour = function(idType, idValue, nradial, areaFlag, pop, callback) {
 	amPattern(idType, idValue, nradial, function(error, result) {
 		if (error) {
 			callback(error, null);
@@ -756,7 +758,7 @@ var amContour = function(idType, idValue, nradial, callback) {
 			//RESULTS CONTAIN ONE OR MORE ANTENNA PATTERNS
 			var asyncTasks = [];
 			for (var i = 0; i < result.length; i++) {
-				asyncTasks.push(getOneAmContour(result[i], nradial));			
+				asyncTasks.push(getOneAmContour(result[i], nradial, areaFlag, pop));			
 			}
 			
 			async.parallel(asyncTasks, function(error, result){
@@ -779,7 +781,7 @@ var amContour = function(idType, idValue, nradial, callback) {
 	});
 }
 
-var getOneAmContour = function(patternData, nradial) {return function(callback) {
+var getOneAmContour = function(patternData, nradial, areaFlag, pop) {return function(callback) {
 	var latlonArray = [patternData.inputData.lat_deg,
 						patternData.inputData.lat_min,
 						patternData.inputData.lat_sec,
@@ -811,131 +813,257 @@ var getOneAmContour = function(patternData, nradial) {return function(callback) 
 			
 			conductivity.getConductivity(lat_84, lon_84, nradial, distance, function(error, result) {
 				if (error) {
-				callback(error, null);
-				return;
+					callback(error, null);
+					return;
 				}
 				else {
-				console.log('getOneAmContour: done getting conductivity');
-				//console.log(JSON.stringify(result));
-				
-				
-				var conductivityData = result;
+					console.log('getOneAmContour: done getting conductivity');
+					//console.log(JSON.stringify(result));
+					
+					
+					var conductivityData = result;
 
-				var coordinates = [];
-				var contourData = [];
-				for (var i = 0; i < conductivityData.conductivity.length; i++) {
-					
-					var azimuth = conductivityData.conductivity[i].azimuth;
-					//console.log('az=' + azimuth)
-					var zones = conductivityData.conductivity[i].zones;
-					//console.log('zones=' + zones)
-					
-					for (var j = 0; j < zones.length; j++) {
-					//console.log(j, zones[j].conductivity, zones[j].distance)
-					
-					}
-					
-					var field = 0.5;
-					if (patternData.inputData.station_class != "A") {
-						field = 0.025;
-					}
-					var dist_to_required_field = [];
-					var dist_to_break = [];
-					var field_at_break = [];
-					var field_at_break_0;
-					var dist_to_previous_field = [];
-					var dist_to_previous_field_0;
-					var dist_delta = [];
-					var zone_number = 0;
-					var isDone = false;
-					var freq = patternData.inputData.fac_frequency/1000;
-					var power = patternData.amPattern[i].Eth;
-					if (patternData.inputData.domestic_pattern == 'S') {
-						power = patternData.amPattern[i].Estd;
-					}
-					else if (patternData.inputData.domestic_pattern == 'A') {
-						power = patternData.amPattern[i].Eaug;
-					}
-					
-					//console.log('start while loop')
-					
-					while(!isDone) {
-						//console.log('zone_number', zone_number)
-						if (zone_number == 0) {
-							//console.log('inside 1')
-							dist_delta[zone_number] = 0
-							//console.log('inside 2')
-							dist_to_required_field.push(gwave.amDistance(zones[zone_number].conductivity, 15, freq, field, power));
-							//console.log('inside 3')
-							dist_to_break.push(zones[zone_number].distance);
-							//console.log('cond=', zones[zone_number].conductivity, 'freq', freq, 'field', field, 'power', power)
-							field_at_break.push(gwave.amField(zones[zone_number].conductivity, 15, freq, dist_to_break[zone_number], power));
-							dist_to_previous_field.push(0);
-							//console.log('field_at_break', field_at_break[zone_number])
-							//field_at_break.push(
-						}
-						else {
-							dist_to_previous_field_0 = gwave.amDistance(zones[zone_number].conductivity, 15, freq, field_at_break[zone_number-1], power)
-							dist_to_previous_field.push(dist_to_previous_field_0);
-							dist_delta.push(dist_to_previous_field[zone_number] - dist_to_break[zone_number-1]);
-							dist_to_break.push(zones[zone_number].distance + mathjs.sum(dist_delta));
-							field_at_break.push(gwave.amField(zones[zone_number].conductivity, 15, freq, dist_to_break[zone_number], power));
-							//console.log('dist_to_previous_field', dist_to_previous_field[zone_number], 'dist_to_break', dist_to_break[zone_number-1], 'dist_delta',dist_delta[zone_number], 'field_at_break', field_at_break[zone_number] )
-							dist_to_required_field.push(gwave.amDistance(zones[zone_number].conductivity, 15, freq, field, power));
-						}
-						//console.log('field_at_break', field_at_break)
-						//console.log('dist_to_previous_field', dist_to_previous_field)
-						//console.log('dist_delta', dist_delta)
-						//console.log('dist_to_break', dist_to_break)
+					var coordinates = [];
+					var contourData = [];
+					for (var i = 0; i < conductivityData.conductivity.length; i++) {
 						
-						//console.log('zone', zone_number, 'dist_to_required_field',dist_to_required_field[zone_number], 'dist_to_previous_field', dist_to_previous_field[zone_number], 'dist_delta', dist_delta[zone_number], 'dist_to_break', dist_to_break[zone_number], 'field_at_break', field_at_break[zone_number]);
-						if (field_at_break[zone_number] <= field) {
-							distance = dist_to_required_field[zone_number] - mathjs.sum(dist_delta) ;
+						var azimuth = conductivityData.conductivity[i].azimuth;
+						console.log('az=' + azimuth)
+						var zones_orig = conductivityData.conductivity[i].zones;
+						//console.log('zones=' + zones)
+						
+						var zones = [];
+						for (var n = 0; n < zones_orig.length; n++) {
+							if (zones_orig[n].distance > 2) {
+								zones.push(zones_orig[n])
+							}
+						}
+						
+						for (var j = 0; j < zones.length; j++) {
+						console.log(j, zones[j].conductivity, zones[j].distance)
+						
+						}
+						
+						var field = 0.5;
+						if (patternData.inputData.station_class != "A") {
+							field = 0.025;
+						}
+						var dist_to_required_field = [];
+						var dist_to_break = [];
+						var field_at_break = [];
+						var field_at_break_0;
+						var dist_to_previous_field = [];
+						var dist_to_previous_field_0;
+						var dist_delta = [];
+						var zone_number = 0;
+						var isDone = false;
+						var freq = patternData.inputData.fac_frequency/1000;
+						var power = patternData.amPattern[i].Eth;
+						if (patternData.inputData.domestic_pattern == 'S') {
+							power = patternData.amPattern[i].Estd;
+						}
+						else if (patternData.inputData.domestic_pattern == 'A') {
+							power = patternData.amPattern[i].Eaug;
+						}
+						
+						//console.log('start while loop')
+						
+						while(!isDone) {
+							console.log('zone_number', zone_number)
+							if (zone_number == 0) {
+								//console.log('inside 1')
+								dist_delta[zone_number] = 0
+								//console.log('inside 2')
+								dist_to_required_field.push(gwave.amDistance(zones[zone_number].conductivity, 15, freq, field, power));
+								//console.log('inside 3')
+								dist_to_break.push(zones[zone_number].distance);
+								//console.log('cond=', zones[zone_number].conductivity, 'freq', freq, 'field', field, 'power', power)
+								field_at_break.push(gwave.amField(zones[zone_number].conductivity, 15, freq, dist_to_break[zone_number], power));
+								dist_to_previous_field.push(0);
+								//console.log('field_at_break', field_at_break[zone_number])
+								//field_at_break.push(
+							}
+							else {
+								dist_to_previous_field_0 = gwave.amDistance(zones[zone_number].conductivity, 15, freq, field_at_break[zone_number-1], power)
+								dist_to_previous_field.push(dist_to_previous_field_0);
+								dist_delta.push(dist_to_previous_field[zone_number] - dist_to_break[zone_number-1]);
+								dist_to_break.push(zones[zone_number].distance + mathjs.sum(dist_delta));
+								field_at_break.push(gwave.amField(zones[zone_number].conductivity, 15, freq, dist_to_break[zone_number], power));
+								//console.log('dist_to_previous_field', dist_to_previous_field[zone_number], 'dist_to_break', dist_to_break[zone_number-1], 'dist_delta',dist_delta[zone_number], 'field_at_break', field_at_break[zone_number] )
+								dist_to_required_field.push(gwave.amDistance(zones[zone_number].conductivity, 15, freq, field, power));
+							}
+							//console.log('field_at_break', field_at_break)
+							//console.log('dist_to_previous_field', dist_to_previous_field)
+							//console.log('dist_delta', dist_delta)
+							//console.log('dist_to_break', dist_to_break)
 							
-							//console.log('distance=', distance)
-							isDone = true;
+							//console.log('zone', zone_number, 'dist_to_required_field',dist_to_required_field[zone_number], 'dist_to_previous_field', dist_to_previous_field[zone_number], 'dist_delta', dist_delta[zone_number], 'dist_to_break', dist_to_break[zone_number], 'field_at_break', field_at_break[zone_number]);
+							if (field_at_break[zone_number] <= field) {
+								distance = dist_to_required_field[zone_number] - mathjs.sum(dist_delta) ;
+								
+								//console.log('distance=', distance)
+								isDone = true;
+							}
+							else {
+								zone_number++;
+							}
 						}
-						else {
-							zone_number++;
-						}
+						
+						distance = Math.floor(distance*10 + 0.5)/10;
+						
+						//console.log('dist=' + distance)
+						
+						var latlon = getLatLonFromDist(lat_84, lon_84, azimuth, distance);
+						latlon[0] = mathjs.round(latlon[0], 6);
+						latlon[1] = mathjs.round(latlon[1], 6);
+						coordinates.push([latlon[1], latlon[0]]);
+						contourData.push({
+							"x": latlon[1],
+							"y": latlon[0],
+							"z": 0,
+							"distance": distance,
+							"fs1km": power,
+							"azimuth": azimuth
+						});
 					}
 					
-					distance = Math.floor(distance*10 + 0.5)/10;
+					coordinates.push(coordinates[0]);
+					contourData.push(contourData[0]);
 					
-					//console.log('dist=' + distance)
+					console.log('areaFlag=' + areaFlag + ' pop=' + pop)
 					
-					var latlon = getLatLonFromDist(lat_84, lon_84, azimuth, distance)
-					coordinates.push([latlon[1], latlon[0]]);
-					contourData.push({
-						"x": latlon[1],
-						"y": latlon[0],
-						"z": 0,
-						"distance": distance,
-						"fs1km": power,
-						"azimuth": azimuth
-					});
-				}
+					
+					var geom = JSON.stringify({"type": "MultiPolygon", "coordinates": [[coordinates]]});
+					
+					console.log('areaFlag', areaFlag)
+					if (areaFlag === 'true') {
+						area.getArea(geom, function(error, response) {
+							if (error) {
+							console.log("Area API error: ", error)
+								var area = -999;
+								var area_unit = response.area_unit;
+							}
+							else {
+								var area = response.area;
+								var area_unit = response.area_unit;
+							}
+								
+							if (pop === 'true') {
+								population.getPopulation(geom, function(error, response) {
+									if (error) {
+										console.log('population API error: ' + error);
+										var population = -999;
+									}
+									else {
+										var population = response.population;
+									}
+									
+									var properties = patternData.inputData;
+									properties.antenna_lat = lat_84;
+									properties.antenna_lon = lon_84;
+									properties.area = area;
+									properties.area_unit = area_unit;
+									properties.pop = population;
+									properties.contourData = contourData;
+									var contour_geojson = {
+															"type": "FeatureCollection",
+															"features": [
+																		{
+																			"type": "Feature",
+																			"geometry": {
+																				"type": "MultiPolygon",
+																				"coordinates": [[coordinates]]
+																				},
+																			"properties": properties
+																		}
+															]				
+									};
+									console.log('done making 1 contour for area=true and pop=true');
+									callback(null, contour_geojson);
+									
+								});
+							}
+							else {
+								var properties = patternData.inputData;
+								properties.antenna_lat = lat_84;
+								properties.antenna_lon = lon_84;
+								properties.area = area;
+								properties.area_unit = area_unit;
+								properties.contourData = contourData;
+								var contour_geojson = {
+														"type": "FeatureCollection",
+														"features": [
+																	{
+																		"type": "Feature",
+																		"geometry": {
+																			"type": "MultiPolygon",
+																			"coordinates": [[coordinates]]
+																			},
+																		"properties": properties
+																	}
+														]				
+								};
+								console.log('done making 1 contour for area=true and pop=true');
+								callback(null, contour_geojson);
+							
+							}
+						});
+					}
+					else {
+						if (pop === 'true') {
+							population.getPopulation(geom, function(error, response) {
+								if (error) {
+									population = -999;
+								}
+								else {
+									population = response.population;
+								}
+								
+								var properties = patternData.inputData;
+								properties.antenna_lat = lat_84;
+								properties.antenna_lon = lon_84;
+								properties.pop = population;
+								properties.contourData = contourData;
+								var contour_geojson = {
+														"type": "FeatureCollection",
+														"features": [
+																	{
+																		"type": "Feature",
+																		"geometry": {
+																			"type": "MultiPolygon",
+																			"coordinates": [[coordinates]]
+																			},
+																		"properties": properties
+																	}
+														]				
+								};
+								console.log('done making 1 contour for area=true and pop=true');
+								callback(null, contour_geojson);
+							});
+						}
+						else {
+							var properties = patternData.inputData;
+							properties.antenna_lat = lat_84;
+							properties.antenna_lon = lon_84;
+							properties.contourData = contourData;
+							var contour_geojson = {
+													"type": "FeatureCollection",
+													"features": [
+																{
+																	"type": "Feature",
+																	"geometry": {
+																		"type": "MultiPolygon",
+																		"coordinates": [[coordinates]]
+																		},
+																	"properties": properties
+																}
+													]				
+							};
+							console.log('done making 1 contour for area=true and pop=true');
+							callback(null, contour_geojson);
+						}
+					}
 				
-				var properties = patternData.inputData;
-				properties.antenna_lat = lat_84;
-				properties.antenna_lon = lon_84;
-				properties.contourData = contourData;
-				var contour_geojson = {
-										"type": "FeatureCollection",
-										"features": [
-													{
-														"type": "Feature",
-														"geometry": {
-															"type": "MultiPolygon",
-															"coordinates": [[coordinates]]
-															},
-														"properties": properties
-													}
-										]				
-				};
-				console.log('done making 1 contour');
-				
-				callback(null, contour_geojson);
 				}
 			});
 		})
@@ -1067,10 +1195,13 @@ var getAmContour = function(req, res) {
 		return;
 	}
 	
+	var pop = req.query.pop;
+	var areaFlag = req.query.area;
+	
 	idType = idType.toLowerCase();
 	idValue = idValue.toUpperCase();
 	
-	amContour(idType, idValue, nradial, function(error, result) {
+	amContour(idType, idValue, nradial, areaFlag, pop, function(error, result) {
 		if (error) {
 			res.send({"error": error});
 		}

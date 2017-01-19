@@ -646,9 +646,7 @@ var calAug = function(azimuth, center_azimuth, span, radiation_aug, Estd_center)
 
 var getAmStationData = function(idType, idValue, callback) {
 
-var q;
-
-
+	var q;
 	
 	if (idType === 'callsign') {
 		var eng_data_table = LMS_SCHEMA + ".gis_am_eng_data";
@@ -683,64 +681,78 @@ var q;
 		}
 		
 		var applicationId_str = '(' + applicationId.toString() + ')';
-		q = "SELECT * FROM " + LMS_SCHEMA + ".gis_am_ant_sys WHERE application_id in " + applicationId_str +
-			"and eng_record_type = 'C' and hours_operation in ('D', 'U') ";
-			
-		console.log(q)
-			
+		
+		q = "SELECT * FROM " + LMS_SCHEMA + ".gis_application WHERE application_id in " + applicationId_str;
+		
 		db_lms.any(q)
-		.then(function (data) {	
-			if (data.length == 0) {
-				console.log('\n' + 'no valid ant record found');
-				callback('no valid ant record found for this station', null);
-				return;
-			}
-			
-			var antData = data;
-			
-			var antSysIds = [];
-			for (var i = 0; i < antData.length; i++) {
-				antSysIds.push(antData[i].ant_sys_id);
-			}
-			var antSysIdStr = "(" + antSysIds.toString() + ")";
-				
-			q = "SELECT * FROM " + LMS_SCHEMA + ".gis_am_towers WHERE ant_sys_id in " + antSysIdStr + " ORDER BY ant_sys_id, tower_num";
-			
+		.then(function (data) {
+			var applicationData = data;
+
+			q = "SELECT * FROM " + LMS_SCHEMA + ".gis_am_ant_sys WHERE application_id in " + applicationId_str +
+				"and eng_record_type = 'C' and hours_operation in ('D', 'U') ";
+					
 			db_lms.any(q)
-			.then(function (data) {
-			
+			.then(function (data) {	
 				if (data.length == 0) {
 					console.log('\n' + 'no valid ant record found');
-					callback('no valid tower record found for this station', null);
+					callback('no valid ant record found for this station', null);
 					return;
 				}
 				
-				var towerData = [];
+				var antData = data;
+				antData = addFileNumber(antData, applicationData);
+				console.log(antData);
+				
+				var antSysIds = [];
 				for (var i = 0; i < antData.length; i++) {
-					var towerData1 = [];
-					for (var j = 0; j < data.length; j++) {
-						if (data[j].ant_sys_id === antData[i].ant_sys_id) {
-							towerData1.push(data[j]);
-						}
-					}
-					towerData.push(towerData1);
+					antSysIds.push(antData[i].ant_sys_id);
 				}
+				var antSysIdStr = "(" + antSysIds.toString() + ")";
+					
+				q = "SELECT * FROM " + LMS_SCHEMA + ".gis_am_towers WHERE ant_sys_id in " + antSysIdStr + " ORDER BY ant_sys_id, tower_num";
 				
-				console.log('antData', antData.length, 'towerData', towerData.length);
+				db_lms.any(q)
+				.then(function (data) {
 				
-				callback(null, {"stationData": stationData, "antData": antData, "towerData": towerData});
-			
+					if (data.length == 0) {
+						console.log('\n' + 'no valid ant record found');
+						callback('no valid tower record found for this station', null);
+						return;
+					}
+					
+					var towerData = [];
+					for (var i = 0; i < antData.length; i++) {
+						var towerData1 = [];
+						for (var j = 0; j < data.length; j++) {
+							if (data[j].ant_sys_id === antData[i].ant_sys_id) {
+								towerData1.push(data[j]);
+							}
+						}
+						towerData.push(towerData1);
+					}
+					
+					console.log('antData', antData.length, 'towerData', towerData.length);
+					
+					callback(null, {"stationData": stationData, "antData": antData, "towerData": towerData});
+				
+				})
+				.catch(function (err) {
+					console.log('\n' + err);
+					callback(err, null);
+				});
+				
 			})
 			.catch(function (err) {
 				console.log('\n' + err);
 				callback(err, null);
 			});
-			
+		
 		})
 		.catch(function (err) {
 			console.log('\n' + err);
 			callback(err, null);
 		});
+		
 		
 	})
 	.catch(function (err) {
@@ -748,6 +760,28 @@ var q;
 		callback(err, null);
 	});
 }
+
+var addFileNumber = function(antData, applicationData) {
+	var i, j, fileNumber;
+	for (i = 0; i < antData.length; i++) {
+		fileNumber = "";
+		for (j = 0; j < applicationData.length; j++) {
+			if (applicationData[j].application_id === antData[i].application_id) {
+				var app_arn = "";
+				if (applicationData[j].app_arn !== null) {
+					app_arn = applicationData[j].app_arn;
+				}
+				fileNumber = applicationData[j].file_prefix + "-" + app_arn;
+			}
+		}
+		fileNumber = fileNumber.replace(/\s/g, '');
+		antData[i].file_number = fileNumber;
+	}
+	
+	return antData;
+}
+
+
 
 var amContour = function(idType, idValue, nradial, field, areaFlag, pop, callback) {
 
@@ -817,7 +851,18 @@ var getOneAmContour = function(patternData, nradial, field, areaFlag, pop) {retu
 			var distance = 1200;
 			console.log('start getting conductivity at ' + lat_84 + ' ' + lon_84);
 			
-			conductivity.getConductivity(lat_84, lon_84, nradial, distance, function(error, result) {
+			var p1 = patternData.inputData.ant_sys_id;
+			var p2 = patternData.inputData.application_id;
+			var p3 = patternData.inputData.lat_deg;
+			var p4 = patternData.inputData.lat_min;
+			var p5 = patternData.inputData.lat_sec;
+			var p6 = patternData.inputData.lat_dir;
+			var p7 = patternData.inputData.lon_deg;
+			var p8 = patternData.inputData.lon_min;
+			var p9 = patternData.inputData.lon_sec;
+			var p10 = patternData.inputData.lon_dir;
+			
+			conductivity.selectConductivity(p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, lat_84, lon_84, nradial, distance, function(error, result) {
 			
 				if (error) {
 					callback(error, null);
@@ -825,15 +870,12 @@ var getOneAmContour = function(patternData, nradial, field, areaFlag, pop) {retu
 				}
 				else {
 					console.log('getOneAmContour: done getting conductivity');
-					//console.log(JSON.stringify(result));
-					
-					
+			
 					var conductivityData = result;
-
+					
 					var coordinates = [];
 					var contourData = [];
-					
-					console.log('field bf=', field_input)
+
 					if (field_input == undefined) {
 						var field = 0.5;
 						if (patternData.inputData.station_class != "A") {
@@ -966,7 +1008,7 @@ var getOneAmContour = function(patternData, nradial, field, areaFlag, pop) {retu
 																	}
 														]				
 								};
-								console.log('done making 1 contour for area=true and pop=true');
+								console.log('done making 1 contour for area=true and pop=false');
 								callback(null, contour_geojson);
 							
 							}
@@ -1000,7 +1042,7 @@ var getOneAmContour = function(patternData, nradial, field, areaFlag, pop) {retu
 																	}
 														]				
 								};
-								console.log('done making 1 contour for area=true and pop=true');
+								console.log('done making 1 contour for area=false and pop=true');
 								callback(null, contour_geojson);
 							});
 						}
@@ -1022,7 +1064,7 @@ var getOneAmContour = function(patternData, nradial, field, areaFlag, pop) {retu
 																}
 													]				
 							};
-							console.log('done making 1 contour for area=true and pop=true');
+							console.log('done making 1 contour for area=false and pop=false');
 							callback(null, contour_geojson);
 						}
 					}
@@ -1093,7 +1135,9 @@ var getAmPattern = function(req, res) {
 	idType = idType.toLowerCase();
 	idValue = idValue.toUpperCase();
 	
-	amPattern(idType, idValue, nradial, function(error, result) {
+	amPattern(idType, idValue, nradial, 0.5, function(error, result) {
+		//the value 0.5 is a place holder only
+		
 		if (error) {
 			res.send({"error": error});
 		}
@@ -1161,7 +1205,18 @@ var getAmContour = function(req, res) {
 		return;
 	}
 	
-	console.log(field)
+	
+		
+	if ( 360 % nradial != 0) {
+		console.log('\n' + 'Invalid nradial value: 360 % nradial must be zero');
+		res.status(400).send({
+		'status': 'error',
+		'statusCode':'400',
+		'statusMessage': 'Invalid nradial value: 360 % nradial must be zero'
+		});
+		return;
+	}
+
 	if (field != undefined && !field.match(/^\.?\d+\.?\d*$/)) {
 		console.log('\n' + 'Invalid field value');
 		res.status(400).send({
@@ -1317,6 +1372,7 @@ var makeOneAmPattern = function(stationData, antData, towerData, nradial, callba
 		"facility_id": stationData.facility_id,
 		"station_class": stationData.station_class,
 		"application_id": antData.application_id,
+		"file_number": antData.file_number,
 		"ant_sys_id": antData.ant_sys_id,
 		"ant_mode": antData.ant_mode,
 		"ant_dir_ind": antData.ant_dir_ind,

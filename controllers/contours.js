@@ -640,7 +640,9 @@ function getFullAntennaPattern(nradial, pattern) {
 			if (az < az1) {az += 360;}
 		}
 		
-		field = field1 + (field2 - field1) * (az - az1)/(az2 - az1)
+		field = field1 + (field2 - field1) * (az - az1)/(az2 - az1);
+		
+		field = math.round(field, 4);
 		
 		full_pattern.push(field);
 		

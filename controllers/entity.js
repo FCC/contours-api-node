@@ -242,7 +242,7 @@ function getEntity(req, res, callback) {
 			}
 			else {
 				idType = 'applIdNumber';
-				q = "SELECT a.*, b.* from " + LMS_SCHEMA + ".gis_facility a, " + eng_data_table + " b where a.facility_id = b.facility_id and b.application_id = '" + applicationId + "'";	
+				q = "SELECT a.*, b.* from " + LMS_SCHEMA + ".gis_facility a, " + eng_data_table + " b where a.facility_id = b.facility_id and b.application_id = " + applicationId;	
 				q += " ORDER BY application_id DESC";
 			}
 			
@@ -274,7 +274,7 @@ function getEntity(req, res, callback) {
 			
 			var asyncTasks = [];
 			for (i = 0; i < recordData.length; i++) {
-				if (recordData[i].vsd_service !== 'DX') {
+				if ( !(recordData.length > 1 && recordData[i].vsd_service == 'DX')  ) {
 					asyncTasks.push(getOneContour(db_contours, db_lms, idType, queryParams, recordData[i]));	
 				}				
 			}
@@ -669,6 +669,10 @@ console.log('\n' + 'getOneContour recordData='+JSON.stringify(recordData));
 		if (!inputData.antenna_id) {
 			inputData.antenna_id = -999;
 		}
+		if (!inputData.antenna_type) {
+			inputData.antenna_type = "N";
+		}
+		
 		console.log('\n' + 'contour inputData='+JSON.stringify(inputData));
 		//check input data
 		var inputOk = true;
@@ -753,19 +757,34 @@ console.log('\n' + 'getOneContour recordData='+JSON.stringify(recordData));
 					console.log('contour response code: '+data.features[0].properties.statusCode);
 					if(data.features[0].properties.statusCode == '200'){
 						console.log('using this contour');
-						var properties = {};
-						properties.callsign = inputData.callsign;
-						properties.facility_id = inputData.facilityId;
-						properties.application_id = inputData.applicationId;
-						properties.antenna_id = inputData.antenna_id;
-						properties.antenna_type = inputData.antenna_type;
-						properties.service = inputData.service;
-						for (var key in data.features[0].properties) {
-							properties[key] = data.features[0].properties[key];
-						}
-						data.features[0].properties = properties;
 						
-						callback(null, data);    
+						//get file number
+						getFileNumber(inputData.applicationId, function(error, fileNumber) {
+							if (error) {
+								callback(error, null);
+							}
+							else {
+								var properties = {};
+								properties.callsign = inputData.callsign;
+								properties.facility_id = inputData.facilityId;
+								properties.application_id = inputData.applicationId;
+								properties.file_number = fileNumber;
+								properties.antenna_id = inputData.antenna_id;
+								properties.antenna_type = inputData.antenna_type;
+								properties.service = inputData.service;
+								for (var key in data.features[0].properties) {
+									properties[key] = data.features[0].properties[key];
+								}
+								data.features[0].properties = properties;
+								
+								callback(null, data); 
+							}
+						
+						});
+
+
+
+						
 					}
 					else {
 						callback(data.features[0].properties.statusMessage, null);
@@ -796,6 +815,36 @@ console.log('\n' + 'getOneContour recordData='+JSON.stringify(recordData));
 	});
 				
 }};
+
+
+var getFileNumber = function(application_id, callback) {
+	var q = "SELECT * FROM " + LMS_SCHEMA + ".gis_application WHERE application_id = " + application_id + " LIMIT 1";
+	console.log(q)
+	
+	db_lms.any(q)
+	.then(function (data) {
+		console.log('data', data)
+		var fileNumber = "";
+		var arn = "";
+		var file_prefix = ""
+		if (data.length > 0) {
+			if (data[0].app_arn != null && data[0].file_prefix != null) {
+				fileNumber = data[0].file_prefix + "-" + data[0].app_arn;
+				fileNumber = fileNumber.replace(/\s/g, '');
+			}
+		}
+		
+		callback(null, fileNumber);
+	})
+	.catch(function (err) {
+		console.log('\n' + err);
+		callback(err, null);
+		return;
+	});
+
+
+}
+
 
 
 

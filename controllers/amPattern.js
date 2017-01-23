@@ -660,7 +660,7 @@ var getAmStationData = function(idType, idValue, callback) {
 		" b WHERE a.facility_id = b.facility_id and a.facility_id = '" + idValue + "' ";
 		//+ "and b.am_dom_status = 'L' and a.fac_status = 'LICEN'";
 	}
-	else if (idType === 'applicationid') {
+	else if (idType === 'applIdNumber') {
 		var eng_data_table = LMS_SCHEMA + ".gis_am_eng_data";
 		q = "SELECT a.*, b.* from " + LMS_SCHEMA + ".gis_facility a, " + eng_data_table + 
 		" b WHERE a.facility_id = b.facility_id and b.application_id = '" + idValue + "' ";
@@ -1232,7 +1232,7 @@ var getAmContour = function(req, res) {
 		idValue = facilityId;
 	}
 	else if (applicationId != undefined) {
-		idType = "applicationid";
+		idType = "applIdNumber";
 		idValue = applicationId;
 	}
 	
@@ -1545,7 +1545,7 @@ var cal_equivalent_distance = function(zones, field, freq, power) {
 module.exports.congen = congen;
 module.exports.getAmPattern = getAmPattern;
 module.exports.getAmContour = getAmContour;
-
+module.exports.amContour = amContour;
 
 
 

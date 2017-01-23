@@ -29,6 +29,7 @@ var mathjs = require('mathjs');
 var db_lms = require('./db_lms.js');
 var db_contours = require('./db_contour.js');
 var contours = require('./contours.js');
+var amPattern = require('./amPattern.js');
 
 
 function getEntity(req, res, callback) {
@@ -71,12 +72,12 @@ function getEntity(req, res, callback) {
 	}
 	
 	serviceType = serviceType.toLowerCase();
-	if (['tv', 'fm'].indexOf(serviceType) < 0) {
+	if (['tv', 'fm', 'am'].indexOf(serviceType) < 0) {
 		console.log('\n' + 'invalid serviceType value');
 		res.status(400).send({
 			'status': 'error',
 			'statusCode':'400',
-			'statusMessage': 'Invalid serviceType value - must be tv or fm.'
+			'statusMessage': 'Invalid serviceType value - must be tv, fm, or am.'
 		});
 		return;
 	}
@@ -159,7 +160,7 @@ function getEntity(req, res, callback) {
 		return;		
 	}
 
-	if (field != undefined  && !field.match(/^\d+$/)) {
+	if (field != undefined  && !field.match(/^\.?\d+\.?\d*$/)) {
 		console.log('\n' + 'invalid field value');
 		res.status(400).send({
 			'status': 'error',
@@ -191,6 +192,20 @@ function getEntity(req, res, callback) {
 		callsign = callsign.toUpperCase();
 	}
 	
+	var idType;
+	var idValue;
+	if (callsign != undefined) {
+		idType = "callsign";
+		idValue = callsign.toUpperCase();
+	}
+	else if (facilityId != undefined) {
+		idType = "facilityid";
+		idValue = facilityId;
+	}
+	else if (applicationId != undefined) {
+		idType = "applIdNumber";
+		idValue = applicationId;
+	}
 	
 	var queryParams = {
 		"serviceType": serviceType,
@@ -311,6 +326,25 @@ function getEntity(req, res, callback) {
 			callback(err, null);
 		});
 	
+	}
+	else if (serviceType == "am") {
+		var areaFlag = undefined;
+		if (area == "true") {
+			areaFlag = area;
+		}
+		var popFlag = undefined;
+		if (pop == "true") {
+			popFlag = pop;
+		}
+		
+		amPattern.amContour(idType, idValue, nradial, field, areaFlag, popFlag, function(error, result) {
+			if (error) {
+				callback(error, null);
+			}
+			else {
+				callback(null, result);
+			}
+		});
 	}
 	
 }

@@ -660,6 +660,12 @@ var getAmStationData = function(idType, idValue, callback) {
 		" b WHERE a.facility_id = b.facility_id and a.facility_id = '" + idValue + "' ";
 		//+ "and b.am_dom_status = 'L' and a.fac_status = 'LICEN'";
 	}
+	else if (idType === 'applicationid') {
+		var eng_data_table = LMS_SCHEMA + ".gis_am_eng_data";
+		q = "SELECT a.*, b.* from " + LMS_SCHEMA + ".gis_facility a, " + eng_data_table + 
+		" b WHERE a.facility_id = b.facility_id and b.application_id = '" + idValue + "' ";
+		//+ "and b.am_dom_status = 'L' and a.fac_status = 'LICEN'";
+	}
 	else {
 		console.log('\n' + 'invalid idType ' + idType);
 		callback('invalid idType ' + idType, null);
@@ -878,9 +884,9 @@ var getOneAmContour = function(patternData, nradial, field, areaFlag, pop) {retu
 
 					if (field_input == undefined) {
 						var field = 0.5;
-						if (patternData.inputData.station_class != "A") {
-							field = 0.025;
-						}
+						//if (patternData.inputData.station_class != "A") {
+						//	field = 0.025;
+						//}
 					}
 					else {
 						var field = field_input;
@@ -1152,32 +1158,17 @@ var getAmPattern = function(req, res) {
 var getAmContour = function(req, res) {
 	console.log('================== getAmContour API =============');
 
-	var idType = req.query.idType
-	var idValue = req.query.idValue;
+	var callsign = req.query.callsign;
+	var facilityId = req.query.facilityId;
+	var applicationId = req.query.applicationId;
+	
 	var nradial = req.query.nradial;
 	var field = req.query.field;
 	var pop = req.query.pop;
 	var areaFlag = req.query.area;
 	
-	if (idType == undefined) {
-		console.log('\n' + 'missing idType');
-		res.status(400).send({
-			'status': 'error',
-			'statusCode':'400',
-			'statusMessage': 'missing idType.'
-		});
-		return;
-	}
-	
-	if (idType != undefined && ["callsign", "facilityid"].indexOf(idType.toLowerCase()) < 0 ) {
-		console.log('\n' + 'Invalid idType value, must be callsign or facilityid');
-		res.status(400).send({
-			'status': 'error',
-			'statusCode':'400',
-			'statusMessage': 'Invalid idType value, must be callsign or facilityid'
-		});
-		return;
-	}
+	var idType;
+	var idValue;
 	
 	if (nradial == undefined) {
 		nradial = 360;
@@ -1227,14 +1218,25 @@ var getAmContour = function(req, res) {
 		return;
 	}
 	
-
 	if (field != undefined) {
 		field = parseFloat(field);
 	}
 	
-	idType = idType.toLowerCase();
-	idValue = idValue.toUpperCase();
 	
+	if (callsign != undefined) {
+		idType = "callsign";
+		idValue = callsign.toUpperCase();
+	}
+	else if (facilityId != undefined) {
+		idType = "facilityid";
+		idValue = facilityId;
+	}
+	else if (applicationId != undefined) {
+		idType = "applicationid";
+		idValue = applicationId;
+	}
+	
+
 	amContour(idType, idValue, nradial, field, areaFlag, pop, function(error, result) {
 		if (error) {
 			res.send({"error": error});

@@ -37,6 +37,7 @@ var conductivity = require('./controllers/conductivity.js');
 var gwave = require('./controllers/gwave.js');
 var amr = require('./controllers/amr.js');
 var amPattern = require('./controllers/amPattern.js');
+var conductivity_batch = require('./controllers/conductivity_batch.js');
 
 // **********************************************************
 // config
@@ -537,6 +538,8 @@ var server = app.listen(NODE_PORT, function () {
   console.log('\n  listening at http://%s:%s', host, port);
 
 });
+
+conductivity_batch.startBatch();
 
 function getCachedData(req, req_key, success){
     var outputcache = req.query.outputcache;

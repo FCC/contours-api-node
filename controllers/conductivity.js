@@ -41,15 +41,13 @@ var getLineConductivity = function(lineOption){ return function(callback) {
 	//console.log(line)
 	
 	var line = "ST_GeomFromText('LineString(" + line + ")', 4326)";
-	
-	
+
 	findIntersects(line, function(error, response) {
 		if (error) {
 			callback(error, []);
 		}
 		else {
-			//console.log(response);
-			
+		
 			var asyncTasks = [];
 			for (i = 0; i < response.length; i++) {
 			//console.log(i)
@@ -347,6 +345,21 @@ async.parallel(asyncTasks, function(error, result){
 			zones = getZones(result[i], result[ii]);
 			
 			zones_all.push(zones);
+		}
+		
+		//handle empty zones
+		//get conductivity at antenna location
+		var conductivity_antenna = 5000;
+		for (i = 0; i < nradial; i++) {
+			if (zones_all[i].zones.length > 0 && zones_all[i].zones[0].conductivity != 5000) {
+				conductivity_antenna = zones_all[i].zones[0].conductivity;
+				break;
+			}
+		}
+		for (i = 0; i < nradial; i++) {
+			if (zones_all[i].zones.length == 1 && zones_all[i].zones[0].conductivity == 5000) {
+				zones_all[i].zones[0].conductivity = conductivity_antenna;
+			}
 		}
 		
 		//console.log(zones_all);

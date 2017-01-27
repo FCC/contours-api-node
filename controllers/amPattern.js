@@ -1268,6 +1268,8 @@ var makeOneAmPattern = function(stationData, antData, towerData, nradial, callba
 	console.log('antData', antData);
 	//console.log(towerData);
 	
+	var nradial1 = 360; //get full 360 radials first, then sub-sample for output based on actual nradial
+	
 	var hgt = [];
 	var fld = [];
 	var spc = [];
@@ -1326,7 +1328,8 @@ var makeOneAmPattern = function(stationData, antData, towerData, nradial, callba
 	var item;
 	var items = [];
 	
-	var deltaAz = 360/nradial;
+	//var deltaAz = 360/nradial;
+	var deltaAz = 1;
 	
 	//spc[2] =200; //test for KFXN
 	//console.log('spc', spc, 'orn', orn)
@@ -1344,7 +1347,7 @@ var makeOneAmPattern = function(stationData, antData, towerData, nradial, callba
 	
 	//console.log('spc', spc, 'orn', orn)
 	
-	for (var n = 0; n < nradial; n++) {
+	for (var n = 0; n < nradial1; n++) {
 		azimuth = n * deltaAz;
 		azimuths.push(azimuth);
 		
@@ -1409,6 +1412,8 @@ var makeOneAmPattern = function(stationData, antData, towerData, nradial, callba
 		var amPattern = applyAmAugs(items, augData);
 		
 		amPattern = reformatAmPattern(amPattern, inputData);
+		amPattern = subSampleAmPattern(amPattern, nradial);
+		
 	
 		var ret = {
 			"inputData": inputData,
@@ -1460,6 +1465,19 @@ var reformatAmPattern = function(amPattern, inputData) {
 	return pattern;
 
 }
+
+var subSampleAmPattern = function(amPattern, nradial) {
+	var az;
+	var amPatternNew = [];
+	var deltaAz = Math.floor(360/nradial + 0.5);
+	for (var i = 0; i < nradial; i++) {
+		az = Math.floor(i * deltaAz + 0.5);
+		amPatternNew.push(amPattern[az]);
+	}
+	
+	return amPatternNew;
+}
+
 
 function getLatLonFromDist(lat1, lon1, az, d) {
 //az: azimuth in degrees

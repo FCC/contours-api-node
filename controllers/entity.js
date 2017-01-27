@@ -159,6 +159,16 @@ function getEntity(req, res, callback) {
 		});
 		return;		
 	}
+	
+	if ( serviceType == "am" && 360%nradial != 0 ) {
+		console.log('\n' + '360%nradial must be 0');
+		res.status(400).send({
+		'status': 'error',
+		'statusCode':'400',
+		'statusMessage': '360%nradial must be 0 for serviceType am'
+		});
+		return;		
+	}
 
 	if (field != undefined  && !field.match(/^\.?\d+\.?\d*$/)) {
 		console.log('\n' + 'invalid field value');

@@ -539,7 +539,7 @@ var server = app.listen(NODE_PORT, function () {
 
 });
 
-conductivity_batch.startBatch();
+//conductivity_batch.startBatch();
 
 function getCachedData(req, req_key, success){
     var outputcache = req.query.outputcache;

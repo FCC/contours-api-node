@@ -501,6 +501,7 @@ var selectConductivity = function(ant_sys_id, application_id, lat_deg, lat_min, 
 		}
 		else {
 			if (response == null) {
+				console.log('conductivity does not exists in DB');
 				getConductivity(latStart, lonStart, nradial, distance, function(error, response) {
 					if (error) {
 						callback(error, null);
@@ -512,6 +513,7 @@ var selectConductivity = function(ant_sys_id, application_id, lat_deg, lat_min, 
 			}
 			else {
 				//adjust for nradial - the return from db is 360 radials
+				console.log('conductivity exists in DB');
 				if (nradial != 360) {
 					response = adjustRadials(response, nradial);
 				}

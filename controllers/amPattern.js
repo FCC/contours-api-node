@@ -690,6 +690,8 @@ var getAmStationData = function(idType, idValue, callback) {
 		
 		q = "SELECT * FROM " + LMS_SCHEMA + ".gis_application WHERE application_id in " + applicationId_str;
 		
+		console.log(q);
+		
 		db_lms.any(q)
 		.then(function (data) {
 			var applicationData = data;
@@ -913,7 +915,7 @@ var getOneAmContour = function(patternData, nradial, field, areaFlag, pop) {retu
 						}
 
 						var freq = patternData.inputData.fac_frequency/1000;
-						var power = patternData.amPattern[i].Eth;
+						var power = patternData.amPattern[i].Eth * mathjs.sqrt(patternData.inputData.power);
 						if (patternData.inputData.domestic_pattern == 'S') {
 							power = patternData.amPattern[i].Estd;
 						}
@@ -921,7 +923,7 @@ var getOneAmContour = function(patternData, nradial, field, areaFlag, pop) {retu
 							power = patternData.amPattern[i].Eaug;
 						}
 
-						
+						power = mathjs.round(power, 2);
 						distance = cal_equivalent_distance(zones, field, freq, power);
 						
 						//console.log('dist=' + distance)

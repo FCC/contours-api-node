@@ -856,7 +856,7 @@ var getOneAmContour = function(patternData, nradial, field, areaFlag, pop) {retu
 			var lon_84 = latlon84.coordinates[0];
 			lat_84 = Math.floor(lat_84*1000000+0.5)/1000000;
 			lon_84 = Math.floor(lon_84*1000000+0.5)/1000000;
-			var distance = 1200;
+			var distance = 2000;
 			console.log('start getting conductivity at ' + lat_84 + ' ' + lon_84);
 			
 			var p1 = patternData.inputData.ant_sys_id;

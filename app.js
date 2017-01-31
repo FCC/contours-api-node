@@ -135,25 +135,37 @@ app.get('/allAMCallsignList', function(req, res){
 amr.allAMCallsignList(req, res);
 });
 
+
+app.get('/', function(req, res, next) {
+	console.log('redirect to index.html');
+    res.redirect(301, '/index.html');     
+});
+
 app.use('/', express.static(path.join(__dirname, '/public')));
+
 app.use('/index.html', express.static(path.join(__dirname ,'/public')));
 
-app.use('/contour-demo', express.static(path.join(__dirname ,'/public/contour-demo.html')));
+app.use('/demo', express.static(path.join(__dirname ,'/public/contour-demo.html')));
 
-app.get('/contour-demo/', function(req, res, next) {   
-    res.redirect(301, '/api/contours/contour-demo');        
+app.get('/demo/', function(req, res, next) {   
+    res.redirect(301, '/demo');     
 });
 
 app.use('/api/contours', function(req, res, next) {
 
-    if (NODE_ENV === 'LOCAL' || NODE_ENV === 'DEV') { console.log('********************************* ' + NODE_ENV);
-        if(req.originalUrl.split('api/contours')[1] === ''){
-			res.redirect(301, '/');
-		}
-    }
-	res.redirect(301, req.originalUrl.split('api/contours')[1]);
+    //if (NODE_ENV === 'LOCAL' || NODE_ENV === 'DEV') { console.log('********************************* ' + NODE_ENV);
+    //    if(req.originalUrl.split('api/contours')[1] === ''){
+	//		res.redirect(301, '/');
+	//	}
+    //}
+	var newUrl = req.originalUrl.split('api/contours')[1];
+	if (newUrl == "") {
+		newUrl = "/";
+	}
+	
+	res.redirect(301, newUrl);
 
-    next();
+    //next();
 });
 
 app.param('uuid', function(req, res, next, uuid){
@@ -357,18 +369,6 @@ app.get('/profile.json', function(req, res){
     });    
 });
 
-/*app.get('/profile.csv', function(req, res){
-    profile.getProfile(req, res);
-});
-
-
-app.get('/station.json', function(req, res){
-    station.getStation(req, res);
-});
-*/
-//app.get('/distance_nci.json', function(req, res){
-//    distance.getDistance(req, res);
-//});
 
 app.get('/coverage.json', function(req, res){    
     
@@ -731,4 +731,3 @@ function removeVariableFromURL(url_string, variable_name) {
 }
 
 module.exports = app;
-

@@ -136,6 +136,8 @@ amr.allAMCallsignList(req, res);
 });
 
 app.use('/', express.static(path.join(__dirname, '/public')));
+app.use('/index.html', express.static(path.join(__dirname ,'/public')));
+
 app.use('/contour-demo', express.static(path.join(__dirname ,'/public/contour-demo.html')));
 
 app.get('/contour-demo/', function(req, res, next) {   

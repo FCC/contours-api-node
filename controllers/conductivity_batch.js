@@ -84,7 +84,7 @@ var getOneConductivity = function(aData, n, callback) {
 
 			console.log('start getting conductivity at ' + lat_84 + ' ' + lon_84);
 			
-			conductivity.getConductivity(lat_84, lon_84, 360, 1200, function(error, result) {
+			conductivity.getConductivity(lat_84, lon_84, 360, 2000, function(error, result) {
 			
 				if (error) {
 					callback(error, null);

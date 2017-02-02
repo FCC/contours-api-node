@@ -135,10 +135,23 @@ app.get('/allAMCallsignList', function(req, res){
 amr.allAMCallsignList(req, res);
 });
 
-
 app.get('/', function(req, res, next) {
-	console.log('redirect to index.html');
-    res.redirect(301, '/index.html');     
+
+	var protocol = req.protocol;
+	var host = req.get('Host');
+	var url = req.url;
+	var originalUrl = req.originalUrl;
+
+	console.log('protocol=' + protocol + ' host=' + host + ' url=' + url + ' originalUrl=' + originalUrl);
+	if (url == "/" && originalUrl != "/" && originalUrl.slice(-1) != "/") {
+		var redirect_url = protocol + "://" + host + "/api/contours/";
+		console.log("redirect to " + redirect_url);
+		res.redirect(301, redirect_url); 
+	
+	}
+	else {
+		next();	
+	}
 });
 
 app.use('/', express.static(path.join(__dirname, '/public')));
@@ -147,7 +160,7 @@ app.use('/index.html', express.static(path.join(__dirname ,'/public')));
 
 app.use('/demo', express.static(path.join(__dirname ,'/public/contour-demo.html')));
 
-app.get('/demo/', function(req, res, next) {   
+app.get('/demo/', function(req, res, next) {  
     res.redirect(301, '/demo');     
 });
 
@@ -159,10 +172,11 @@ app.use('/api/contours', function(req, res, next) {
 	//	}
     //}
 	var newUrl = req.originalUrl.split('api/contours')[1];
-	if (newUrl == "") {
+	if (newUrl == "" || newUrl == undefined) {
 		newUrl = "/";
+		console.log('here');
 	}
-	
+	console.log('redirect to /');
 	res.redirect(301, newUrl);
 
     //next();
@@ -504,7 +518,7 @@ app.use(function(req, res) {
     res.status(404);
     // res.sendFile('/public/404.html');
     res.sendFile('404.html', { root: path.join(__dirname, '/public')});
-    // res.send(err_res);    
+    // res.send(err_res); 
 });
 
 app.use(function(err, req, res, next) {

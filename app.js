@@ -147,7 +147,6 @@ app.get('/', function(req, res, next) {
 		var redirect_url = protocol + "://" + host + "/api/contours/";
 		console.log("redirect to " + redirect_url);
 		res.redirect(301, redirect_url); 
-	
 	}
 	else {
 		next();	

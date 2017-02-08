@@ -34,6 +34,7 @@ var contours = require('./controllers/contours.js');
 var tvfm_curves = require('./controllers/tvfm_curves.js');
 var entity = require('./controllers/entity.js');
 var conductivity = require('./controllers/conductivity.js');
+//var conductivity_r2 = require('./controllers/conductivity_r2.js');
 var gwave = require('./controllers/gwave.js');
 var amr = require('./controllers/amr.js');
 var amPattern = require('./controllers/amPattern.js');
@@ -465,6 +466,18 @@ app.get('/conductivity.json', function(req, res){
     });
 });
 
+
+//app.get('/conductivity_r2.json', function(req, res){
+//    conductivity_r2.fetchConductivity(req, res, function(error, response) {
+//    if (error) {
+//        res.status(400).send({"status": "error", "statusCode": 400, "statusMessage": error});
+//    }
+//    else  {
+//    res.status(200).send(response);
+//    }
+//    });
+//});
+
 app.get('/amField.json', function(req, res){
     gwave.getAmField(req, res);
 });
@@ -535,7 +548,9 @@ var server = app.listen(NODE_PORT, function () {
 
 });
 
-//conductivity_batch.startBatch();
+if (NODE_ENV == "DEV") {
+	conductivity_batch.startBatch();
+}
 
 function getCachedData(req, req_key, success){
     var outputcache = req.query.outputcache;

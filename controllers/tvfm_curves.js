@@ -1038,6 +1038,8 @@ function tvfmfs_metric(erp, haat, channel, field, distance, fs_or_dist, curve, f
 
       else if (fs_or_dist == 2)
       {
+	  
+	           //console.log('erp=', erp)
                j = n_points;
 
                for (i = 0; i <= n_points; i++)   { h[i] = haat; f5050[i] = f5010[i] = f[i] = d[i] = 0.0; }
@@ -1167,15 +1169,18 @@ function tvfmfs_metric(erp, haat, channel, field, distance, fs_or_dist, curve, f
 
               }
 
+			//console.log('here, field=', field, 'f0=', f[0], 'f1=', f[1], 'f2=', f[2])
 
            for(i=3; i > 0; i--)  // i = 2,1 0 (3 points) 1.5, 1, 0.5
              {
              if(field > f[i])  // High field strength, very close to transmitter site // Service AND Interfering contours.
                {               // Use the free space equation to find the field strength and distance
+			   
+			         
                       flag[1] = 1; 
                       e_volts_meter =  1.0e-6 * Math.pow(10,(field / 20.));
                       distance = (7.014271e-3 * Math.sqrt(erp * 1000.)) / e_volts_meter;
-                      
+					                      
                       // Added 9/2004 to prevent free space distance from exceeding minimum curves distance of 
                       // 1.5 km (to eliminate the discontinuity between the free space and curves values)
                         
@@ -1211,6 +1216,7 @@ function tvfmfs_metric(erp, haat, channel, field, distance, fs_or_dist, curve, f
                  
                    distance = (((f[i-1] - field) / (f[i-1] - f[i])) * (d[i] - d[i-1])) + d[i-1];
 
+				   //console.log('i', i, 'dist', distance)
                    if (distance > d_last) flag[2] = 1;  
 
                    return distance;

@@ -357,7 +357,7 @@ async.parallel(asyncTasks, function(error, result){
 			}
 		}
 		for (i = 0; i < nradial; i++) {
-			if (zones_all[i].zones.length == 1 && zones_all[i].zones[0].conductivity == 5000) {
+			if (zones_all[i].zones[0].conductivity == 5000) {
 				zones_all[i].zones[0].conductivity = conductivity_antenna;
 			}
 		}

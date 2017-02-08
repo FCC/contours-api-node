@@ -308,13 +308,15 @@ function getEntity(req, res, callback) {
 			
 			async.parallel(asyncTasks, function(error, result){
 				console.log('\n' + "asyncTasks all done");
+				console.log('error', error)
 				
 				if (error) {
 					callback(error, []);
-				
+
 				}
 				else {
 				
+					console.log('len', result.length)
 					var features = [];
 					for (i = 0; i < result.length; i++) {
 						console.log('each contour status='+result[i].features[0].properties.statusCode);

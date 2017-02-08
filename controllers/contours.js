@@ -389,9 +389,10 @@ function getContours(req, res, callback) {
 					
 					relativeField = full_pattern[i];
 					ERPincludingRelativeField = math.round(erp*full_pattern[i]*full_pattern[i], 6);
+					//console.log(full_pattern)
 					dist = tvfm_curves.tvfmfs_metric(ERPincludingRelativeField, haat, channel_use, field, distance_tmp, fs_or_dist, curve, flag);
 				
-					//console.log('azimuth', azimuth, 'haat', haat, 'dist', dist)
+					//console.log('azimuth', azimuth, 'haat', haat, 'power', ERPincludingRelativeField, 'channel', channel_use, 'field', field, 'distance_tmp', distance_tmp, 'curve', curve, 'dist', dist)
 				
 					if (isNaN(dist)) {
 						console.log('error in distance calculation');

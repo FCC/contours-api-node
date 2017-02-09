@@ -29,6 +29,7 @@ var mathjs = require('mathjs');
 var db_lms = require('./db_lms.js');
 var db_contours = require('./db_contour.js');
 var contours = require('./contours.js');
+var amPattern = require('./amPattern.js');
 
 
 function getEntity(req, res, callback) {
@@ -71,12 +72,12 @@ function getEntity(req, res, callback) {
 	}
 	
 	serviceType = serviceType.toLowerCase();
-	if (['tv', 'fm'].indexOf(serviceType) < 0) {
+	if (['tv', 'fm', 'am'].indexOf(serviceType) < 0) {
 		console.log('\n' + 'invalid serviceType value');
 		res.status(400).send({
 			'status': 'error',
 			'statusCode':'400',
-			'statusMessage': 'Invalid serviceType value - must be tv or fm.'
+			'statusMessage': 'Invalid serviceType value - must be tv, fm, or am.'
 		});
 		return;
 	}
@@ -158,8 +159,18 @@ function getEntity(req, res, callback) {
 		});
 		return;		
 	}
+	
+	if ( serviceType == "am" && 360%nradial != 0 ) {
+		console.log('\n' + '360%nradial must be 0');
+		res.status(400).send({
+		'status': 'error',
+		'statusCode':'400',
+		'statusMessage': '360%nradial must be 0 for serviceType am'
+		});
+		return;		
+	}
 
-	if (field != undefined  && !field.match(/^\d+$/)) {
+	if (field != undefined  && !field.match(/^\.?\d+\.?\d*$/)) {
 		console.log('\n' + 'invalid field value');
 		res.status(400).send({
 			'status': 'error',
@@ -191,6 +202,20 @@ function getEntity(req, res, callback) {
 		callsign = callsign.toUpperCase();
 	}
 	
+	var idType;
+	var idValue;
+	if (callsign != undefined) {
+		idType = "callsign";
+		idValue = callsign.toUpperCase();
+	}
+	else if (facilityId != undefined) {
+		idType = "facilityid";
+		idValue = facilityId;
+	}
+	else if (applicationId != undefined) {
+		idType = "applIdNumber";
+		idValue = applicationId;
+	}
 	
 	var queryParams = {
 		"serviceType": serviceType,
@@ -242,7 +267,7 @@ function getEntity(req, res, callback) {
 			}
 			else {
 				idType = 'applIdNumber';
-				q = "SELECT a.*, b.* from " + LMS_SCHEMA + ".gis_facility a, " + eng_data_table + " b where a.facility_id = b.facility_id and b.application_id = '" + applicationId + "'";	
+				q = "SELECT a.*, b.* from " + LMS_SCHEMA + ".gis_facility a, " + eng_data_table + " b where a.facility_id = b.facility_id and b.application_id = " + applicationId;	
 				q += " ORDER BY application_id DESC";
 			}
 			
@@ -274,7 +299,7 @@ function getEntity(req, res, callback) {
 			
 			var asyncTasks = [];
 			for (i = 0; i < recordData.length; i++) {
-				if (recordData[i].vsd_service !== 'DX') {
+				if ( !(recordData.length > 1 && recordData[i].vsd_service == 'DX')  ) {
 					asyncTasks.push(getOneContour(db_contours, db_lms, idType, queryParams, recordData[i]));	
 				}				
 			}
@@ -283,13 +308,15 @@ function getEntity(req, res, callback) {
 			
 			async.parallel(asyncTasks, function(error, result){
 				console.log('\n' + "asyncTasks all done");
+				console.log('error', error)
 				
 				if (error) {
 					callback(error, []);
-				
+
 				}
 				else {
 				
+					console.log('len', result.length)
 					var features = [];
 					for (i = 0; i < result.length; i++) {
 						console.log('each contour status='+result[i].features[0].properties.statusCode);
@@ -311,6 +338,25 @@ function getEntity(req, res, callback) {
 			callback(err, null);
 		});
 	
+	}
+	else if (serviceType == "am") {
+		var areaFlag = undefined;
+		if (area == "true") {
+			areaFlag = area;
+		}
+		var popFlag = undefined;
+		if (pop == "true") {
+			popFlag = pop;
+		}
+		
+		amPattern.amContour(idType, idValue, nradial, field, areaFlag, popFlag, function(error, result) {
+			if (error) {
+				callback(error, null);
+			}
+			else {
+				callback(null, result);
+			}
+		});
 	}
 	
 }
@@ -630,7 +676,7 @@ console.log('\n' + 'getOneContour recordData='+JSON.stringify(recordData));
 	
 	//convert from NAD27 to WGS84
 	var q = "SELECT ST_AsText(ST_Transform(ST_GeomFromText('POINT(" + lon_nad27 + " " + lat_nad27 + ")', 4267),4326))";
-	console.log('\n' + 'NAD27 to WGS84 Query='+q);
+    console.log('\n' + 'NAD27 to WGS84 Query='+q);
 	db_contours.any(q)
 		.then(function (data) {
 		
@@ -669,6 +715,10 @@ console.log('\n' + 'getOneContour recordData='+JSON.stringify(recordData));
 		if (!inputData.antenna_id) {
 			inputData.antenna_id = -999;
 		}
+		if (!inputData.antenna_type) {
+			inputData.antenna_type = "N";
+		}
+		
 		console.log('\n' + 'contour inputData='+JSON.stringify(inputData));
 		//check input data
 		var inputOk = true;
@@ -753,19 +803,34 @@ console.log('\n' + 'getOneContour recordData='+JSON.stringify(recordData));
 					console.log('contour response code: '+data.features[0].properties.statusCode);
 					if(data.features[0].properties.statusCode == '200'){
 						console.log('using this contour');
-						var properties = {};
-						properties.callsign = inputData.callsign;
-						properties.facility_id = inputData.facilityId;
-						properties.application_id = inputData.applicationId;
-						properties.antenna_id = inputData.antenna_id;
-						properties.antenna_type = inputData.antenna_type;
-						properties.service = inputData.service;
-						for (var key in data.features[0].properties) {
-							properties[key] = data.features[0].properties[key];
-						}
-						data.features[0].properties = properties;
 						
-						callback(null, data);    
+						//get file number
+						getFileNumber(inputData.applicationId, function(error, fileNumber) {
+							if (error) {
+								callback(error, null);
+							}
+							else {
+								var properties = {};
+								properties.callsign = inputData.callsign;
+								properties.facility_id = inputData.facilityId;
+								properties.application_id = inputData.applicationId;
+								properties.file_number = fileNumber;
+								properties.antenna_id = inputData.antenna_id;
+								properties.antenna_type = inputData.antenna_type;
+								properties.service = inputData.service;
+								for (var key in data.features[0].properties) {
+									properties[key] = data.features[0].properties[key];
+								}
+								data.features[0].properties = properties;
+								
+								callback(null, data); 
+							}
+						
+						});
+
+
+
+						
 					}
 					else {
 						callback(data.features[0].properties.statusMessage, null);
@@ -796,6 +861,57 @@ console.log('\n' + 'getOneContour recordData='+JSON.stringify(recordData));
 	});
 				
 }};
+
+
+var getFileNumber = function(application_id, callback) {
+
+	var q;
+	if(isNaN(application_id)){
+		q = "SELECT * FROM common_schema.application WHERE aapp_application_id = '" + application_id + "'";
+		console.log('getFileNumber q='+q)
+		db_lms.any(q)
+		.then(function (data) {
+			console.log('data', data)
+			var fileNumber = "";			
+			if (data.length > 0) {				
+				fileNumber = data[0].aapp_file_num;				
+			}
+			
+			callback(null, fileNumber);
+		})
+		.catch(function (err) {
+			console.log('\n' + err);
+			callback(err, null);
+			return;
+		});
+	}
+	else {
+		q = "SELECT * FROM " + LMS_SCHEMA + ".gis_application WHERE application_id = " + application_id + " LIMIT 1";
+		console.log('getFileNumber q='+q)
+		db_lms.any(q)
+		.then(function (data) {
+			console.log('data', data)
+			var fileNumber = "";
+			var arn = "";
+			var file_prefix = ""
+			if (data.length > 0) {
+				if (data[0].app_arn != null && data[0].file_prefix != null) {
+					fileNumber = data[0].file_prefix + "-" + data[0].app_arn;
+					fileNumber = fileNumber.replace(/\s/g, '');
+				}
+			}
+			
+			callback(null, fileNumber);
+		})
+		.catch(function (err) {
+			console.log('\n' + err);
+			callback(err, null);
+			return;
+		});
+	}	 
+		
+}
+
 
 
 

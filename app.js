@@ -34,9 +34,11 @@ var contours = require('./controllers/contours.js');
 var tvfm_curves = require('./controllers/tvfm_curves.js');
 var entity = require('./controllers/entity.js');
 var conductivity = require('./controllers/conductivity.js');
+//var conductivity_r2 = require('./controllers/conductivity_r2.js');
 var gwave = require('./controllers/gwave.js');
 var amr = require('./controllers/amr.js');
 var amPattern = require('./controllers/amPattern.js');
+var conductivity_batch = require('./controllers/conductivity_batch.js');
 
 // **********************************************************
 // config
@@ -74,6 +76,7 @@ console.log('## ENV ## LMS_SCHEMA: '+process.env.LMS_SCHEMA);
 // app
 
 var app = express();
+app.enable('strict routing');
 
 app.use(cors());
 app.use(helmet());
@@ -135,22 +138,29 @@ amr.allAMCallsignList(req, res);
 });
 
 app.use('/', express.static(path.join(__dirname, '/public')));
-app.use('/contour-demo', express.static(path.join(__dirname ,'/public/contour-demo.html')));
+app.use('/index.html', express.static(path.join(__dirname ,'/public')));
 
-app.get('/contour-demo/', function(req, res, next) {   
-    res.redirect(301, '/api/contours/contour-demo');        
+app.use('/demo', express.static(path.join(__dirname ,'/public/contour-demo.html')));
+
+app.get('/demo/', function(req, res, next) {   
+    res.redirect(301, '/demo');        
 });
 
 app.use('/api/contours', function(req, res, next) {
 
-    if (NODE_ENV === 'LOCAL' || NODE_ENV === 'DEV') { console.log('********************************* ' + NODE_ENV);
-        if(req.originalUrl.split('api/contours')[1] === ''){
-			res.redirect(301, '/');
-		}
-    }
-	res.redirect(301, req.originalUrl.split('api/contours')[1]);
+    //if (NODE_ENV === 'LOCAL' || NODE_ENV === 'DEV') { console.log('********************************* ' + NODE_ENV);
+    //    if(req.originalUrl.split('api/contours')[1] === ''){
+	//		res.redirect(301, '/');
+	//	}
+    //}
+	var newUrl = req.originalUrl.split('api/contours')[1];
+	if (newUrl == "" || newUrl == undefined) {
+		newUrl = "/";
+	}
+	console.log('redirect to /');
+	res.redirect(301, newUrl);
 
-    next();
+    //next();
 });
 
 app.param('uuid', function(req, res, next, uuid){
@@ -354,18 +364,6 @@ app.get('/profile.json', function(req, res){
     });    
 });
 
-/*app.get('/profile.csv', function(req, res){
-    profile.getProfile(req, res);
-});
-
-
-app.get('/station.json', function(req, res){
-    station.getStation(req, res);
-});
-*/
-//app.get('/distance_nci.json', function(req, res){
-//    distance.getDistance(req, res);
-//});
 
 app.get('/coverage.json', function(req, res){    
     
@@ -468,6 +466,18 @@ app.get('/conductivity.json', function(req, res){
     });
 });
 
+
+//app.get('/conductivity_r2.json', function(req, res){
+//    conductivity_r2.fetchConductivity(req, res, function(error, response) {
+//    if (error) {
+//        res.status(400).send({"status": "error", "statusCode": 400, "statusMessage": error});
+//    }
+//    else  {
+//    res.status(200).send(response);
+//    }
+//    });
+//});
+
 app.get('/amField.json', function(req, res){
     gwave.getAmField(req, res);
 });
@@ -501,7 +511,7 @@ app.use(function(req, res) {
     res.status(404);
     // res.sendFile('/public/404.html');
     res.sendFile('404.html', { root: path.join(__dirname, '/public')});
-    // res.send(err_res);    
+    // res.send(err_res); 
 });
 
 app.use(function(err, req, res, next) {
@@ -537,6 +547,10 @@ var server = app.listen(NODE_PORT, function () {
   console.log('\n  listening at http://%s:%s', host, port);
 
 });
+
+if (NODE_ENV == "DEV") {
+	conductivity_batch.startBatch();
+}
 
 function getCachedData(req, req_key, success){
     var outputcache = req.query.outputcache;
@@ -726,4 +740,3 @@ function removeVariableFromURL(url_string, variable_name) {
 }
 
 module.exports = app;
-

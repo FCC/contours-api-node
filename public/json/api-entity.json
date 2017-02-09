@@ -27,7 +27,8 @@
                     "defaultValue": "tv",
                     "enum": [
                         "tv",
-                        "fm"
+                        "fm",
+						"am"
                     ]
                 }, {
                     "name": "callsign",

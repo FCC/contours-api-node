@@ -41,15 +41,13 @@ var getLineConductivity = function(lineOption){ return function(callback) {
 	//console.log(line)
 	
 	var line = "ST_GeomFromText('LineString(" + line + ")', 4326)";
-	
-	
+
 	findIntersects(line, function(error, response) {
 		if (error) {
 			callback(error, []);
 		}
 		else {
-			//console.log(response);
-			
+		
 			var asyncTasks = [];
 			for (i = 0; i < response.length; i++) {
 			//console.log(i)
@@ -58,7 +56,7 @@ var getLineConductivity = function(lineOption){ return function(callback) {
 			//console.log(asyncTasks)
 			
 			async.parallel(asyncTasks, function(error, result){
-				//console.log("all done");
+				//console.log("findInterseection asyncTasks all done");
 				if (error) {
 					callback(error, []);
 				
@@ -144,16 +142,13 @@ var findIntersection = function (line, seg) {return function(callback) {
 			
 	db_contour.any(q)
 		.then(function (data) {
-		//console.log('data', data)
 		var result = {"seg": seg, "intersection": data}
-		callback(null, result);	
+		callback(null, result);
 		})
 		.catch(function (err) {
-			callback(err, []);
+			console.log('err in conductivity: ' + err + ' seg_id=' + seg.seg_id);
+			//callback(err, []);
 		});
-	
-
-
 	};
 
 }
@@ -331,7 +326,8 @@ for (i = 0; i <nradial; i++) {
 //console.log(asyncTasks);
 
 async.parallel(asyncTasks, function(error, result){
-	console.log("all done");
+	//console.log("conductivity - getLineConductivity asyncTasks all done");
+	//console.log('getLineConductivity asyncTasks error: ' + error)
 	
 	//console.log(result)
 	if (error) {
@@ -349,6 +345,21 @@ async.parallel(asyncTasks, function(error, result){
 			zones = getZones(result[i], result[ii]);
 			
 			zones_all.push(zones);
+		}
+		
+		//handle empty zones
+		//get conductivity at antenna location
+		var conductivity_antenna = 5000;
+		for (i = 0; i < nradial; i++) {
+			if (zones_all[i].zones.length > 0 && zones_all[i].zones[0].conductivity != 5000) {
+				conductivity_antenna = zones_all[i].zones[0].conductivity;
+				break;
+			}
+		}
+		for (i = 0; i < nradial; i++) {
+			if (zones_all[i].zones[0].conductivity == 5000) {
+				zones_all[i].zones[0].conductivity = conductivity_antenna;
+			}
 		}
 		
 		//console.log(zones_all);
@@ -455,11 +466,87 @@ var fetchConductivity = function(req, res) {
 
 });
 	
+}
+
+
+var getConductivityFromDB = function(ant_sys_id, application_id, lat_deg, lat_min, lat_sec, lat_dir, lon_deg, lon_min, lon_sec, lon_dir, callback) {
+
+	var q = "SELECT * FROM contour.conductivity_batch WHERE " +
+			"ant_sys_id = " + ant_sys_id + " and application_id = " + application_id + " and lat_deg = " + lat_deg + 
+			" and lat_min = " + lat_min + " and lat_sec = " + lat_sec + " and lat_dir = '" + lat_dir + "' and lon_deg = " +
+			lon_deg + " and lon_min = " + lon_min + " and lon_sec = " + lon_sec + " and lon_dir = '" + lon_dir + "' LIMIT 1";
+
+	db_contour.any(q)
+		.then(function (data) {
+		if (data.length == 0) {
+			var data0 = null;
+		}
+		else {
+			var data0 = data[0].conductivity;
+		}
+		
+		callback(null, data0);
+		})
+		.catch(function (err) {
+			console.log('err in getConductivityFromDB: ' + err);
+			callback(err, []);
+		});
+}
+
+
+var selectConductivity = function(ant_sys_id, application_id, lat_deg, lat_min, lat_sec, lat_dir, lon_deg, lon_min, lon_sec, lon_dir, latStart, lonStart, nradial, distance, callback) {
+	getConductivityFromDB(ant_sys_id, application_id, lat_deg, lat_min, lat_sec, lat_dir, lon_deg, lon_min, lon_sec, lon_dir, function(error, response) {
+		if (error) {
+			callback(error, null);
+		}
+		else {
+			if (response == null) {
+				console.log('conductivity does not exists in DB');
+				getConductivity(latStart, lonStart, nradial, distance, function(error, response) {
+					if (error) {
+						callback(error, null);
+					}
+					else {
+						callback(null, response);
+					}
+				});
+			}
+			else {
+				//adjust for nradial - the return from db is 360 radials
+				console.log('conductivity exists in DB');
+				if (nradial != 360) {
+					response = adjustRadials(response, nradial);
+				}
+				callback(null, response);
+			}
+		}	
+	});
+}
+
+//selectConductivity(5706, 198642, 32, 20, 510, 'N', 111, 4, 19, 'W', 38.2, -80.3, 72, 1200, function(error, response) {
+//console.log(response);
+//});
+
+var adjustRadials = function(cond, n) {
+	var delta = 360 / n;
+	var cond_adj = [];
+	for (var i = 0; i < 360; i += delta) {
+		cond_adj.push(cond.conductivity[i]);
+	}
+	
+	var cond_new = {};
+	cond_new.inputData = cond.inputData;
+	cond_new.conductivity = cond_adj;
+	
+	return cond_new;
 
 
 }
 
 
+
+
+module.exports.selectConductivity = selectConductivity;
 module.exports.getConductivity = getConductivity;
 module.exports.fetchConductivity = fetchConductivity;
 

@@ -2,6 +2,13 @@
 <html lang="en">
 
 <head>
+	<script>
+	var currentUrl = window.location.href;
+	if (currentUrl.match(/.*\/api\/contours$/)) {
+		history.replaceState('', '', currentUrl + '/');
+	}
+	</script>
+
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -52,7 +59,7 @@
                                     <a class="active" href="./"><span class="link-title">Documentation</span></a>
                                 </li>
                                 <li>
-                                    <a href="contour-demo"><span class="link-title">Demo</span></a>
+                                    <a href="demo"><span class="link-title">Demo</span></a>
                                 </li>
                             </ul>
                             <!--.nav-tabs -->

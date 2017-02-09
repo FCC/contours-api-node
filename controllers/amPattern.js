@@ -6,6 +6,8 @@
 
 var conductivity = require('./conductivity.js');
 var gwave = require('./gwave.js');
+var area = require('./area.js');
+var population = require('./population.js');
 var db_lms = require('./db_lms.js');
 var db_contour = require('./db_contour.js');
 
@@ -532,7 +534,7 @@ return [space,orient];
 
 
 
-var amPattern = function(idType, idValue, nradial, callback) {
+var amPattern = function(idType, idValue, nradial, field, callback) {
 
 	var i;
 
@@ -570,33 +572,22 @@ var amPattern = function(idType, idValue, nradial, callback) {
 var applyAmAugs = function(items, augData) {
 	console.log('apply am aug')
 	var i, j, azimuth, center_azimuth, span, radiation_aug, augmentation, Estd;
-	var dEaug = [];
+	var Eaug, dEsq, dEsqSum;
+	
 	for (i = 0; i < items.length; i++) {
-		dEaug[i] = 0;
-	}
-	
-	for (i = 0; i < augData.length; i++) {
-	
-		center_azimuth = augData[i].azimuth_deg;
-		span = augData[i].span_deg;
-		radiation_aug = augData[i].radiation_aug;
-		Estd = getEstd(center_azimuth, items);
-		
-		for (j = 0; j < items.length; j++) {
-			azimuth = items[j].azimuth;
-			augmentation = calAug(azimuth, center_azimuth, span, radiation_aug, Estd, items[j].Estd);
-			
-			dEaug[j] += augmentation - items[j].Estd;
-			//console.log('i', i, 'j', j, 'az', azimuth, 'd', augmentation)
-
+		azimuth = items[i].azimuth;
+		dEsqSum = 0;
+		for (j = 0; j < augData.length; j++) {
+			center_azimuth = augData[j].azimuth_deg;
+			span = augData[j].span_deg;
+			radiation_aug = augData[j].radiation_aug;
+			Estd = getEstd(center_azimuth, items);
+			dEsq = calAug(azimuth, center_azimuth, span, radiation_aug, Estd);
+			dEsqSum += dEsq;
 		}
+		Eaug = Math.sqrt(items[i].Estd*items[i].Estd + dEsqSum);
+		items[i].Eaug = mathjs.round(Eaug, 2);
 	}
-	
-	for (j = 0; j < items.length; j++) {
-	items[j].Eaug = mathjs.round(items[j].Estd + dEaug[j], 2);
-	}
-	
-	//console.log('items', items)
 	
 	return items;
 }
@@ -635,33 +626,27 @@ var getEstd = function(az, items) {
 
 
 
-var calAug = function(azimuth, center_azimuth, span, radiation_aug, Estd_center, Estd) {
+var calAug = function(azimuth, center_azimuth, span, radiation_aug, Estd_center) {
 
 	var D = Math.abs(azimuth - center_azimuth);
+	if (D > 180) {
+		D = 360 - D;
+	}
 	if (D >= span/2.0) {
-		return Estd;
+		return 0;
 	}
 	var Eaug = radiation_aug;
 
-	var value = Estd*Estd + (Eaug*Eaug - Estd_center*Estd_center)*Math.cos(Math.PI*D/span)*Math.cos(Math.PI*D/span);
-	if (value >= 0) {
-		var value = Math.sqrt(value);
-	}
-	else {
-		value = Estd;
-	}
-	//console.log('Estd', Estd, 'Eaug', Eaug, 'Estd_center', Estd_center, 'D', D, 'span', span, 'value', value)
+	var dEsq = (Eaug*Eaug - Estd_center*Estd_center)*Math.cos(Math.PI*D/span)*Math.cos(Math.PI*D/span);
 
-	return value;
+	return dEsq;
 }
 
 
 
 var getAmStationData = function(idType, idValue, callback) {
 
-var q;
-
-
+	var q;
 	
 	if (idType === 'callsign') {
 		var eng_data_table = LMS_SCHEMA + ".gis_am_eng_data";
@@ -673,6 +658,12 @@ var q;
 		var eng_data_table = LMS_SCHEMA + ".gis_am_eng_data";
 		q = "SELECT a.*, b.* from " + LMS_SCHEMA + ".gis_facility a, " + eng_data_table + 
 		" b WHERE a.facility_id = b.facility_id and a.facility_id = '" + idValue + "' ";
+		//+ "and b.am_dom_status = 'L' and a.fac_status = 'LICEN'";
+	}
+	else if (idType === 'applIdNumber') {
+		var eng_data_table = LMS_SCHEMA + ".gis_am_eng_data";
+		q = "SELECT a.*, b.* from " + LMS_SCHEMA + ".gis_facility a, " + eng_data_table + 
+		" b WHERE a.facility_id = b.facility_id and b.application_id = '" + idValue + "' ";
 		//+ "and b.am_dom_status = 'L' and a.fac_status = 'LICEN'";
 	}
 	else {
@@ -696,227 +687,405 @@ var q;
 		}
 		
 		var applicationId_str = '(' + applicationId.toString() + ')';
-		q = "SELECT * FROM " + LMS_SCHEMA + ".gis_am_ant_sys WHERE application_id in " + applicationId_str +
-			"and eng_record_type = 'C' and hours_operation in ('D', 'U') ";
-			
-		console.log(q)
-			
+		
+		q = "SELECT * FROM " + LMS_SCHEMA + ".gis_application WHERE application_id in " + applicationId_str;
+		
+		console.log(q);
+		
 		db_lms.any(q)
-		.then(function (data) {	
-			if (data.length == 0) {
-				console.log('\n' + 'no valid ant record found');
-				callback('no valid ant record found for this station', null);
-				return;
-			}
-			
-			var antData = data;
-			
-			var antSysIds = [];
-			for (var i = 0; i < antData.length; i++) {
-				antSysIds.push(antData[i].ant_sys_id);
-			}
-			var antSysIdStr = "(" + antSysIds.toString() + ")";
-				
-			q = "SELECT * FROM " + LMS_SCHEMA + ".gis_am_towers WHERE ant_sys_id in " + antSysIdStr + " ORDER BY ant_sys_id, tower_num";
-			
+		.then(function (data) {
+			var applicationData = data;
+
+			q = "SELECT * FROM " + LMS_SCHEMA + ".gis_am_ant_sys WHERE application_id in " + applicationId_str +
+				"and eng_record_type = 'C' and hours_operation in ('D', 'U') ";
+					
 			db_lms.any(q)
-			.then(function (data) {
-			
+			.then(function (data) {	
 				if (data.length == 0) {
 					console.log('\n' + 'no valid ant record found');
-					callback('no valid tower record found for this station', null);
+					callback('no valid ant record found for this station', null);
 					return;
 				}
 				
-				var towerData = [];
+				var antData = data;
+				antData = addFileNumber(antData, applicationData);
+				console.log(antData);
+				
+				var antSysIds = [];
 				for (var i = 0; i < antData.length; i++) {
-					var towerData1 = [];
-					for (var j = 0; j < data.length; j++) {
-						if (data[j].ant_sys_id === antData[i].ant_sys_id) {
-							towerData1.push(data[j]);
-						}
-					}
-					towerData.push(towerData1);
+					antSysIds.push(antData[i].ant_sys_id);
 				}
+				var antSysIdStr = "(" + antSysIds.toString() + ")";
+					
+				q = "SELECT * FROM " + LMS_SCHEMA + ".gis_am_towers WHERE ant_sys_id in " + antSysIdStr + " ORDER BY ant_sys_id, tower_num";
 				
-				console.log('antData', antData.length, 'towerData', towerData.length);
+				db_lms.any(q)
+				.then(function (data) {
 				
-				callback(null, {"stationData": stationData, "antData": antData, "towerData": towerData});
-			
+					if (data.length == 0) {
+						console.log('\n' + 'no valid ant record found');
+						callback('no valid tower record found for this station', null);
+						return;
+					}
+					
+					var towerData = [];
+					for (var i = 0; i < antData.length; i++) {
+						var towerData1 = [];
+						for (var j = 0; j < data.length; j++) {
+							if (data[j].ant_sys_id === antData[i].ant_sys_id) {
+								towerData1.push(data[j]);
+							}
+						}
+						towerData.push(towerData1);
+					}
+					
+					console.log('antData', antData.length, 'towerData', towerData.length);
+					
+					callback(null, {"stationData": stationData, "antData": antData, "towerData": towerData});
+				
+				})
+				.catch(function (err) {
+					console.log('\n' + err);
+					callback(err, null);
+				});
+				
 			})
 			.catch(function (err) {
 				console.log('\n' + err);
 				callback(err, null);
 			});
-			
+		
 		})
 		.catch(function (err) {
 			console.log('\n' + err);
 			callback(err, null);
 		});
 		
+		
 	})
 	.catch(function (err) {
 		console.log('\n' + err);
 		callback(err, null);
 	});
-
 }
 
-var amContour = function(idType, idValue, nradial, callback) {
-	amPattern(idType, idValue, nradial, function(error, result) {
+var addFileNumber = function(antData, applicationData) {
+	var i, j, fileNumber;
+	for (i = 0; i < antData.length; i++) {
+		fileNumber = "";
+		for (j = 0; j < applicationData.length; j++) {
+			if (applicationData[j].application_id === antData[i].application_id) {
+				var app_arn = "";
+				if (applicationData[j].app_arn !== null) {
+					app_arn = applicationData[j].app_arn;
+				}
+				fileNumber = applicationData[j].file_prefix + "-" + app_arn;
+			}
+		}
+		fileNumber = fileNumber.replace(/\s/g, '');
+		antData[i].file_number = fileNumber;
+	}
+	
+	return antData;
+}
+
+
+
+var amContour = function(idType, idValue, nradial, field, areaFlag, pop, callback) {
+
+	amPattern(idType, idValue, nradial, field, function(error, result) {
 		if (error) {
 			callback(error, null);
 		}
 		else {
-		
-			var patternData = result[0];
-
+			//RESULTS CONTAIN ONE OR MORE ANTENNA PATTERNS
 			
-			var latlonArray = [patternData.inputData.lat_deg,
-								patternData.inputData.lat_min,
-								patternData.inputData.lat_sec,
-								patternData.inputData.lat_dir,
-								patternData.inputData.lon_deg,
-								patternData.inputData.lon_min,
-								patternData.inputData.lon_sec,
-								patternData.inputData.lon_dir
-								];
-								
-			if (latlonArray.indexOf(null) >= 0) {
-				callback('missing antenna lat/lon data', null);
-				return;
+			var asyncTasks = [];
+			for (var i = 0; i < result.length; i++) {
+				asyncTasks.push(getOneAmContour(result[i], nradial, field, areaFlag, pop));			
 			}
 			
-			
-			var lat_nad27 = getDecimalLatLon(patternData.inputData.lat_deg, patternData.inputData.lat_min, patternData.inputData.lat_sec, patternData.inputData.lat_dir);
-			var lon_nad27 = getDecimalLatLon(patternData.inputData.lon_deg, patternData.inputData.lon_min, patternData.inputData.lon_sec, patternData.inputData.lon_dir);
-			var q = "SELECT ST_AsGeoJson(ST_Transform(ST_GeomFromText('POINT(" + lon_nad27 + " " + lat_nad27 + ")', 4267),4326)) as latlon";
-			console.log('\n' + 'NAD27 to WGS84 Query='+q);
-			db_contour.any(q)
-				.then(function (data) {
-					var latlon84 = JSON.parse(data[0].latlon);
-					var lat_84 = latlon84.coordinates[1];
-					var lon_84 = latlon84.coordinates[0];
-					//var nradial = 72;
-					var distance = 1200;
-					conductivity.getConductivity(lat_84, lon_84, nradial, distance, function(error, result) {
-						if (error) {
-						callback(error, null);
-						return;
-						}
-						else {
-						var conductivityData = result;
-						//conductivityData.conductivity[0] = {
-						//	"azimuth": 0,
-						//	"zones": [
-						//			{"conductivity": 10,
-						//			"distance": 20},
-						//			{"conductivity": 5,
-						//			"distance": 50},
-						//			{"conductivity": 15,
-						//			"distance": 1200}
-						//		]
-						//	}
-						
-						for (var i = 0; i < conductivityData.conductivity.length; i++) {
-							
-							var azimuth = conductivityData.conductivity[i].azimuth;
-							var zones = conductivityData.conductivity[i].zones;
-							console.log('i', i, 'az', azimuth);
-							
-							for (var j = 0; j < zones.length; j++) {
-							//console.log(j, zones[j].conductivity, zones[j].distance)
-							
-							}
-							
-							
-						
-							var field = 0.5;
-							var dist_to_required_field = [];
-							var dist_to_break = [];
-							var field_at_break = [];
-							var field_at_break_0;
-							var dist_to_previous_field = [];
-							var dist_to_previous_field_0;
-							var dist_delta = [];
-							var zone_number = 0;
-							var isDone = false;
-							var freq = patternData.inputData.fac_frequency/1000;
-							var power = patternData.amPattern[i].Eaug;
-							while(!isDone) {
-								//console.log('zone_number', zone_number)
-								if (zone_number == 0) {
-									dist_delta[zone_number] = 0
-									dist_to_required_field.push(gwave.amDistance(zones[zone_number].conductivity, 15, freq, field, power));
-									dist_to_break.push(zones[zone_number].distance);
-									field_at_break.push(gwave.amField(zones[zone_number].conductivity, 15, freq, dist_to_break[zone_number], power));
-									dist_to_previous_field.push(0);
-									//console.log('field_at_break', field_at_break[zone_number])
-									//field_at_break.push(
-								}
-								else {
-									dist_to_previous_field_0 = gwave.amDistance(zones[zone_number].conductivity, 15, freq, field_at_break[zone_number-1], power)
-									dist_to_previous_field.push(dist_to_previous_field_0);
-									dist_delta.push(dist_to_previous_field[zone_number] - dist_to_break[zone_number-1]);
-									dist_to_break.push(zones[zone_number].distance + mathjs.sum(dist_delta));
-									field_at_break.push(gwave.amField(zones[zone_number].conductivity, 15, freq, dist_to_break[zone_number], power));
-									//console.log('dist_to_previous_field', dist_to_previous_field[zone_number], 'dist_to_break', dist_to_break[zone_number-1], 'dist_delta',dist_delta[zone_number], 'field_at_break', field_at_break[zone_number] )
-									dist_to_required_field.push(gwave.amDistance(zones[zone_number].conductivity, 15, freq, field, power));
-								}
-								//console.log('field_at_break', field_at_break)
-								//console.log('dist_to_previous_field', dist_to_previous_field)
-								//console.log('dist_delta', dist_delta)
-								//console.log('dist_to_break', dist_to_break)
-								
-								//console.log('zone', zone_number, 'dist_to_required_field',dist_to_required_field[zone_number], 'dist_to_previous_field', dist_to_previous_field[zone_number], 'dist_delta', dist_delta[zone_number], 'dist_to_break', dist_to_break[zone_number], 'field_at_break', field_at_break[zone_number]);
-								if (field_at_break[zone_number] <= field) {
-									distance = dist_to_required_field[zone_number] - mathjs.sum(dist_delta) ;
-									
-									//console.log('distance=', distance)
-									isDone = true;
-								}
-								else {
-								
-									//console.log('do more');
-									zone_number++;
-									//isDone = true;
-								
-								}
-
-								
-							}
-							
-							console.log('distance final=', distance)
-							
-							
-
-						
-						
-						
-						}
-						
-						
-						callback(null, result);
-						
-						}
-
-					});
+			async.parallel(asyncTasks, function(error, result){
+				console.log('\n' + "asyncTasks all done");
 				
-				})
-				.catch(function (err) {
-					console.log('\n' + err);
-					callback(err, null);
-					return;
-				});
+				if (error) {
+					callback(error, []);
+				}
+				else {
+				
+					var features = [];
+					for (i = 0; i < result.length; i++) {
+							features.push(result[i].features[0])	
+						}
+					}
+					var contours = {type: "FeatureCollection", "features": features};
+					callback(null, contours);		
+			});	
 		}
-
 	});
-
 }
 
+var getOneAmContour = function(patternData, nradial, field, areaFlag, pop) {return function(callback) {
 
+	var latlonArray = [patternData.inputData.lat_deg,
+						patternData.inputData.lat_min,
+						patternData.inputData.lat_sec,
+						patternData.inputData.lat_dir,
+						patternData.inputData.lon_deg,
+						patternData.inputData.lon_min,
+						patternData.inputData.lon_sec,
+						patternData.inputData.lon_dir
+						];
+						
+	if (latlonArray.indexOf(null) >= 0) {
+		callback('missing antenna lat/lon data', null);
+		return;
+	}
+	
+	var lat_nad27 = getDecimalLatLon(patternData.inputData.lat_deg, patternData.inputData.lat_min, patternData.inputData.lat_sec, patternData.inputData.lat_dir);
+	var lon_nad27 = getDecimalLatLon(patternData.inputData.lon_deg, patternData.inputData.lon_min, patternData.inputData.lon_sec, patternData.inputData.lon_dir);
+	var q = "SELECT ST_AsGeoJson(ST_Transform(ST_GeomFromText('POINT(" + lon_nad27 + " " + lat_nad27 + ")', 4267),4326)) as latlon";
+	console.log('\n' + 'NAD27 to WGS84 Query='+q);
+	db_contour.any(q)
+		.then(function (data) {
+		
+			var field_input = field;
+			
+			var latlon84 = JSON.parse(data[0].latlon);
+			var lat_84 = latlon84.coordinates[1];
+			var lon_84 = latlon84.coordinates[0];
+			lat_84 = Math.floor(lat_84*1000000+0.5)/1000000;
+			lon_84 = Math.floor(lon_84*1000000+0.5)/1000000;
+			var distance = 2000;
+			console.log('start getting conductivity at ' + lat_84 + ' ' + lon_84);
+			
+			var p1 = patternData.inputData.ant_sys_id;
+			var p2 = patternData.inputData.application_id;
+			var p3 = patternData.inputData.lat_deg;
+			var p4 = patternData.inputData.lat_min;
+			var p5 = patternData.inputData.lat_sec;
+			var p6 = patternData.inputData.lat_dir;
+			var p7 = patternData.inputData.lon_deg;
+			var p8 = patternData.inputData.lon_min;
+			var p9 = patternData.inputData.lon_sec;
+			var p10 = patternData.inputData.lon_dir;
+			
+			conductivity.selectConductivity(p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, lat_84, lon_84, nradial, distance, function(error, result) {
+			
+				if (error) {
+					callback(error, null);
+					return;
+				}
+				else {
+					console.log('getOneAmContour: done getting conductivity');
+			
+					var conductivityData = result;
+					
+					var coordinates = [];
+					var contourData = [];
 
+					if (field_input == undefined) {
+						var field = 0.5;
+						//if (patternData.inputData.station_class != "A") {
+						//	field = 0.025;
+						//}
+					}
+					else {
+						var field = field_input;
+					}			
+					patternData.inputData.field = field;
+					
+					for (var i = 0; i < conductivityData.conductivity.length; i++) {
+						
+						var azimuth = conductivityData.conductivity[i].azimuth;
+						//console.log('az=' + azimuth)
+						var zones_orig = conductivityData.conductivity[i].zones;
+						//console.log('zones=' + zones)
+						
+						var zones = [];
+						for (var n = 0; n < zones_orig.length; n++) {
+							if (zones_orig[n].distance > 2) {
+								zones.push(zones_orig[n])
+							}
+						}
+						
+						for (var j = 0; j < zones.length; j++) {
+						//console.log(j, zones[j].conductivity, zones[j].distance)
+						
+						}
+
+						var freq = patternData.inputData.fac_frequency/1000;
+						var power = patternData.amPattern[i].Eth * mathjs.sqrt(patternData.inputData.power);
+						if (patternData.inputData.domestic_pattern == 'S') {
+							power = patternData.amPattern[i].Estd;
+						}
+						else if (patternData.inputData.domestic_pattern == 'A') {
+							power = patternData.amPattern[i].Eaug;
+						}
+
+						power = mathjs.round(power, 2);
+						distance = cal_equivalent_distance(zones, field, freq, power);
+						
+						//console.log('dist=' + distance)
+						
+						var latlon = getLatLonFromDist(lat_84, lon_84, azimuth, distance);
+						latlon[0] = mathjs.round(latlon[0], 6);
+						latlon[1] = mathjs.round(latlon[1], 6);
+						coordinates.push([latlon[1], latlon[0]]);
+						contourData.push({
+							"x": latlon[1],
+							"y": latlon[0],
+							"z": 0,
+							"distance": distance,
+							"fs1km": power,
+							"azimuth": azimuth
+						});
+					}
+					
+					coordinates.push(coordinates[0]);
+					contourData.push(contourData[0]);
+					
+					console.log('areaFlag=' + areaFlag + ' pop=' + pop)
+					
+					var geom = JSON.stringify({"type": "MultiPolygon", "coordinates": [[coordinates]]});
+					
+					if (areaFlag === 'true') {
+						area.getArea(geom, function(error, response) {
+							if (error) {
+							console.log("Area API error: ", error)
+								var area = -999;
+								var area_unit = response.area_unit;
+							}
+							else {
+								var area = response.area;
+								var area_unit = response.area_unit;
+							}
+								
+							if (pop === 'true') {
+								population.getPopulation(geom, function(error, response) {
+									if (error) {
+										console.log('population API error: ' + error);
+										var population = -999;
+									}
+									else {
+										var population = response.population;
+									}
+									
+									var properties = patternData.inputData;
+									properties.antenna_lat = lat_84;
+									properties.antenna_lon = lon_84;
+									properties.area = area;
+									properties.area_unit = area_unit;
+									properties.pop = population;
+									properties.contourData = contourData;
+									var contour_geojson = {
+															"type": "FeatureCollection",
+															"features": [
+																		{
+																			"type": "Feature",
+																			"geometry": {
+																				"type": "MultiPolygon",
+																				"coordinates": [[coordinates]]
+																				},
+																			"properties": properties
+																		}
+															]				
+									};
+									console.log('done making 1 contour for area=true and pop=true');
+									callback(null, contour_geojson);
+									
+								});
+							}
+							else {
+								var properties = patternData.inputData;
+								properties.antenna_lat = lat_84;
+								properties.antenna_lon = lon_84;
+								properties.area = area;
+								properties.area_unit = area_unit;
+								properties.contourData = contourData;
+								var contour_geojson = {
+														"type": "FeatureCollection",
+														"features": [
+																	{
+																		"type": "Feature",
+																		"geometry": {
+																			"type": "MultiPolygon",
+																			"coordinates": [[coordinates]]
+																			},
+																		"properties": properties
+																	}
+														]				
+								};
+								console.log('done making 1 contour for area=true and pop=false');
+								callback(null, contour_geojson);
+							
+							}
+						});
+					}
+					else {
+						if (pop === 'true') {
+							population.getPopulation(geom, function(error, response) {
+								if (error) {
+									population = -999;
+								}
+								else {
+									population = response.population;
+								}
+								
+								var properties = patternData.inputData;
+								properties.antenna_lat = lat_84;
+								properties.antenna_lon = lon_84;
+								properties.pop = population;
+								properties.contourData = contourData;
+								var contour_geojson = {
+														"type": "FeatureCollection",
+														"features": [
+																	{
+																		"type": "Feature",
+																		"geometry": {
+																			"type": "MultiPolygon",
+																			"coordinates": [[coordinates]]
+																			},
+																		"properties": properties
+																	}
+														]				
+								};
+								console.log('done making 1 contour for area=false and pop=true');
+								callback(null, contour_geojson);
+							});
+						}
+						else {
+							var properties = patternData.inputData;
+							properties.antenna_lat = lat_84;
+							properties.antenna_lon = lon_84;
+							properties.contourData = contourData;
+							var contour_geojson = {
+													"type": "FeatureCollection",
+													"features": [
+																{
+																	"type": "Feature",
+																	"geometry": {
+																		"type": "MultiPolygon",
+																		"coordinates": [[coordinates]]
+																		},
+																	"properties": properties
+																}
+													]				
+							};
+							console.log('done making 1 contour for area=false and pop=false');
+							callback(null, contour_geojson);
+						}
+					}
+				
+				}
+			});
+		})
+		.catch(function (err) {
+			console.log('\n' + err);
+			callback(err, null);
+			return;
+		});		
+}}
 
 var getAmPattern = function(req, res) {
 	console.log('================== getAmPattern API =============');
@@ -974,7 +1143,9 @@ var getAmPattern = function(req, res) {
 	idType = idType.toLowerCase();
 	idValue = idValue.toUpperCase();
 	
-	amPattern(idType, idValue, nradial, function(error, result) {
+	amPattern(idType, idValue, nradial, 0.5, function(error, result) {
+		//the value 0.5 is a place holder only
+		
 		if (error) {
 			res.send({"error": error});
 		}
@@ -989,29 +1160,17 @@ var getAmPattern = function(req, res) {
 var getAmContour = function(req, res) {
 	console.log('================== getAmContour API =============');
 
-	var idType = req.query.idType
-	var idValue = req.query.idValue;
+	var callsign = req.query.callsign;
+	var facilityId = req.query.facilityId;
+	var applicationId = req.query.applicationId;
+	
 	var nradial = req.query.nradial;
+	var field = req.query.field;
+	var pop = req.query.pop;
+	var areaFlag = req.query.area;
 	
-	if (idType == undefined) {
-		console.log('\n' + 'missing idType');
-		res.status(400).send({
-			'status': 'error',
-			'statusCode':'400',
-			'statusMessage': 'missing idType.'
-		});
-		return;
-	}
-	
-	if (idType != undefined && ["callsign", "facilityid"].indexOf(idType.toLowerCase()) < 0 ) {
-		console.log('\n' + 'Invalid idType value, must be callsign or facilityid');
-		res.status(400).send({
-			'status': 'error',
-			'statusCode':'400',
-			'statusMessage': 'Invalid idType value, must be callsign or facilityid'
-		});
-		return;
-	}
+	var idType;
+	var idValue;
 	
 	if (nradial == undefined) {
 		nradial = 360;
@@ -1039,10 +1198,48 @@ var getAmContour = function(req, res) {
 		return;
 	}
 	
-	idType = idType.toLowerCase();
-	idValue = idValue.toUpperCase();
 	
-	amContour(idType, idValue, nradial, function(error, result) {
+		
+	if ( 360 % nradial != 0) {
+		console.log('\n' + 'Invalid nradial value: 360 % nradial must be zero');
+		res.status(400).send({
+		'status': 'error',
+		'statusCode':'400',
+		'statusMessage': 'Invalid nradial value: 360 % nradial must be zero'
+		});
+		return;
+	}
+
+	if (field != undefined && !field.match(/^\.?\d+\.?\d*$/)) {
+		console.log('\n' + 'Invalid field value');
+		res.status(400).send({
+		'status': 'error',
+		'statusCode':'400',
+		'statusMessage': 'Invalid field value.'
+		});
+		return;
+	}
+	
+	if (field != undefined) {
+		field = parseFloat(field);
+	}
+	
+	
+	if (callsign != undefined) {
+		idType = "callsign";
+		idValue = callsign.toUpperCase();
+	}
+	else if (facilityId != undefined) {
+		idType = "facilityid";
+		idValue = facilityId;
+	}
+	else if (applicationId != undefined) {
+		idType = "applIdNumber";
+		idValue = applicationId;
+	}
+	
+
+	amContour(idType, idValue, nradial, field, areaFlag, pop, function(error, result) {
 		if (error) {
 			res.send({"error": error});
 		}
@@ -1072,6 +1269,8 @@ var makeOneAmPattern = function(stationData, antData, towerData, nradial, callba
 	//towerData[2].spacing_deg = 200;
 	console.log('antData', antData);
 	//console.log(towerData);
+	
+	var nradial1 = 360; //get full 360 radials first, then sub-sample for output based on actual nradial
 	
 	var hgt = [];
 	var fld = [];
@@ -1131,7 +1330,8 @@ var makeOneAmPattern = function(stationData, antData, towerData, nradial, callba
 	var item;
 	var items = [];
 	
-	var deltaAz = 360/nradial;
+	//var deltaAz = 360/nradial;
+	var deltaAz = 1;
 	
 	//spc[2] =200; //test for KFXN
 	//console.log('spc', spc, 'orn', orn)
@@ -1149,7 +1349,7 @@ var makeOneAmPattern = function(stationData, antData, towerData, nradial, callba
 	
 	//console.log('spc', spc, 'orn', orn)
 	
-	for (var n = 0; n < nradial; n++) {
+	for (var n = 0; n < nradial1; n++) {
 		azimuth = n * deltaAz;
 		azimuths.push(azimuth);
 		
@@ -1179,6 +1379,7 @@ var makeOneAmPattern = function(stationData, antData, towerData, nradial, callba
 		"facility_id": stationData.facility_id,
 		"station_class": stationData.station_class,
 		"application_id": antData.application_id,
+		"file_number": antData.file_number,
 		"ant_sys_id": antData.ant_sys_id,
 		"ant_mode": antData.ant_mode,
 		"ant_dir_ind": antData.ant_dir_ind,
@@ -1213,6 +1414,8 @@ var makeOneAmPattern = function(stationData, antData, towerData, nradial, callba
 		var amPattern = applyAmAugs(items, augData);
 		
 		amPattern = reformatAmPattern(amPattern, inputData);
+		amPattern = subSampleAmPattern(amPattern, nradial);
+		
 	
 		var ret = {
 			"inputData": inputData,
@@ -1265,14 +1468,104 @@ var reformatAmPattern = function(amPattern, inputData) {
 
 }
 
+var subSampleAmPattern = function(amPattern, nradial) {
+	var az;
+	var amPatternNew = [];
+	var deltaAz = Math.floor(360/nradial + 0.5);
+	for (var i = 0; i < nradial; i++) {
+		az = Math.floor(i * deltaAz + 0.5);
+		amPatternNew.push(amPattern[az]);
+	}
+	
+	return amPatternNew;
+}
 
 
+function getLatLonFromDist(lat1, lon1, az, d) {
+//az: azimuth in degrees
+//d: distance in km
 
+    lat1 = lat1 * Math.PI / 180.0;
+    lon1 = lon1 * Math.PI / 180.0;
+    az = az * Math.PI / 180.0;
+
+    var R = 6371; //earth radius in kms
+    var lat2 = Math.asin(Math.sin(lat1) * Math.cos(d / R) + Math.cos(lat1) * Math.sin(d / R) * Math.cos(az));
+    var lon2 = lon1 + Math.atan2(Math.sin(az) * Math.sin(d / R) * Math.cos(lat1), Math.cos(d / R) - Math.sin(lat1) * Math.sin(lat2));
+
+    lat2 = lat2 * 180 / Math.PI;
+    lon2 = lon2 * 180 / Math.PI;
+
+    return [lat2, lon2]
+}
+
+var cal_equivalent_distance = function(zones, field, freq, power) {
+
+	var dist_to_required_field = [];
+	var dist_to_break = [];
+	var field_at_break = [];
+	var field_at_break_0;
+	var dist_to_previous_field = [];
+	var dist_to_previous_field_0;
+	var dist_delta = [];
+	var zone_number = 0;
+	var isDone = false;
+	
+	//console.log('start while loop')
+	
+	while(!isDone) {
+		//console.log('zone_number', zone_number)
+		if (zone_number == 0) {
+			//console.log('inside 1')
+			dist_delta[zone_number] = 0
+			//console.log('inside 2')
+			dist_to_required_field.push(gwave.amDistance(zones[zone_number].conductivity, 15, freq, field, power));
+			//console.log('inside 3')
+			dist_to_break.push(zones[zone_number].distance);
+			//console.log('cond=', zones[zone_number].conductivity, 'freq', freq, 'field', field, 'power', power)
+			field_at_break.push(gwave.amField(zones[zone_number].conductivity, 15, freq, dist_to_break[zone_number], power));
+			dist_to_previous_field.push(0);
+			//console.log('field_at_break', field_at_break[zone_number])
+			//field_at_break.push(
+		}
+		else {
+			dist_to_previous_field_0 = gwave.amDistance(zones[zone_number].conductivity, 15, freq, field_at_break[zone_number-1], power)
+			dist_to_previous_field.push(dist_to_previous_field_0);
+			dist_delta.push(dist_to_previous_field[zone_number] - dist_to_break[zone_number-1]);
+			dist_to_break.push(zones[zone_number].distance + mathjs.sum(dist_delta));
+			field_at_break.push(gwave.amField(zones[zone_number].conductivity, 15, freq, dist_to_break[zone_number], power));
+			//console.log('dist_to_previous_field', dist_to_previous_field[zone_number], 'dist_to_break', dist_to_break[zone_number-1], 'dist_delta',dist_delta[zone_number], 'field_at_break', field_at_break[zone_number] )
+			dist_to_required_field.push(gwave.amDistance(zones[zone_number].conductivity, 15, freq, field, power));
+		}
+		//console.log('field_at_break', field_at_break)
+		//console.log('dist_to_previous_field', dist_to_previous_field)
+		//console.log('dist_delta', dist_delta)
+		//console.log('dist_to_break', dist_to_break)
+		
+		//console.log('zone', zone_number, 'dist_to_required_field',dist_to_required_field[zone_number], 'dist_to_previous_field', dist_to_previous_field[zone_number], 'dist_delta', dist_delta[zone_number], 'dist_to_break', dist_to_break[zone_number], 'field_at_break', field_at_break[zone_number]);
+		if (field_at_break[zone_number] <= field) {
+			var distance = dist_to_required_field[zone_number] - mathjs.sum(dist_delta) ;
+			
+			//console.log('distance=', distance)
+			isDone = true;
+		}
+		else {
+			zone_number++;
+			if (zone_number > zones.length-1) {
+			var distance = zones[zones.length-1].distance;
+			isDone = true;
+			}
+		}
+	}
+	distance = Math.floor(distance*10 + 0.5)/10;
+	
+	return distance;		
+}
 
 module.exports.congen = congen;
 module.exports.getAmPattern = getAmPattern;
 module.exports.getAmContour = getAmContour;
-
+module.exports.amContour = amContour;
 
 
 

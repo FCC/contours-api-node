@@ -676,7 +676,7 @@ console.log('\n' + 'getOneContour recordData='+JSON.stringify(recordData));
 	
 	//convert from NAD27 to WGS84
 	var q = "SELECT ST_AsText(ST_Transform(ST_GeomFromText('POINT(" + lon_nad27 + " " + lat_nad27 + ")', 4267),4326))";
-	console.log('\n' + 'NAD27 to WGS84 Query='+q);
+    console.log('\n' + 'NAD27 to WGS84 Query='+q);
 	db_contours.any(q)
 		.then(function (data) {
 		
@@ -864,31 +864,52 @@ console.log('\n' + 'getOneContour recordData='+JSON.stringify(recordData));
 
 
 var getFileNumber = function(application_id, callback) {
-	var q = "SELECT * FROM " + LMS_SCHEMA + ".gis_application WHERE application_id = " + application_id + " LIMIT 1";
-	console.log(q)
-	
-	db_lms.any(q)
-	.then(function (data) {
-		console.log('data', data)
-		var fileNumber = "";
-		var arn = "";
-		var file_prefix = ""
-		if (data.length > 0) {
-			if (data[0].app_arn != null && data[0].file_prefix != null) {
-				fileNumber = data[0].file_prefix + "-" + data[0].app_arn;
-				fileNumber = fileNumber.replace(/\s/g, '');
+
+	var q;
+	if(isNaN(application_id)){
+		q = "SELECT * FROM common_schema.application WHERE aapp_application_id = '" + application_id + "'";
+		console.log('getFileNumber q='+q)
+		db_lms.any(q)
+		.then(function (data) {
+			console.log('data', data)
+			var fileNumber = "";			
+			if (data.length > 0) {				
+				fileNumber = data[0].aapp_file_num;				
 			}
-		}
+			
+			callback(null, fileNumber);
+		})
+		.catch(function (err) {
+			console.log('\n' + err);
+			callback(err, null);
+			return;
+		});
+	}
+	else {
+		q = "SELECT * FROM " + LMS_SCHEMA + ".gis_application WHERE application_id = " + application_id + " LIMIT 1";
+		console.log('getFileNumber q='+q)
+		db_lms.any(q)
+		.then(function (data) {
+			console.log('data', data)
+			var fileNumber = "";
+			var arn = "";
+			var file_prefix = ""
+			if (data.length > 0) {
+				if (data[0].app_arn != null && data[0].file_prefix != null) {
+					fileNumber = data[0].file_prefix + "-" + data[0].app_arn;
+					fileNumber = fileNumber.replace(/\s/g, '');
+				}
+			}
+			
+			callback(null, fileNumber);
+		})
+		.catch(function (err) {
+			console.log('\n' + err);
+			callback(err, null);
+			return;
+		});
+	}	 
 		
-		callback(null, fileNumber);
-	})
-	.catch(function (err) {
-		console.log('\n' + err);
-		callback(err, null);
-		return;
-	});
-
-
 }
 
 

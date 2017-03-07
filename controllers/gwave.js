@@ -1397,10 +1397,10 @@ var amDistance = function(conductivity, dielectric, freq, field, fs1km) {
 	else {
 		
 		var num_iter = 0;
-		while ( Math.max(Math.abs(f1 - field), Math.abs(f2 - field))/field > 0.01) {
+		while ( Math.max(Math.abs(f1 - field), Math.abs(f2 - field))/field > 0.01 && Math.abs(dist2 - dist1) > 0.001) {
 			dist = (dist1 + dist2) / 2;
 			f = amField(conductivity, dielectric, freq, dist, fs1km);
-			//console.log('dist', dist, 'field', field, 'f1', f1, 'f2', f2);
+			//console.log('num_iter', num_iter, 'dist', dist, 'dist1', dist1, 'dist2', dist2, 'field', field, 'f1', f1, 'f2', f2, 'f', f);
 			
 			if (f <= field) {
 				dist2 = dist;

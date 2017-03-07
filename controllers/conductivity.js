@@ -24,7 +24,6 @@ var async = require('async');
 
 var getLineConductivity = function(lineOption){ return function(callback) {
 
-
 	var i, lat1, lon1, lat2, lon2;
 	var intersections = [];
 	

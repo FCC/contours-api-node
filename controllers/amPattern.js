@@ -141,7 +141,9 @@ var getfth = function(theta,ht,a,b,c,d,tls) {
 
 		else {
 			console.log( 'getfth: Cannot handle sectionalized type. ' + tls[i]);
-			console.log( theta,ht,a,b,c,d,tls);
+			console.log('set fth = 1');
+			fth = 1;
+			//console.log( theta,ht,a,b,c,d,tls);
 		}
 		
 		ftheta[i]=fth;
@@ -545,11 +547,15 @@ var amPattern = function(idType, idValue, nradial, field, callback) {
 		else {
 		
 			var asyncTasks = [];
+			
 			for (i = 0; i < result.antData.length; i++) {
-				var stationData1 = result.stationData[0];
-				var antData1 = result.antData[i];
-				var towerData1 = result.towerData[i];
-				asyncTasks.push(makeOneAmPattern(stationData1, antData1, towerData1, nradial));					
+				if (result.antData[i].lat_deg != null && result.antData[i].lon_deg) { //only use antenna with valid lat/lon
+					var stationData1 = result.stationData[0];
+					var antData1 = result.antData[i];
+					var towerData1 = result.towerData[i];
+					asyncTasks.push(makeOneAmPattern(stationData1, antData1, towerData1, nradial));
+				}
+				
 			}
 			
 			async.parallel(asyncTasks, function(error, result){
@@ -577,11 +583,16 @@ var applyAmAugs = function(items, augData) {
 	for (i = 0; i < items.length; i++) {
 		azimuth = items[i].azimuth;
 		dEsqSum = 0;
+		//console.log('i', i, 'az', azimuth)
+		
 		for (j = 0; j < augData.length; j++) {
 			center_azimuth = augData[j].azimuth_deg;
 			span = augData[j].span_deg;
 			radiation_aug = augData[j].radiation_aug;
 			Estd = getEstd(center_azimuth, items);
+			
+			//console.log('j', j, ' aug', radiation_aug, ' Estd', Estd);
+			
 			dEsq = calAug(azimuth, center_azimuth, span, radiation_aug, Estd);
 			dEsqSum += dEsq;
 		}

@@ -69,6 +69,7 @@ function getContours(req, res, callback) {
 		else {
 			pattern = undefined;
 		}
+		var ant_rotation = req.query.ant_rotation;
 		
 		var pop = req.query.pop;
 		var areaFlag = req.query.area;
@@ -306,6 +307,25 @@ function getContours(req, res, callback) {
             return callback(returnJson);
 		}
 		}
+		
+		if (ant_rotation == undefined || ant_rotation == '') {
+			ant_rotation = 0;
+		}
+		else if ( !ant_rotation.match(/^\d+\.?\d*$/)) {
+			dataObj.statusMessage = 'Invalid ant_rotation value.';
+			returnError(dataObj, function(ret){                                                       
+                 returnJson = GeoJSON.parse(ret, {});
+            });
+            return callback(returnJson);
+		}
+		else {
+			ant_rotation = parseFloat(ant_rotation);
+		}
+		
+		if (ant_rotation > 0) {
+			pattern = rotatePattern(pattern, ant_rotation);
+		}
+		console.log(pattern);
 		
 		lat = parseFloat(lat);
 		lon = parseFloat(lon);
@@ -653,6 +673,31 @@ function getFullAntennaPattern(nradial, pattern) {
 	return full_pattern;
 	
 }
+
+function rotatePattern(data, ant_rotation) {
+	var i;
+	var pattern = '';
+	var az;
+	var az_value = [];
+	var data_arr = data.split(';');
+	for (i = 0; i < data_arr.length; i++) {
+		az = parseFloat(data_arr[i].split(',')[0]) + ant_rotation;
+		if (az >= 360) {
+			az -= 360;
+		}
+		az_value.push([az, parseFloat(data_arr[i].split(',')[1])]);
+	}
+	az_value = az_value.sort(function(a,b) {return a[0]-b[0];});
+
+	for (i = 0; i < az_value.length; i++) {
+		pattern += az_value[i][0] + ',' + az_value[i][1] + ';';
+	}
+	
+	pattern = pattern.replace(/;$/, '');
+	
+	return pattern;
+}
+
 
 //module.exports.elevation = elevation;
 module.exports.getContours = getContours;

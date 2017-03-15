@@ -788,6 +788,7 @@ console.log('\n' + 'getOneContour recordData='+JSON.stringify(recordData));
 						"src": inputData.src.toString(),
 						"unit": inputData.unit.toString(),
 						"pattern": pattern.toString(),
+						"ant_rotation": 0,
 						"pop": queryParams.pop.toString(),
 						"area": queryParams.area.toString()
 					}

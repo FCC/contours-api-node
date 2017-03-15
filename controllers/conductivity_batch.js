@@ -17,7 +17,7 @@ var getAntListCDBS = function(callback) {
 			 "WHERE a.facility_id = b.facility_id  and b.am_dom_status in ('L', 'C') and a.fac_status = 'LICEN' order by a.facility_id )";
 	
 	var q = "SELECT ant_sys_id, application_id, lat_deg, lat_min, lat_sec, lat_dir, lon_deg, lon_min, lon_sec, lon_dir " +
-			"FROM mass_media.gis_am_ant_sys WHERE lat_dir = 'N' and lon_dir = 'W' and am_dom_status in ('L', 'C') " +
+			"FROM mass_media.gis_am_ant_sys WHERE lat_dir = 'N' and lon_dir = 'W' and am_dom_status in ('L', 'C', 'A') " +
 			"and eng_record_type = 'C' and hours_operation in ('D', 'U') ORDER BY ant_sys_id";
 	
 	//console.log(q)

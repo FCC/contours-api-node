@@ -141,7 +141,9 @@ var getfth = function(theta,ht,a,b,c,d,tls) {
 
 		else {
 			console.log( 'getfth: Cannot handle sectionalized type. ' + tls[i]);
-			console.log( theta,ht,a,b,c,d,tls);
+			console.log('set fth = 1');
+			fth = 1;
+			//console.log( theta,ht,a,b,c,d,tls);
 		}
 		
 		ftheta[i]=fth;
@@ -545,11 +547,15 @@ var amPattern = function(idType, idValue, nradial, field, callback) {
 		else {
 		
 			var asyncTasks = [];
+			
 			for (i = 0; i < result.antData.length; i++) {
-				var stationData1 = result.stationData[0];
-				var antData1 = result.antData[i];
-				var towerData1 = result.towerData[i];
-				asyncTasks.push(makeOneAmPattern(stationData1, antData1, towerData1, nradial));					
+				if (result.antData[i].lat_deg != null && result.antData[i].lon_deg) { //only use antenna with valid lat/lon
+					var stationData1 = result.stationData[0];
+					var antData1 = result.antData[i];
+					var towerData1 = result.towerData[i];
+					asyncTasks.push(makeOneAmPattern(stationData1, antData1, towerData1, nradial));
+				}
+				
 			}
 			
 			async.parallel(asyncTasks, function(error, result){
@@ -577,11 +583,16 @@ var applyAmAugs = function(items, augData) {
 	for (i = 0; i < items.length; i++) {
 		azimuth = items[i].azimuth;
 		dEsqSum = 0;
+		//console.log('i', i, 'az', azimuth)
+		
 		for (j = 0; j < augData.length; j++) {
 			center_azimuth = augData[j].azimuth_deg;
 			span = augData[j].span_deg;
 			radiation_aug = augData[j].radiation_aug;
 			Estd = getEstd(center_azimuth, items);
+			
+			//console.log('j', j, ' aug', radiation_aug, ' Estd', Estd);
+			
 			dEsq = calAug(azimuth, center_azimuth, span, radiation_aug, Estd);
 			dEsqSum += dEsq;
 		}
@@ -827,6 +838,9 @@ var amContour = function(idType, idValue, nradial, field, areaFlag, pop, callbac
 
 var getOneAmContour = function(patternData, nradial, field, areaFlag, pop) {return function(callback) {
 
+	var freq_center = getCenterFreq(patternData.inputData.fac_frequency)/1000;
+	console.log("center frequency = " + freq_center);
+
 	var latlonArray = [patternData.inputData.lat_deg,
 						patternData.inputData.lat_min,
 						patternData.inputData.lat_sec,
@@ -914,7 +928,12 @@ var getOneAmContour = function(patternData, nradial, field, areaFlag, pop) {retu
 						
 						}
 
-						var freq = patternData.inputData.fac_frequency/1000;
+						//var freq = patternData.inputData.fac_frequency/1000;
+						//var freq_center = freq;
+						//if (freq >= 0.72 && freq <= 0.76) {
+						//	freq_center = 0.74;
+						//}
+						
 						var power = patternData.amPattern[i].Eth * mathjs.sqrt(patternData.inputData.power);
 						if (patternData.inputData.domestic_pattern == 'S') {
 							power = patternData.amPattern[i].Estd;
@@ -924,7 +943,7 @@ var getOneAmContour = function(patternData, nradial, field, areaFlag, pop) {retu
 						}
 
 						power = mathjs.round(power, 2);
-						distance = cal_equivalent_distance(zones, field, freq, power);
+						distance = cal_equivalent_distance(zones, field, freq_center, power);
 						
 						//console.log('dist=' + distance)
 						
@@ -1560,6 +1579,39 @@ var cal_equivalent_distance = function(zones, field, freq, power) {
 	distance = Math.floor(distance*10 + 0.5)/10;
 	
 	return distance;		
+}
+
+var getCenterFreq = function(freq) {
+	var freq_band = [
+		[540, 560, 550],
+		[570, 590, 580],
+		[600, 620, 610],
+		[630, 650, 640],
+		[660, 680, 670],
+		[690, 710, 700],
+		[720, 760, 740],
+		[770, 810, 790],
+		[820, 860, 840],
+		[870, 910, 890],
+		[920, 960, 940],
+		[970, 1030, 1000],
+		[1040, 1100, 1070],
+		[1110, 1170, 1140],
+		[1180, 1240, 1210],
+		[1250, 1330, 1290],
+		[1340, 1420, 1380],
+		[1430, 1510, 1470],
+		[1520, 1600, 1560],
+		[1610, 1700, 1655]
+	];
+	
+	for (var i = 0; i < freq_band.length; i++) {
+		if (freq >= freq_band[i][0] && freq <= freq_band[i][1]) {
+			return freq_band[i][2];
+		}
+	}
+	
+	return freq;
 }
 
 module.exports.congen = congen;

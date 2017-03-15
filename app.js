@@ -550,6 +550,7 @@ var server = app.listen(NODE_PORT, function () {
 
 if (NODE_ENV == "DEV") {
 	conductivity_batch.startBatch();
+	
 }
 
 function getCachedData(req, req_key, success){

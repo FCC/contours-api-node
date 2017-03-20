@@ -409,10 +409,10 @@ function getRecord(serviceType, idType, data) {
 	}
 	else {
 		for (i = 0; i < data.length; i++) {
-			if (serviceType == 'tv' && data[i].tv_dom_status == 'LIC' && (data[i].eng_record_type == 'C') && data[i].antenna_id != 0 ) {
+			if (serviceType == 'tv' && data[i].tv_dom_status == 'LIC' && data[i].eng_record_type == 'C' && data[i].antenna_id != 0 ) {
 				recordIndex.push(i);
 			}
-			if (serviceType == 'fm' && data[i].asd_service == 'FM' && data[i].fm_dom_status == 'LIC' && data[i].eng_record_type == 'C') {
+			if (serviceType == 'fm' && data[i].asd_service && data[i].fm_dom_status == 'LIC' && data[i].eng_record_type == 'C') {
 				recordIndex.push(i);
 			}
 		}	
@@ -473,6 +473,7 @@ function getPatternString(data, ant_rotation) {
 	var pattern = '';
 	var az;
 	var az_value = [];
+
 	for (i = 0; i < data.length; i++) {
 		az = data[i].azimuth + ant_rotation;
 		if (az >= 360) {
@@ -569,6 +570,9 @@ console.log('\n' + 'getOneContour recordData='+JSON.stringify(recordData));
 	if (recordData.vsd_service && recordData.vsd_service[0] && recordData.vsd_service[0].toUpperCase() === 'D') {
 		isDigitalTv = true;
 	}
+	if (recordData.vsd_service && recordData.vsd_service.toUpperCase() === 'LD') {
+		isDigitalTv = true;
+	}
 	var curve_use = 0;
 	if (isDigitalTv) {
 		curve_use = 2;
@@ -649,7 +653,7 @@ console.log('\n' + 'getOneContour recordData='+JSON.stringify(recordData));
 		service_use = recordData.vsd_service;
 	}
 	if (!service_use) {
-		service_use = 'None';
+		service_use = '';
 	}
 	
 	var dom_status_use;
@@ -668,6 +672,10 @@ console.log('\n' + 'getOneContour recordData='+JSON.stringify(recordData));
 		eng_record_type_use = 'None';
 	}
 
+	var station_class_use = '';
+	if (recordData.station_class) {
+		station_class_use = recordData.station_class;
+	}
 	
 	var lat_nad27 = getDecimalLatLon(recordData.lat_deg, recordData.lat_min, recordData.lat_sec, recordData.lat_dir);
 	var lon_nad27 = getDecimalLatLon(recordData.lon_deg, recordData.lon_min, recordData.lon_sec, recordData.lon_dir);
@@ -698,6 +706,7 @@ console.log('\n' + 'getOneContour recordData='+JSON.stringify(recordData));
 			"antenna_id": recordData.antenna_id,
 			"antenna_type": recordData.antenna_type,
 			"service": service_use,
+			"station_class": station_class_use,
 			"dom_status": dom_status_use,
 			"eng_record_type": eng_record_type_use,
 			"lat": lat,
@@ -756,7 +765,7 @@ console.log('\n' + 'getOneContour recordData='+JSON.stringify(recordData));
 		
 		db_lms.any(q)
 		.then(function (data) {
-			console.log('\n' + 'Query data [pattern] =', data)
+			//console.log('\n' + 'Query data [pattern] =', data)
 			var ant_rotation = recordData.ant_rotation;
 			if (ant_rotation == null) {
 				ant_rotation = 0;
@@ -819,6 +828,9 @@ console.log('\n' + 'getOneContour recordData='+JSON.stringify(recordData));
 								properties.antenna_id = inputData.antenna_id;
 								properties.antenna_type = inputData.antenna_type;
 								properties.service = inputData.service;
+								properties.station_class = inputData.station_class;
+								properties.dom_status = inputData.dom_status;
+								properties.eng_record_type = inputData.eng_record_type;
 								for (var key in data.features[0].properties) {
 									properties[key] = data.features[0].properties[key];
 								}

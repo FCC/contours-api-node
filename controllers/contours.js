@@ -325,7 +325,6 @@ function getContours(req, res, callback) {
 		if (ant_rotation > 0) {
 			pattern = rotatePattern(pattern, ant_rotation);
 		}
-		console.log(pattern);
 		
 		lat = parseFloat(lat);
 		lon = parseFloat(lon);

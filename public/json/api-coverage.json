@@ -116,6 +116,15 @@
                     "type": "string",
                     "default": ""                    
                 }, {
+                    "name": "ant_rotation",
+                    "x-label": "Antenna Rotation",
+                    "x-display": true,
+                    "in": "query",
+                    "description": "Antenna rotation (default = 0)",
+                    "required": false,
+                    "type": "string",
+                    "default": "0"
+                }, {
                     "name": "pop",
                     "x-label": "Population",
                     "x-display": true,

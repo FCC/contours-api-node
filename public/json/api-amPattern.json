@@ -42,8 +42,8 @@
                     "x-label": "Number of Radials",
                     "x-display": true,
                     "in": "query",
-                    "description": "Number of radials",
-                    "required": true,
+                    "description": "Number of radials (8-360). <br>Default is 360 if omitted.",
+                    "required": false,
                     "type": "integer",
                     "default": ""
                 }, {

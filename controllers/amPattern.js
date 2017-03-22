@@ -46,6 +46,7 @@ var getBeta = function (phase, spacing, orient, azimuth) {
 }
 
 var getfth = function(theta,ht,a,b,c,d,tls) {
+
     // Calculate f of theta for all towers
     
     // theta:  vertical angle (radians)
@@ -104,8 +105,12 @@ var getfth = function(theta,ht,a,b,c,d,tls) {
 			asq = a[i] * sq;
 			csq = c[i] * sq;
 			casq = Math.cos(asq);
+			//console.log('sl=' + sl + ' cb=' + cb + ' casq=' + casq + ' sl=' + sl + ' cg=' + cg);
+			
 			numerator = sl*cb*casq - sl*cg + sb*cd*Math.cos(csq) - sb*sq*sd*Math.sin(csq) - sb*cl*casq;
 			denominator = cq*sl*(cb-cg) + cq*sb*(cd-cl);
+			
+			//console.log('numerator=' + numerator);
 			if (denominator != 0) {
 				fth = numerator/denominator;
 			}
@@ -191,6 +196,8 @@ var getRMS = function(pwr,fld,spc,orn,trs,phs,hgt,tls,a,b,c,d) {
 		var vangle = toRadians(theta); // vertical angle, in rad.
 		var costhe = Math.cos(vangle);
 		var fthetas = getfth(vangle, hgt, a, b, c, d, tls); //F_of_Theta for each tower.
+		
+		//console.log('thetas=' + fthetas + ' tls=' + tls);
 
 		var ffot = []; // Holds Field Ratio * F_of_Theta data.
 		for (i = 0; i < ntow; i++) {
@@ -226,6 +233,8 @@ var getRMS = function(pwr,fld,spc,orn,trs,phs,hgt,tls,a,b,c,d) {
         else {
 			sum3 = sum3 + vertical_rms[loop] * vertical_rms[loop] * costhe;
 		}
+		
+		//console.log('loop=' + loop + ' small_rms=' + small_rms + ' fld=' + fld);
 	}
 	
 	var hemisphere_rms = Math.sqrt(toRadians(90/9)*sum3)  // num_steps: 9
@@ -443,6 +452,8 @@ var congen = function(pat, pwr, rms, fld, spc, orn, trs, phs, hgt, tls, a, b, c,
 	
     var con_smlrms=getRMS(pwr, fld, spc1, orn1, trs, phs1, hgt1, tls, a, b, c, d);
 
+	console.log(con_smlrms);
+	
 	var con = con_smlrms.con;
 	var smlrms = con_smlrms.smlrms;
 	if (true || pat === 'T' || pat === 'A' && rms > 0) {

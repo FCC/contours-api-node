@@ -17,8 +17,8 @@ var getAntListCDBS = function(callback) {
 			 "WHERE a.facility_id = b.facility_id  and b.am_dom_status in ('L', 'C') and a.fac_status = 'LICEN' order by a.facility_id )";
 	
 	var q = "SELECT ant_sys_id, application_id, lat_deg, lat_min, lat_sec, lat_dir, lon_deg, lon_min, lon_sec, lon_dir " +
-			"FROM mass_media.gis_am_ant_sys WHERE lat_dir = 'N' and lon_dir = 'W' and am_dom_status in ('L', 'C', 'A') " +
-			"and eng_record_type = 'C' and hours_operation in ('D', 'U') ORDER BY ant_sys_id";
+			"FROM mass_media.gis_am_ant_sys WHERE lat_dir = 'N' and lon_dir = 'W' and lat_deg is not null and lon_deg is not null " +
+			"and  am_dom_status in ('L', 'C', 'A') " + "and eng_record_type = 'C' and hours_operation in ('D', 'U') ORDER BY ant_sys_id";
 	
 	//console.log(q)
 			 
@@ -204,9 +204,9 @@ var getNewAntList = function(antData, antDataCon) {
 			}
 		}
 		
-		if (antData[i].lon_deg > 130 && antData[i].lon_dir == "W" && antData[i].lat_deg < 50 && antData[i].lat_dir == "N") {
-			isNew = false;
-		}
+		//if (antData[i].lon_deg > 130 && antData[i].lon_dir == "W" && antData[i].lat_deg < 50 && antData[i].lat_dir == "N") {
+		//	isNew = false;
+		//}
 		
 		if (isNew) {
 			antDataNew.push(antData[i]);
@@ -248,6 +248,8 @@ console.log('== start conductivity batch job: ' + (new Date()).toString()  );
 				}
 				else {
 					var antDataNew = getNewAntList(antData, antDataCon);
+					console.log('antDataNew=' + JSON.stringify(antDataNew));
+					
 					if (antDataNew.length > 0) {
 						getCon(antDataNew, 0);
 					}

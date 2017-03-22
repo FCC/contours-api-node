@@ -1,0 +1,73 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "version": "1.5.0",
+        "title": "AM Pattern API"
+    },
+    "basePath": "/api/contours",
+    "tags": [{
+        "name": "AM Pattern",
+        "description": "get AM Pattern data"
+    }],
+    "paths": {
+        "/getAmPattern.{format}": {
+            "get": {
+                "tags": ["AM Pattern"],
+                "summary": "Get AM Pattern",
+                "description": "Get AM Pattern data based on callsign or facility ID and number of radials. Response returned in JSON format.",
+                "parameters": [{
+                    "name": "idType",
+                    "x-label": "ID Type",
+                    "x-display": true,
+                    "in": "query",
+                    "description": "Call sign or Facility ID",
+                    "required": true,
+                    "type": "string",
+                    "default": "callsign",
+                    "enum": [
+                        "callsign",
+                        "facilityId"
+                    ]
+                }, {
+                    "name": "idValue",
+                    "x-label": "ID Value",
+                    "x-display": true,
+                    "in": "query",
+                    "description": "Call sign or Facility ID of the AM station",
+                    "required": true,
+                    "type": "string",
+                    "default": ""
+                }, {
+                    "name": "nradial",
+                    "x-label": "Number of Radials",
+                    "x-display": true,
+                    "in": "query",
+                    "description": "Number of radials (8-360). <br>Default is 360 if omitted.",
+                    "required": false,
+                    "type": "integer",
+                    "default": ""
+                }, {
+                    "name": "format",
+                    "x-label": "Format",
+                    "x-display": false,
+                    "in": "path",
+                    "description": "Format for the returned results.<br /><br />Defaults to json.",
+                    "required": false,
+                    "type": "string",
+                    "default": "json",
+                    "enum": [
+                        "json"
+                    ]
+                }],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                },
+                "produces": [
+                    "application/json"
+                ]
+            }
+        }
+    }
+}

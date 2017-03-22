@@ -4,7 +4,7 @@
         "version": "1.5.0",
         "title": "AM Pattern API"
     },
-    "basePath": "/api/getAmPattern",
+    "basePath": "/api/contours",
     "tags": [{
         "name": "AM Pattern",
         "description": "get AM Pattern data"
@@ -16,7 +16,7 @@
                 "summary": "Get AM Pattern",
                 "description": "Get AM Pattern data based on callsign or facility ID and number of radials. Response returned in JSON format.",
                 "parameters": [{
-                    "name": "idType ",
+                    "name": "idType",
                     "x-label": "ID Type",
                     "x-display": true,
                     "in": "query",

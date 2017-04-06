@@ -34,11 +34,11 @@ var contours = require('./controllers/contours.js');
 var tvfm_curves = require('./controllers/tvfm_curves.js');
 var entity = require('./controllers/entity.js');
 var conductivity = require('./controllers/conductivity.js');
-var conductivity_r2_2points = require('./controllers/conductivity_r2_2points.js');
+//var conductivity_r2_2points = require('./controllers/conductivity_r2_2points.js');
 var gwave = require('./controllers/gwave.js');
 var amr = require('./controllers/amr.js');
 var amPattern = require('./controllers/amPattern.js');
-var conductivity_batch = require('./controllers/conductivity_batch.js');
+//var conductivity_batch = require('./controllers/conductivity_batch.js');
 
 // **********************************************************
 // config

@@ -5,6 +5,7 @@
 // **********************************************************
 
 var conductivity = require('./conductivity.js');
+var conductivity_r2_2points = require('./conductivity_r2_2points.js');
 var db_lms = require('./db_lms.js');
 var db_contour = require('./db_contour.js');
 
@@ -84,39 +85,99 @@ var getOneConductivity = function(aData, n, callback) {
 
 			console.log('start getting conductivity at ' + lat_84 + ' ' + lon_84);
 			
-			conductivity.getConductivity(lat_84, lon_84, 360, 2000, function(error, result) {
+			q = "SELECT a.comm_state FROM mass_media.gis_facility a, mass_media.gis_am_eng_data b " +
+				"WHERE a.facility_id = b.facility_id AND b.application_id = " + aData[n].application_id;
+			console.log(q)
+			db_lms.any(q)
+			.then(function (data) {
 			
-				if (error) {
-					callback(error, null);
-					return;
+				console.log(data);
+				var comm_state = "";
+				if (data.length > 0) {
+					comm_state = data[0].comm_state;
+				}
+				console.log('comm_state=' + comm_state);
+				
+				if (comm_state == "PR" || comm_state == "VI" || comm_state == "AK") {
+					conductivity_r2_2points.getConductivity(lat_84, lon_84, 360, 2000, function(error, result) {
+					
+						if (error) {
+							callback(error, null);
+							return;
+						}
+						else {
+							console.log('getOneConductivity: done getting conductivity');
+							//console.log(JSON.stringify(result));
+							q = "DELETE FROM contour.conductivity_batch WHERE ant_sys_id = " +
+							aData[n].ant_sys_id + " and application_id = " + aData[n].application_id  + ";";
+						
+							q += "INSERT INTO contour.conductivity_batch (" +
+								"ant_sys_id, application_id, lat_deg, lat_min, lat_sec, lat_dir, " +
+								"lon_deg, lon_min, lon_sec, lon_dir, conductivity, create_ts) " + 
+								"VALUES (" + aData[n].ant_sys_id + ", " + aData[n].application_id + ", " +
+								aData[n].lat_deg + ", " + aData[n].lat_min + ", " + aData[n].lat_sec + ", '" + aData[n].lat_dir + "', " +
+								aData[n].lon_deg + ", " + aData[n].lon_min + ", " + aData[n].lon_sec + ", '" + aData[n].lon_dir + "', " +
+								"'" + JSON.stringify(result) + "', now())";
+								
+							//console.log(q)
+							
+							db_contour.any(q)
+							.then(function (data) {
+								callback(null, "ok");
+							})
+							.catch(function (err) {
+								console.log('\n' + err);
+								callback(err, null);
+								return;
+							});		
+						}
+					});
 				}
 				else {
-					console.log('getOneConductivity: done getting conductivity');
-					//console.log(JSON.stringify(result));
-					q = "DELETE FROM contour.conductivity_batch WHERE ant_sys_id = " +
-					aData[n].ant_sys_id + " and application_id = " + aData[n].application_id  + ";";
-				
-					q += "INSERT INTO contour.conductivity_batch (" +
-						"ant_sys_id, application_id, lat_deg, lat_min, lat_sec, lat_dir, " +
-						"lon_deg, lon_min, lon_sec, lon_dir, conductivity, create_ts) " + 
-						"VALUES (" + aData[n].ant_sys_id + ", " + aData[n].application_id + ", " +
-						aData[n].lat_deg + ", " + aData[n].lat_min + ", " + aData[n].lat_sec + ", '" + aData[n].lat_dir + "', " +
-						aData[n].lon_deg + ", " + aData[n].lon_min + ", " + aData[n].lon_sec + ", '" + aData[n].lon_dir + "', " +
-						"'" + JSON.stringify(result) + "', now())";
-						
-					//console.log(q)
+					conductivity.getConductivity(lat_84, lon_84, 360, 2000, function(error, result) {
 					
-					db_contour.any(q)
-					.then(function (data) {
-						callback(null, "ok");
-					})
-					.catch(function (err) {
-						console.log('\n' + err);
-						callback(err, null);
-						return;
-					});		
+						if (error) {
+							callback(error, null);
+							return;
+						}
+						else {
+							console.log('getOneConductivity: done getting conductivity');
+							//console.log(JSON.stringify(result));
+							q = "DELETE FROM contour.conductivity_batch WHERE ant_sys_id = " +
+							aData[n].ant_sys_id + " and application_id = " + aData[n].application_id  + ";";
+						
+							q += "INSERT INTO contour.conductivity_batch (" +
+								"ant_sys_id, application_id, lat_deg, lat_min, lat_sec, lat_dir, " +
+								"lon_deg, lon_min, lon_sec, lon_dir, conductivity, create_ts) " + 
+								"VALUES (" + aData[n].ant_sys_id + ", " + aData[n].application_id + ", " +
+								aData[n].lat_deg + ", " + aData[n].lat_min + ", " + aData[n].lat_sec + ", '" + aData[n].lat_dir + "', " +
+								aData[n].lon_deg + ", " + aData[n].lon_min + ", " + aData[n].lon_sec + ", '" + aData[n].lon_dir + "', " +
+								"'" + JSON.stringify(result) + "', now())";
+								
+							//console.log(q)
+							
+							db_contour.any(q)
+							.then(function (data) {
+								callback(null, "ok");
+							})
+							.catch(function (err) {
+								console.log('\n' + err);
+								callback(err, null);
+								return;
+							});		
+						}
+					});
 				}
+					
+					
+					
+			})
+			.catch(function (err) {
+			console.log('\n' + err);
+			callback(err, null);
+			return;
 			});
+			
 			
 		})
 		.catch(function (err) {

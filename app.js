@@ -38,6 +38,7 @@ var conductivity = require('./controllers/conductivity.js');
 var gwave = require('./controllers/gwave.js');
 var amr = require('./controllers/amr.js');
 var amPattern = require('./controllers/amPattern.js');
+var coordsAPI = require('./controllers/coordsAPI.js');
 //var conductivity_batch = require('./controllers/conductivity_batch.js');
 
 // **********************************************************
@@ -80,6 +81,9 @@ app.enable('strict routing');
 
 app.use(cors());
 app.use(helmet());
+
+// Set the view engine to ejs
+app.set('view engine', 'ejs');
 
 var memcached = new Memcached(process.env.ELASTICACHE_ENDPOINT);
 var memcached_lifetime = Number(process.env.ELASTICACHE_LIFETIME);
@@ -135,6 +139,11 @@ amr.amCallsigns(req, res);
 
 app.get('/allAMCallsignList', function(req, res){
 amr.allAMCallsignList(req, res);
+});
+
+// The route for the coordsAPI, created by Ahmad Aburizaiza
+app.get('/api/convert', function(req,res){
+    coordsAPI.convert(req,res);
 });
 
 app.use('/', express.static(path.join(__dirname, '/public')));

@@ -288,7 +288,7 @@ var dms2dd = function(req,res){
     }
 
     // Check if latD is wrong or out of range
-    if ((!isInteger(inputLonD) || -90 > inputLonD || inputLonD > 90)){ 
+    if ((!isInteger(inputLatD) || -90 > inputLatD || inputLatD > 90)){ 
         res.status(400);
         res.set('Content-Type', 'application/x-javascript');
         res.send(generateErrorJSON('Latitude degree error', ['latD parameter not a whole number or out of range','Valid latitudes range from -90 to 90']));

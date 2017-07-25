@@ -143,15 +143,15 @@ amr.allAMCallsignList(req, res);
 // The second one converts coordinates from DMS to DD format
 // The third one converts coordinates from DD to DMS format
 //**********************************************************
-app.get('/api/project', function(req,res){
+app.get('/project', function(req,res){
     coordsAPI.project(req,res);
 });
 
-app.get('/api/dms2dd', function(req,res){
+app.get('/dms2dd', function(req,res){
     coordsAPI.dms2dd(req,res);
 });
 
-app.get('/api/dd2dms', function(req,res){
+app.get('/dd2dms', function(req,res){
     coordsAPI.dd2dms(req,res);
 });
 //**********************************************************

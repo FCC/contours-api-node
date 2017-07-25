@@ -82,9 +82,6 @@ app.enable('strict routing');
 app.use(cors());
 app.use(helmet());
 
-// Set the view engine to ejs
-app.set('view engine', 'ejs');
-
 var memcached = new Memcached(process.env.ELASTICACHE_ENDPOINT);
 var memcached_lifetime = Number(process.env.ELASTICACHE_LIFETIME);
 var cached_param = 'outputcache';
@@ -141,10 +138,23 @@ app.get('/allAMCallsignList', function(req, res){
 amr.allAMCallsignList(req, res);
 });
 
-// The route for the coordsAPI, created by Ahmad Aburizaiza
-app.get('/api/convert', function(req,res){
-    coordsAPI.convert(req,res);
+// The routes for the coordsAPI, created by Ahmad Aburizaiza
+// The first one is to project the data e.g. WGS84 to NAD83
+// The second one converts coordinates from DMS to DD format
+// The third one converts coordinates from DD to DMS format
+//**********************************************************
+app.get('/api/project', function(req,res){
+    coordsAPI.project(req,res);
 });
+
+app.get('/api/dms2dd', function(req,res){
+    coordsAPI.dms2dd(req,res);
+});
+
+app.get('/api/dd2dms', function(req,res){
+    coordsAPI.dd2dms(req,res);
+});
+//**********************************************************
 
 app.use('/', express.static(path.join(__dirname, '/public')));
 app.use('/index.html', express.static(path.join(__dirname ,'/public')));

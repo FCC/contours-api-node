@@ -23,7 +23,7 @@ describe('Coords API test', function() {
                         throw err;
                     }
 
-                    res.body.features[0].properties.should.have.property('statusMessage').be.equal('ok');
+                    res.body.should.have.property('output.projection').be.equal('EPSG:4267 (NAD27)');
                     done();
                 });
             
@@ -41,7 +41,7 @@ describe('Coords API test', function() {
                         throw err;
                     }
 
-                    res.body.features[0].properties.should.have.property('statusMessage').be.equal('ok');
+                    res.body.should.have.property('output.projection').be.equal('EPSG:4267 (NAD27)');
                     done();
                 });
             });
@@ -59,7 +59,7 @@ describe('Coords API test', function() {
                         throw err;
                     }
 
-                    res.body.features[0].properties.should.have.property('statusMessage').be.equal('a missing param');
+                    res.body.should.have.property('error_type').be.equal('Missing one or more of the params');
                     done();
                 });
             });
@@ -74,7 +74,7 @@ describe('Coords API test', function() {
                         throw err;
                     }
 
-                    res.body.features[0].properties.should.have.property('statusMessage').be.equal('a missing param');
+                    res.body.should.have.property('error_type').be.equal('Missing one or more of the params');
                     done();
                 });
             });
@@ -89,7 +89,7 @@ describe('Coords API test', function() {
                         throw err;
                     }
 
-                    res.body.features[0].properties.should.have.property('statusMessage').be.equal('a missing param');
+                    res.body.should.have.property('error_type').be.equal('Missing one or more of the params');
                     done();
                 });
             });
@@ -104,7 +104,7 @@ describe('Coords API test', function() {
                         throw err;
                     }
 
-                    res.body.features[0].properties.should.have.property('statusMessage').be.equal('a missing param');
+                    res.body.should.have.property('error_type').be.equal('Missing one or more of the params');
                     done();
                 });
             });
@@ -123,7 +123,7 @@ describe('Coords API test', function() {
                         throw err;
                     }
 
-                    res.body.features[0].properties.should.have.property('statusMessage').be.equal('an invalid param value');
+                    res.body.should.have.property('error_type').be.equal('Longitude error');
                     done();
                 });
             });
@@ -138,7 +138,7 @@ describe('Coords API test', function() {
                         throw err;
                     }
 
-                    res.body.features[0].properties.should.have.property('statusMessage').be.equal('an invalid param value');
+                    res.body.should.have.property('error_type').be.equal('Latitude error');
                     done();
                 });
             });
@@ -153,7 +153,7 @@ describe('Coords API test', function() {
                         throw err;
                     }
 
-                    res.body.features[0].properties.should.have.property('statusMessage').be.equal('an invalid param value');
+                    res.body.should.have.property('error_type').be.equal('Input projection invalid');
                     done();
                 });
             });
@@ -168,7 +168,7 @@ describe('Coords API test', function() {
                         throw err;
                     }
 
-                    res.body.features[0].properties.should.have.property('statusMessage').be.equal('an invalid param value');
+                    res.body.should.have.property('error_type').be.equal('Output projection invalid');
                     done();
                 });
             });
@@ -187,7 +187,7 @@ describe('Coords API test', function() {
                         throw err;
                     }
 
-                    res.body.features[0].properties.should.have.property('statusMessage').be.equal('out of range value');
+                    res.body.should.have.property('error_type').be.equal('Longitude error');
                     done();
                 });
             });
@@ -202,7 +202,7 @@ describe('Coords API test', function() {
                         throw err;
                     }
 
-                    res.body.features[0].properties.should.have.property('statusMessage').be.equal('out of range value');
+                    res.body.should.have.property('error_type').be.equal('Latitude error');
                     done();
                 });
             });
@@ -225,7 +225,7 @@ describe('Coords API test', function() {
                         throw err;
                     }
 
-                    res.body.features[0].properties.should.have.property('statusMessage').be.equal('ok');
+                    res.body.should.have.property('output.lon_parsed.degree').be.equal(-77);
                     done();
                 });
             });
@@ -244,7 +244,7 @@ describe('Coords API test', function() {
                         throw err;
                     }
 
-                    res.body.features[0].properties.should.have.property('statusMessage').be.equal('a missing param');
+                    res.body.should.have.property('error_type').be.equal('Missing one or more of the params');
                     done();
                 });
             });
@@ -259,7 +259,7 @@ describe('Coords API test', function() {
                         throw err;
                     }
 
-                    res.body.features[0].properties.should.have.property('statusMessage').be.equal('a missing param');
+                    res.body.should.have.property('error_type').be.equal('Missing one or more of the params');
                     done();
                 });
             });
@@ -278,7 +278,7 @@ describe('Coords API test', function() {
                         throw err;
                     }
 
-                    res.body.features[0].properties.should.have.property('statusMessage').be.equal('an invalid param value');
+                    res.body.should.have.property('error_type').be.equal('Longitude error');
                     done();
                 });
             });
@@ -293,7 +293,7 @@ describe('Coords API test', function() {
                         throw err;
                     }
 
-                    res.body.features[0].properties.should.have.property('statusMessage').be.equal('an invalid param value');
+                    res.body.should.have.property('error_type').be.equal('Latitude error');
                     done();
                 });
             });
@@ -312,7 +312,7 @@ describe('Coords API test', function() {
                         throw err;
                     }
 
-                    res.body.features[0].properties.should.have.property('statusMessage').be.equal('out of range value');
+                    res.body.should.have.property('error_type').be.equal('Longitude error');
                     done();
                 });
             });
@@ -327,7 +327,7 @@ describe('Coords API test', function() {
                         throw err;
                     }
 
-                    res.body.features[0].properties.should.have.property('statusMessage').be.equal('out of range value');
+                    res.body.should.have.property('error_type').be.equal('Latitude error');
                     done();
                 });
             });
@@ -351,7 +351,7 @@ describe('Coords API test', function() {
                         throw err;
                     }
 
-                    res.body.features[0].properties.should.have.property('statusMessage').be.equal('ok');
+                    res.body.should.have.property('output.lon').be.equal(-48.7289508);
                     done();
                 });
             
@@ -373,7 +373,7 @@ describe('Coords API test', function() {
                         throw err;
                     }
 
-                    res.body.features[0].properties.should.have.property('statusMessage').be.equal('a missing param');
+                    res.body.should.have.property('error_type').be.equal('Missing one or more of the params');
                     done();
                 });
             });
@@ -388,7 +388,7 @@ describe('Coords API test', function() {
                         throw err;
                     }
 
-                    res.body.features[0].properties.should.have.property('statusMessage').be.equal('a missing param');
+                    res.body.should.have.property('error_type').be.equal('Missing one or more of the params');
                     done();
                 });
             });
@@ -403,7 +403,7 @@ describe('Coords API test', function() {
                         throw err;
                     }
 
-                    res.body.features[0].properties.should.have.property('statusMessage').be.equal('a missing param');
+                    res.body.should.have.property('error_type').be.equal('Missing one or more of the params');
                     done();
                 });
             });
@@ -418,7 +418,7 @@ describe('Coords API test', function() {
                         throw err;
                     }
 
-                    res.body.features[0].properties.should.have.property('statusMessage').be.equal('a missing param');
+                    res.body.should.have.property('error_type').be.equal('Missing one or more of the params');
                     done();
                 });
             });
@@ -433,7 +433,7 @@ describe('Coords API test', function() {
                         throw err;
                     }
 
-                    res.body.features[0].properties.should.have.property('statusMessage').be.equal('a missing param');
+                    res.body.should.have.property('error_type').be.equal('Missing one or more of the params');
                     done();
                 });
             });
@@ -448,7 +448,7 @@ describe('Coords API test', function() {
                         throw err;
                     }
 
-                    res.body.features[0].properties.should.have.property('statusMessage').be.equal('a missing param');
+                    res.body.should.have.property('error_type').be.equal('Missing one or more of the params');
                     done();
                 });
             });
@@ -463,7 +463,7 @@ describe('Coords API test', function() {
                         throw err;
                     }
 
-                    res.body.features[0].properties.should.have.property('statusMessage').be.equal('a missing param');
+                    res.body.should.have.property('error_type').be.equal('Missing one or more of the params');
                     done();
                 });
             });
@@ -478,7 +478,7 @@ describe('Coords API test', function() {
                         throw err;
                     }
 
-                    res.body.features[0].properties.should.have.property('statusMessage').be.equal('a missing param');
+                    res.body.should.have.property('error_type').be.equal('Missing one or more of the params');
                     done();
                 });
             });
@@ -497,7 +497,7 @@ describe('Coords API test', function() {
                         throw err;
                     }
 
-                    res.body.features[0].properties.should.have.property('statusMessage').be.equal('an invalid param value');
+                    res.body.should.have.property('error_type').be.equal('Longitude degrees error');
                     done();
                 });
             });
@@ -512,7 +512,7 @@ describe('Coords API test', function() {
                         throw err;
                     }
 
-                    res.body.features[0].properties.should.have.property('statusMessage').be.equal('an invalid param value');
+                    res.body.should.have.property('error_type').be.equal('Longitude minutes error');
                     done();
                 });
             });
@@ -527,7 +527,7 @@ describe('Coords API test', function() {
                         throw err;
                     }
 
-                    res.body.features[0].properties.should.have.property('statusMessage').be.equal('an invalid param value');
+                    res.body.should.have.property('error_type').be.equal('Longitude seconds error');
                     done();
                 });
             });
@@ -542,7 +542,7 @@ describe('Coords API test', function() {
                         throw err;
                     }
 
-                    res.body.features[0].properties.should.have.property('statusMessage').be.equal('an invalid param value');
+                    res.body.should.have.property('error_type').be.equal('Longitude direction error');
                     done();
                 });
             });
@@ -557,7 +557,7 @@ describe('Coords API test', function() {
                         throw err;
                     }
 
-                    res.body.features[0].properties.should.have.property('statusMessage').be.equal('an invalid param value');
+                    res.body.should.have.property('error_type').be.equal('Latitude degrees error');
                     done();
                 });
             });
@@ -572,7 +572,7 @@ describe('Coords API test', function() {
                         throw err;
                     }
 
-                    res.body.features[0].properties.should.have.property('statusMessage').be.equal('an invalid param value');
+                    res.body.should.have.property('error_type').be.equal('Latitude minutes error');
                     done();
                 });
             });
@@ -587,7 +587,7 @@ describe('Coords API test', function() {
                         throw err;
                     }
 
-                    res.body.features[0].properties.should.have.property('statusMessage').be.equal('an invalid param value');
+                    res.body.should.have.property('error_type').be.equal('Latitude seconds error');
                     done();
                 });
             });
@@ -602,7 +602,7 @@ describe('Coords API test', function() {
                         throw err;
                     }
 
-                    res.body.features[0].properties.should.have.property('statusMessage').be.equal('an invalid param value');
+                    res.body.should.have.property('error_type').be.equal('Latitude direction error');
                     done();
                 });
             });
@@ -621,7 +621,7 @@ describe('Coords API test', function() {
                         throw err;
                     }
 
-                    res.body.features[0].properties.should.have.property('statusMessage').be.equal('an invalid param value');
+                    res.body.should.have.property('error_type').be.equal('Longitude degrees error');
                     done();
                 });
             });
@@ -636,7 +636,7 @@ describe('Coords API test', function() {
                         throw err;
                     }
 
-                    res.body.features[0].properties.should.have.property('statusMessage').be.equal('an invalid param value');
+                    res.body.should.have.property('error_type').be.equal('Longitude minutes error');
                     done();
                 });
             });
@@ -651,7 +651,7 @@ describe('Coords API test', function() {
                         throw err;
                     }
 
-                    res.body.features[0].properties.should.have.property('statusMessage').be.equal('an invalid param value');
+                    res.body.should.have.property('error_type').be.equal('Latitude degrees error');
                     done();
                 });
             });
@@ -666,7 +666,7 @@ describe('Coords API test', function() {
                         throw err;
                     }
 
-                    res.body.features[0].properties.should.have.property('statusMessage').be.equal('an invalid param value');
+                    res.body.should.have.property('error_type').be.equal('Latitude minutes error');
                     done();
                 });
             });
@@ -685,7 +685,7 @@ describe('Coords API test', function() {
                         throw err;
                     }
 
-                    res.body.features[0].properties.should.have.property('statusMessage').be.equal('a param out of range');
+                    res.body.should.have.property('error_type').be.equal('Longitude degrees error');
                     done();
                 });
             });
@@ -700,7 +700,7 @@ describe('Coords API test', function() {
                         throw err;
                     }
 
-                    res.body.features[0].properties.should.have.property('statusMessage').be.equal('a param out of range');
+                    res.body.should.have.property('error_type').be.equal('Longitude minutes error');
                     done();
                 });
             });
@@ -715,7 +715,7 @@ describe('Coords API test', function() {
                         throw err;
                     }
 
-                    res.body.features[0].properties.should.have.property('statusMessage').be.equal('a param out of range');
+                    res.body.should.have.property('error_type').be.equal('Longitude seconds error');
                     done();
                 });
             });
@@ -730,7 +730,7 @@ describe('Coords API test', function() {
                         throw err;
                     }
 
-                    res.body.features[0].properties.should.have.property('statusMessage').be.equal('a param out of range');
+                    res.body.should.have.property('error_type').be.equal('Longitude direction error');
                     done();
                 });
             });
@@ -745,7 +745,7 @@ describe('Coords API test', function() {
                         throw err;
                     }
 
-                    res.body.features[0].properties.should.have.property('statusMessage').be.equal('a param out of range');
+                    res.body.should.have.property('error_type').be.equal('Latitude degrees error');
                     done();
                 });
             });
@@ -760,7 +760,7 @@ describe('Coords API test', function() {
                         throw err;
                     }
 
-                    res.body.features[0].properties.should.have.property('statusMessage').be.equal('a param out of range');
+                    res.body.should.have.property('error_type').be.equal('Latitude minutes error');
                     done();
                 });
             });
@@ -775,7 +775,7 @@ describe('Coords API test', function() {
                         throw err;
                     }
 
-                    res.body.features[0].properties.should.have.property('statusMessage').be.equal('a param out of range');
+                    res.body.should.have.property('error_type').be.equal('Latitude seconds error');
                     done();
                 });
             });
@@ -790,7 +790,7 @@ describe('Coords API test', function() {
                         throw err;
                     }
 
-                    res.body.features[0].properties.should.have.property('statusMessage').be.equal('a param out of range');
+                    res.body.should.have.property('error_type').be.equal('Latitude direction error');
                     done();
                 });
             });

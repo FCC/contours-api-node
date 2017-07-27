@@ -1,0 +1,95 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "version": "1.5.0",
+        "title": "Projection API"
+    },
+    "basePath": "/api/contours",
+    "tags": [{
+        "name": "projection",
+        "description": "get projection"
+    }],
+    "paths": {
+        "/project": {
+            "get": {
+                "tags": ["projection"],
+                "summary": "Get Projection",
+                "description": "Convert coordinates based on a selected output projection.",
+                "parameters": [{
+                    "name": "lat",
+                    "x-label": "Latitude",
+                    "x-display": true,
+                    "in": "query",
+                    "description": "Latitude",
+                    "required": true,
+                    "type": "number",
+                    "default": ""
+                }, {
+                    "name": "lon",
+                    "x-label": "Longitude",
+                    "x-display": true,
+                    "in": "query",
+                    "description": "Longitude",
+                    "required": true,
+                    "type": "number",
+                    "default": ""
+                }, {
+                    "name": "inProj",
+                    "in": "query",
+                    "description": "Input projection",
+                    "required": true,
+                    "type": "string",
+                    "default": "",
+                    "enum": [
+                        "WGS84",
+                        "NAD83",
+                        "NAD27"
+                    ]
+                }, {
+                    "name": "outProj",
+                    "in": "query",
+                    "description": "Output projection",
+                    "required": true,
+                    "type": "string",
+                    "default": "",
+                    "enum": [
+                        "WGS84",
+                        "NAD83",
+                        "NAD27"
+                    ]
+                }, {
+                    "name": "outType",
+                    "in": "query",
+                    "description": "Output type",
+                    "required": true,
+                    "type": "string",
+                    "default": "DD",
+                    "enum": [
+                        "DD",
+                        "DMS"
+                    ]
+                }, {
+                    "name": "format",
+                    "x-label": "Format",
+                    "x-display": false,
+                    "in": "path",
+                    "description": "Format for the returned results.<br /><br />Defaults to json.",
+                    "required": false,
+                    "type": "string",
+                    "default": "json",
+                    "enum": [
+                        "json"
+                    ]
+                }],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                },
+                "produces": [
+                    "application/json"
+                ]
+            }
+        }
+    }
+}

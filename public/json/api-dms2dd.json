@@ -1,0 +1,98 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "version": "1.5.0",
+        "title": "dms2dd API"
+    },
+    "basePath": "/api/contours",
+    "tags": [{
+        "name": "dms2dd",
+        "description": "get DMS to DD conversion"
+    }],
+    "paths": {
+        "/dms2dd": {
+            "get": {
+                "tags": ["dms2dd"],
+                "summary": "Get DMS to DD conversions",
+                "description": "Convert degree|minute|second (DMS) to decimal degree (DD). lonD=-48&lonM=43&lonS=44.223&lonDi=E&latD=28&latM=23&latS=34.223&latDi=N",
+                "parameters": [{
+                    "name": "latD",
+                    "in": "query",
+                    "description": "Latitude Degrees",
+                    "required": true,
+                    "type": "number",
+                    "default": ""
+                }, {
+                    "name": "latM",
+                    "in": "query",
+                    "description": "Latitude Minute",
+                    "required": true,
+                    "type": "number",
+                    "default": ""
+                }, {
+                    "name": "latS",
+                    "in": "query",
+                    "description": "Latitude Seconds",
+                    "required": true,
+                    "type": "number",
+                    "default": ""
+                }, {
+                    "name": "latDi",
+                    "in": "query",
+                    "description": "Latitude Direction",
+                    "required": true,
+                    "type": "number",
+                    "default": ""
+                }, {
+                    "name": "lonD",
+                    "in": "query",
+                    "description": "Longitude Degrees",
+                    "required": true,
+                    "type": "number",
+                    "default": ""
+                }, {
+                    "name": "lonM",
+                    "in": "query",
+                    "description": "Longitude Minute",
+                    "required": true,
+                    "type": "number",
+                    "default": ""
+                }, {
+                    "name": "lonS",
+                    "in": "query",
+                    "description": "Longitude Seconds",
+                    "required": true,
+                    "type": "number",
+                    "default": ""
+                }, {
+                    "name": "lonDi",
+                    "in": "query",
+                    "description": "Longitude Direction",
+                    "required": true,
+                    "type": "number",
+                    "default": ""
+                }, {
+                    "name": "format",
+                    "x-label": "Format",
+                    "x-display": false,
+                    "in": "path",
+                    "description": "Format for the returned results.<br /><br />Defaults to json.",
+                    "required": false,
+                    "type": "string",
+                    "default": "json",
+                    "enum": [
+                        "json"
+                    ]
+                }],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                },
+                "produces": [
+                    "application/json"
+                ]
+            }
+        }
+    }
+}

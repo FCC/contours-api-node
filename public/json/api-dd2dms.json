@@ -1,0 +1,54 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "version": "1.5.0",
+        "title": "dd2dms API"
+    },
+    "basePath": "/api/contours",
+    "tags": [{
+        "name": "dd2dms",
+        "description": "get DD to DMS conversion"
+    }],
+    "paths": {
+        "/dd2dms": {
+            "get": {
+                "tags": ["dd2dms"],
+                "summary": "Get DD to DMS conversions",
+                "description": "Convert decimal degree (DD) to degree|minute|second (DMS) format. ",
+                "parameters": [{
+                    "name": "lat",
+                    "in": "query",
+                    "description": "Latitude",
+                    "required": true,
+                    "type": "number",
+                    "default": ""
+                }, {
+                    "name": "lon",
+                    "in": "query",
+                    "description": "Longitude",
+                    "required": true,
+                    "type": "number",
+                    "default": ""
+                }, {
+                    "name": "format",
+                    "in": "path",
+                    "description": "Format for the returned results.<br /><br />Defaults to json.",
+                    "required": false,
+                    "type": "string",
+                    "default": "json",
+                    "enum": [
+                        "json"
+                    ]
+                }],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                },
+                "produces": [
+                    "application/json"
+                ]
+            }
+        }
+    }
+}

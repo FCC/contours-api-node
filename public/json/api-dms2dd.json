@@ -14,7 +14,7 @@
             "get": {
                 "tags": ["dms2dd"],
                 "summary": "Get DMS to DD conversion",
-                "description": "Convert degree|minute|second (DMS) to decimal degree (DD). lonD=-48&lonM=43&lonS=44.223&lonDi=E&latD=28&latM=23&latS=34.223&latDi=N",
+                "description": "Convert degree|minute|second (DMS) to decimal degree (DD).",
                 "parameters": [{
                     "name": "latD",
                     "in": "query",

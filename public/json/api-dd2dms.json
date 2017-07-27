@@ -13,7 +13,7 @@
         "/dd2dms": {
             "get": {
                 "tags": ["dd2dms"],
-                "summary": "Get DD to DMS conversions",
+                "summary": "Get DD to DMS conversion",
                 "description": "Convert decimal degree (DD) to degree|minute|second (DMS) format. ",
                 "parameters": [{
                     "name": "lat",

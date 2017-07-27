@@ -38,9 +38,9 @@
                     "in": "query",
                     "description": "Input projection",
                     "required": true,
-                    "type": "string",
-                    "default": "",
+                    "type": "string",                    
                     "enum": [
+                        "",
                         "WGS84",
                         "NAD83",
                         "NAD27"
@@ -50,9 +50,9 @@
                     "in": "query",
                     "description": "Output projection",
                     "required": true,
-                    "type": "string",
-                    "default": "",
+                    "type": "string",                    
                     "enum": [
+                        "",
                         "WGS84",
                         "NAD83",
                         "NAD27"

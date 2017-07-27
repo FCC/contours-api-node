@@ -61,7 +61,7 @@ var project = function(req,res){
 
     if(req.query.lon === undefined || req.query.lat === undefined || req.query.inProj === undefined || req.query.outProj === undefined){
         res.status(400);
-        //res.set('Content-Type', 'application/x-javascript');
+        res.setHeader('Content-Type', 'application/json');
         res.send(generateErrorJSON('Missing one or more of the params', ['The parameters are lat, lon, inProj, outProj, [and outType]','lon and lat parameters should be numeric','Use decimal format (-)xx.xxxxxxx','Valid longitudes range from -180 to 180','Valid latitudes range from -90 to 90','Projection options: WGS84, NAD83, and NAD27','OutType can be DMS or DD, if left blank DD is the default']));
         return;
     }
@@ -72,7 +72,7 @@ var project = function(req,res){
     // Check if both longitude and latitude are wrong or out of range
     if ((!isNumeric(inputLon) || -180 > inputLon || inputLon > 180) && (!isNumeric(inputLat) || -90 > inputLat || inputLat > 90)){ 
         res.status(400);
-        //res.set('Content-Type', 'application/x-javascript');
+        res.setHeader('Content-Type', 'application/json');
         res.send(generateErrorJSON('Longitude and latitude error', ['lon and lat parameters not numeric or out of range','Use decimal format (-)xx.xxxxxxx','Valid longitudes range from -180 to 180','Valid latitudes range from -90 to 90']));
         
         return;
@@ -81,7 +81,7 @@ var project = function(req,res){
     // Check if the longitude is wrong or out of range
     if (!isNumeric(inputLon) || -180 > inputLon || inputLon > 180){
         res.status(400);
-        //res.set('Content-Type', 'application/x-javascript');
+        res.setHeader('Content-Type', 'application/json');
         res.send(generateErrorJSON('Longitude error', ['lon parameter not numeric or out of range','Use decimal format (-)xx.xxxxxxx','Valid longitudes range from -180 to 180']));
         
         return;
@@ -90,7 +90,7 @@ var project = function(req,res){
     // Check if the latitude is wrong or not supported
     if (!isNumeric(inputLat) || -90 > inputLat || inputLat > 90){
         res.status(400);
-        //res.set('Content-Type', 'application/x-javascript');
+        res.setHeader('Content-Type', 'application/json');
         res.send(generateErrorJSON('Latitude error', ['lat parameter not numeric or out of range','Use decimal format (-)xx.xxxxxxx','Valid Latitudes range from -90 to 90']));
         
         return;
@@ -104,7 +104,7 @@ var project = function(req,res){
     // Check if both input and output projections are wrong or not supported
     if (porjAssgnRes.inProjName === undefined && porjAssgnRes.outProjName === undefined){
         res.status(400);
-        //res.set('Content-Type', 'application/x-javascript');
+        res.setHeader('Content-Type', 'application/json');
         res.send(generateErrorJSON('Either input or output projections invalid', ['inProj and outProj prameters not in proper format or not supported by this API','Supported projections are: ','ESPG 4326, type in URL --> WGS84','ESPG 4269, type in URL --> NAD83','ESPG 4267, type in URL --> NAD27']));
         
         return;
@@ -113,7 +113,7 @@ var project = function(req,res){
     // Check if the input projection is wrong or not supported
     if (porjAssgnRes.inProjName === undefined){
         res.status(400);
-        //res.set('Content-Type', 'application/x-javascript');
+        res.setHeader('Content-Type', 'application/json');
         res.send(generateErrorJSON('Input projection invalid', ['inProj and outProj prameters not in proper format or not supported by this API','Supported projections are: ','ESPG 4326, type in URL --> WGS84','ESPG 4269, type in URL --> NAD83','ESPG 4267, type in URL --> NAD27']));
         
         return;
@@ -122,7 +122,7 @@ var project = function(req,res){
     // Check if the output projection is wrong or not supported
     if (porjAssgnRes.outProjName === undefined){
         res.status(400);
-        //res.set('Content-Type', 'application/x-javascript');
+        res.setHeader('Content-Type', 'application/json');
         res.send(generateErrorJSON('Output projection invalid', ['inProj and outProj prameters not in proper format or not supported by this API','Supported projections are: ','ESPG 4326, type in URL --> WGS84','ESPG 4269, type in URL --> NAD83','ESPG 4267, type in URL --> NAD27']));
         
         return;
@@ -163,8 +163,8 @@ var project = function(req,res){
             }
         else{
                 res.status(400);
-                //res.set('Content-Type', 'application/x-javascript');
-                res.send(generateErrorJSON('outType parameter invalid', ['outType prameter should be DMS or DD','DMS --> Degree Minute Second','DD --> Decimal Degree','If outType parameter is not used in URL, default output is DD']));
+                res.setHeader('Content-Type', 'application/json');
+                res.send(generateErrorJSON('outType parameter invalid', ['outType prameter should be DMS or DD','DMS --> Degrees Minutes Seconds','DD --> Decimal Degrees','If outType parameter is not used in URL, default output is DD']));
                 
                 return;
             }
@@ -188,7 +188,7 @@ var project = function(req,res){
     };
     
     res.status(200);
-    //res.set('Content-Type', 'application/json');
+    res.setHeader('Content-Type', 'application/json');
     res.send(JSON.stringify(params));
 };
 
@@ -196,7 +196,7 @@ var dd2dms = function(req,res){
 
     if(req.query.lon === undefined || req.query.lat === undefined){
         res.status(400);
-        //res.set('Content-Type', 'application/x-javascript');
+        res.setHeader('Content-Type', 'application/json');
         res.send(generateErrorJSON('Missing one or more of the params', ['lon and lat parameters not numeric or out of range','Use decimal format (-)xx.xxxxxxx','Valid longitudes range from -180 to 180','Valid latitudes range from -90 to 90']));
         return;
         
@@ -208,7 +208,7 @@ var dd2dms = function(req,res){
     // Check if both longitude and latitude are wrong or out of range
     if ((!isNumeric(inputLon) || -180 > inputLon || inputLon > 180) && (!isNumeric(inputLat) || -90 > inputLat || inputLat > 90)){ 
         res.status(400);
-        //res.set('Content-Type', 'application/x-javascript');
+        res.setHeader('Content-Type', 'application/json');
         res.send(generateErrorJSON('Longitude and latitude error', ['lon and lat parameters not numeric or out of range','Use decimal format (-)xx.xxxxxxx','Valid longitudes range from -180 to 180','Valid latitudes range from -90 to 90']));
         return;
     }
@@ -216,7 +216,7 @@ var dd2dms = function(req,res){
     // Check if the longitude is wrong or out of range
     if (!isNumeric(inputLon) || -180 > inputLon || inputLon > 180){
         res.status(400);
-        //res.set('Content-Type', 'application/x-javascript');
+        res.setHeader('Content-Type', 'application/json');
         res.send(generateErrorJSON('Longitude error', ['lon parameter not numeric or out of range','Use decimal format (-)xx.xxxxxxx','Valid longitudes range from -180 to 180']));
         return;
     }
@@ -224,7 +224,7 @@ var dd2dms = function(req,res){
     // Check if the latitude is wrong or not supported
     if (!isNumeric(inputLat) || -90 > inputLat || inputLat > 90){
         res.status(400);
-        //res.set('Content-Type', 'application/x-javascript');
+        res.setHeader('Content-Type', 'application/json');
         res.send(generateErrorJSON('Latitude error', ['lat parameter not numeric or out of range','Use decimal format (-)xx.xxxxxxx','Valid Latitudes range from -90 to 90']));        
         return;
     }
@@ -262,7 +262,7 @@ var dd2dms = function(req,res){
                 'direction': dmsC.dmsArrays.longitude[3]
             },
             'lat': outLat,
-            'lat parsed':{
+            'lat_parsed':{
                 'degrees': dmsC.dmsArrays.latitude[0],
                 'minutes': dmsC.dmsArrays.latitude[1],
                 'seconds': roundTo(dmsC.dmsArrays.latitude[2],3),
@@ -272,7 +272,7 @@ var dd2dms = function(req,res){
     };
     
     res.status(200);
-    res.set('Content-Type', 'application/json');
+    res.setHeader('Content-Type', 'application/json');
     res.send(params);
     
 };
@@ -283,7 +283,7 @@ var dms2dd = function(req,res){
         || req.query.latD === undefined || req.query.latM === undefined || req.query.latS === undefined || req.query.latDi === undefined)
     {
         res.status(400);
-        //res.set('Content-Type', 'application/x-javascript');
+        res.setHeader('Content-Type', 'application/json');
         res.send(generateErrorJSON('Missing one or more of the params', ['Parameters are: lonD, lonM, lonS, lonDi, LatD, latM, latS, and LatDi',
                                 'LonD --> longitude degrees','LonM --> longitude minutes','LonS --> longitude seconds','LonDi --> longitude direction',
                                 'LonD should be a whole number (integer) ranged from -180 to 180','LatD also should be a whole number (integer) ranged from -90 to 90',
@@ -304,8 +304,8 @@ var dms2dd = function(req,res){
     // since isInteger does not verify number strings
     if (!isNumeric(inputLonD)){
         res.status(400);
-        //res.set('Content-Type', 'application/x-javascript');
-        res.send(generateErrorJSON('Longitude degree error', ['lonD parameter not a number']));
+        res.setHeader('Content-Type', 'application/json');
+        res.send(generateErrorJSON('Longitude degrees error', ['lonD parameter not a number']));
         return;
     }
     else{
@@ -314,8 +314,8 @@ var dms2dd = function(req,res){
 
     if (!isNumeric(inputLonM)){
         res.status(400);
-        //res.set('Content-Type', 'application/x-javascript');
-        res.send(generateErrorJSON('Longitude degree error', ['lonM parameter not a number']));
+        res.setHeader('Content-Type', 'application/json');
+        res.send(generateErrorJSON('Longitude minutes error', ['lonM parameter not a number']));
         return;
     }
     else{
@@ -324,8 +324,8 @@ var dms2dd = function(req,res){
 
     if (!isNumeric(inputLatD)){
         res.status(400);
-        //res.set('Content-Type', 'application/x-javascript');
-        res.send(generateErrorJSON('Latitude degree error', ['latD parameter not a number']));
+        res.setHeader('Content-Type', 'application/json');
+        res.send(generateErrorJSON('Latitude degrees error', ['latD parameter not a number']));
         return;
     }
     else{
@@ -334,8 +334,8 @@ var dms2dd = function(req,res){
     
     if (!isNumeric(inputLatM)){
         res.status(400);
-        //res.set('Content-Type', 'application/x-javascript');
-        res.send(generateErrorJSON('Latitude degree error', ['latM parameter not a number']));
+        res.setHeader('Content-Type', 'application/json');
+        res.send(generateErrorJSON('Latitude minutes error', ['latM parameter not a number']));
         return;
     }
     else{
@@ -345,7 +345,7 @@ var dms2dd = function(req,res){
     // Check if lonD is wrong or out of range
     if ((!isInteger(inputLonD) || -180 > inputLonD || inputLonD > 180)){ 
         res.status(400);
-        //res.set('Content-Type', 'application/x-javascript');
+        res.setHeader('Content-Type', 'application/json');
         res.send(generateErrorJSON('Longitude degrees error', ['lonD parameter not a whole number or out of range','Valid longitudes range from -180 to 180']));
         return;
     }
@@ -353,7 +353,7 @@ var dms2dd = function(req,res){
     // Check if latD is wrong or out of range
     if ((!isInteger(inputLatD) || -90 > inputLatD || inputLatD > 90)){ 
         res.status(400);
-        //res.set('Content-Type', 'application/x-javascript');
+        res.setHeader('Content-Type', 'application/json');
         res.send(generateErrorJSON('Latitude degrees error', ['latD parameter not a whole number or out of range','Valid latitudes range from -90 to 90']));
         return;
     }
@@ -361,7 +361,7 @@ var dms2dd = function(req,res){
     // Check if lonM is wrong or out of range
     if (!isInteger(inputLonM) || 0 > inputLonM || inputLonM > 60){
         res.status(400);
-        //res.set('Content-Type', 'application/x-javascript');
+        res.setHeader('Content-Type', 'application/json');
         res.send(generateErrorJSON('Longitude minutes error', ['lonM parameter not a whole number or out of range','Valid longitude minutes range from 0 to 60']));
         return;
     }
@@ -369,7 +369,7 @@ var dms2dd = function(req,res){
     // Check if lonM is wrong or out of range
     if (!isInteger(inputLatM) || 0 > inputLatM || inputLatM > 60){
         res.status(400);
-        //res.set('Content-Type', 'application/x-javascript');
+        res.setHeader('Content-Type', 'application/json');
         res.send(generateErrorJSON('Latitude minutes error', ['latM parameter not a whole number or out of range','Valid latitude minutes range from 0 to 60']));
         return;
     }
@@ -377,7 +377,7 @@ var dms2dd = function(req,res){
     // Check if lonS is wrong or out of range
     if (!isNumeric(inputLonS) || 0 > inputLonS || inputLonS > 60){
         res.status(400);
-        //res.set('Content-Type', 'application/x-javascript');
+        res.setHeader('Content-Type', 'application/json');
         res.send(generateErrorJSON('Longitude seconds error', ['lonS parameter not numeric or out of range','Valid longitude seconds range from 0.0 to 60.0']));
         return;
     }
@@ -385,7 +385,7 @@ var dms2dd = function(req,res){
     // Check if latS is wrong or out of range
     if (!isNumeric(inputLatS) || 0 > inputLatS || inputLatS > 60){
         res.status(400);
-        //res.set('Content-Type', 'application/x-javascript');
+        res.setHeader('Content-Type', 'application/json');
         res.send(generateErrorJSON('Latitude seconds error', ['latS parameter not numeric or out of range','Valid latitude seconds range from 0.0 to 60.0']));
         return;
     }
@@ -393,7 +393,7 @@ var dms2dd = function(req,res){
     // Check if lonDi is wrong
     if (inputLonDi.toUpperCase() !== 'E' && inputLonDi.toUpperCase() !== 'W'){
         res.status(400);
-        //res.set('Content-Type', 'application/x-javascript');
+        res.setHeader('Content-Type', 'application/json');
         res.send(generateErrorJSON('Longitude direction error', ['lonDi parameter can be E for East or W for West']));
         return;
     }
@@ -402,7 +402,7 @@ var dms2dd = function(req,res){
     if (inputLatDi.toUpperCase() !== 'N' && inputLatDi.toUpperCase() !== 'S'){
         res.status(400);
         res.send(generateErrorJSON('Latitude direction error', ['latDi parameter can be N for North or S for South']));
-        //res.set('Content-Type', 'application/x-javascript');
+        res.setHeader('Content-Type', 'application/json');
         return;
     }
 
@@ -439,7 +439,7 @@ var dms2dd = function(req,res){
     };
     
     res.status(200);
-    //res.set('Content-Type', 'application/json');
+    res.setHeader('Content-Type', 'application/json');
     res.send(JSON.stringify(params));
 };
 

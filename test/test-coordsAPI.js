@@ -23,7 +23,7 @@ describe('Coords API test', function() {
                         throw err;
                     }
 
-                    res.body.should.have.property('output.projection').be.equal('EPSG:4267 (NAD27)');
+                    res.body.output.projection.should.be.equal('EPSG:4267 (NAD27)');
                     done();
                 });
             
@@ -41,7 +41,7 @@ describe('Coords API test', function() {
                         throw err;
                     }
 
-                    res.body.should.have.property('output.projection').be.equal('EPSG:4267 (NAD27)');
+                    res.body.should.have.property('output').property('projection').be.equal('EPSG:4267 (NAD27)');
                     done();
                 });
             });
@@ -225,7 +225,7 @@ describe('Coords API test', function() {
                         throw err;
                     }
 
-                    res.body.should.have.property('output.lon_parsed.degree').be.equal(-77);
+                    res.body.output.lon_parsed.degrees.should.be.equal(25);
                     done();
                 });
             });
@@ -341,7 +341,7 @@ describe('Coords API test', function() {
 
         describe('Correct params and vals', function() {
 
-            it('should return decimal degree format from degree|minute|second input', function(done) {
+            it('should return decimal degrees format from degree|minute|second input', function(done) {
             request(server)
                 .get('/dms2dd?lonD=-48&lonM=43&lonS=44.223&lonDi=E&latD=28&latM=23&latS=34.223&latDi=N')
                 .expect('Content-Type', /json/)
@@ -351,7 +351,8 @@ describe('Coords API test', function() {
                         throw err;
                     }
 
-                    res.body.should.have.property('output.lon').be.equal(-48.7289508);
+                    res.body.output.lon.should.be.equal(-48.7289508);
+                    
                     done();
                 });
             

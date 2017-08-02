@@ -34,11 +34,12 @@ var contours = require('./controllers/contours.js');
 var tvfm_curves = require('./controllers/tvfm_curves.js');
 var entity = require('./controllers/entity.js');
 var conductivity = require('./controllers/conductivity.js');
-//var conductivity_r2 = require('./controllers/conductivity_r2.js');
+//var conductivity_r2_2points = require('./controllers/conductivity_r2_2points.js');
 var gwave = require('./controllers/gwave.js');
 var amr = require('./controllers/amr.js');
 var amPattern = require('./controllers/amPattern.js');
-var conductivity_batch = require('./controllers/conductivity_batch.js');
+var coordsAPI = require('./controllers/coordsAPI.js');
+//var conductivity_batch = require('./controllers/conductivity_batch.js');
 
 // **********************************************************
 // config
@@ -136,6 +137,24 @@ amr.amCallsigns(req, res);
 app.get('/allAMCallsignList', function(req, res){
 amr.allAMCallsignList(req, res);
 });
+
+// The routes for the coordsAPI, created by Ahmad Aburizaiza
+// The first one is to project the data e.g. WGS84 to NAD83
+// The second one converts coordinates from DMS to DD format
+// The third one converts coordinates from DD to DMS format
+//**********************************************************
+app.get('/project', function(req,res){
+    coordsAPI.project(req,res);
+});
+
+app.get('/dms2dd', function(req,res){
+    coordsAPI.dms2dd(req,res);
+});
+
+app.get('/dd2dms', function(req,res){
+    coordsAPI.dd2dms(req,res);
+});
+//**********************************************************
 
 app.use('/', express.static(path.join(__dirname, '/public')));
 app.use('/index.html', express.static(path.join(__dirname ,'/public')));
@@ -466,6 +485,17 @@ app.get('/conductivity.json', function(req, res){
     });
 });
 
+app.get('/conductivity_r2.json', function(req, res){
+    conductivity_r2_2points.fetchConductivity(req, res, function(error, response) {
+    if (error) {
+        res.status(400).send({"status": "error", "statusCode": 400, "statusMessage": error});
+    }
+    else  {
+    res.status(200).send(response);
+    }
+    });
+});
+
 
 //app.get('/conductivity_r2.json', function(req, res){
 //    conductivity_r2.fetchConductivity(req, res, function(error, response) {
@@ -549,7 +579,7 @@ var server = app.listen(NODE_PORT, function () {
 });
 
 if (NODE_ENV == "DEV") {
-	conductivity_batch.startBatch();
+	//conductivity_batch.startBatch();
 	
 }
 

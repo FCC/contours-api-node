@@ -57,6 +57,15 @@ var generateErrorJSON = function(error_type, error_details){
 
 }
 
+var checkSecVal = function(v){
+    if(v < 0.001){
+        return 0;
+    }
+    else{
+        return roundTo(v,3);
+    }
+}
+
 var project = function(req,res){
 
     if(req.query.lon === undefined || req.query.lat === undefined || req.query.inProj === undefined || req.query.outProj === undefined){
@@ -234,15 +243,29 @@ var dd2dms = function(req,res){
     inputLat = roundTo(parseFloat(req.query.lat),7);
 
     var dmsC = new DmsCoords(inputLat, inputLon);
-    var outLon = dmsC.dmsArrays.longitude[0] + '° ' + 
-                dmsC.dmsArrays.longitude[1] + "′ " +
-                roundTo(dmsC.dmsArrays.longitude[2],3) + '″ ' +
-                dmsC.dmsArrays.longitude[3];
 
-    var outLat = dmsC.dmsArrays.latitude[0] + '° ' + 
-                dmsC.dmsArrays.latitude[1] + "′ " +
-                roundTo(dmsC.dmsArrays.latitude[2],3) + '″ ' +
-                dmsC.dmsArrays.latitude[3];
+    var lnDeg = dmsC.dmsArrays.longitude[0];
+    var lnMin = dmsC.dmsArrays.longitude[1];
+    var lnSec = dmsC.dmsArrays.longitude[2];
+    var lnDir = dmsC.dmsArrays.longitude[3];
+    var ltDeg = dmsC.dmsArrays.latitude[0];
+    var ltMin = dmsC.dmsArrays.latitude[1];
+    var ltSec = dmsC.dmsArrays.latitude[2];
+    var ltDir = dmsC.dmsArrays.latitude[3];
+
+    // Updating the values of lnSec and ltSec based on if they are less than 0.001 or not
+    lnSec = checkSecVal(lnSec);
+    ltSec = checkSecVal(ltSec);
+
+    var outLon = lnDeg + '° ' + 
+                lnMin + "′ " +
+                lnSec + '″ ' +
+                lnDir;
+
+    var outLat = ltDeg + '° ' + 
+                ltMin + "′ " +
+                ltSec + '″ ' +
+                ltDir;
 
     // The params is the object to be displayed as JSON
     var params = {
@@ -256,17 +279,17 @@ var dd2dms = function(req,res){
         {
             'lon': outLon,
             'lon_parsed':{
-                'degrees': dmsC.dmsArrays.longitude[0],
-                'minutes': dmsC.dmsArrays.longitude[1],
-                'seconds': roundTo(dmsC.dmsArrays.longitude[2],3),
-                'direction': dmsC.dmsArrays.longitude[3]
+                'degrees': lnDeg,
+                'minutes': lnMin,
+                'seconds': lnSec,
+                'direction': lnDir
             },
             'lat': outLat,
             'lat_parsed':{
-                'degrees': dmsC.dmsArrays.latitude[0],
-                'minutes': dmsC.dmsArrays.latitude[1],
-                'seconds': roundTo(dmsC.dmsArrays.latitude[2],3),
-                'direction': dmsC.dmsArrays.latitude[3]
+                'degrees': ltDeg,
+                'minutes': ltMin,
+                'seconds': ltSec,
+                'direction': ltDir
             },
         }
     };
@@ -442,6 +465,7 @@ var dms2dd = function(req,res){
     res.setHeader('Content-Type', 'application/json');
     res.send(JSON.stringify(params));
 };
+
 
 module.exports.project = project;
 module.exports.dms2dd = dms2dd;

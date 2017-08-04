@@ -496,18 +496,6 @@ app.get('/conductivity_r2.json', function(req, res){
     });
 });
 
-
-//app.get('/conductivity_r2.json', function(req, res){
-//    conductivity_r2.fetchConductivity(req, res, function(error, response) {
-//    if (error) {
-//        res.status(400).send({"status": "error", "statusCode": 400, "statusMessage": error});
-//    }
-//    else  {
-//    res.status(200).send(response);
-//    }
-//    });
-//});
-
 app.get('/amField.json', function(req, res){
     gwave.getAmField(req, res);
 });

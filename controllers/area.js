@@ -17,6 +17,7 @@ var getArea = function(geom, callback) { // geom is a geojson string
 	var q = "SELECT ST_Area( ST_SetSRID(ST_GeomFromGeoJSON('" + geom + "'), 4326)::geography)";
 	db.any(q)
 		.then(function (data) {
+			db.end();
 			var area = data[0].st_area;
 			callback(null, {"area": area, "area_unit": "square meter"});
 		})

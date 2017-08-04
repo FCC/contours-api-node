@@ -158,7 +158,6 @@ var getfth = function(theta,ht,a,b,c,d,tls) {
 
 }
 
-
 var getRMS = function(pwr,fld,spc,orn,trs,phs,hgt,tls,a,b,c,d) {
 
     // Based on Radiat routines radiat_rms.for and radiat_small_rms.for.
@@ -260,9 +259,6 @@ var getRMS = function(pwr,fld,spc,orn,trs,phs,hgt,tls,a,b,c,d) {
 	
 }
 
-
-
-
 var bessel = function(x) {
 
      // Calculate Bessel function of first kind, zero order.
@@ -289,8 +285,7 @@ var bessel = function(x) {
 	return bess;
 	
 }	
-	
-	
+		
 var curlos = function(fld,hgt,a,b,c,d,tls,no_loss_k) {
 
 	var i, field, ab, cd, cda, ba, divide, current;
@@ -347,7 +342,6 @@ var curlos = function(fld,hgt,a,b,c,d,tls,no_loss_k) {
 	return ploss;
 
 }
-
 
 var towref = function(spc,orn,trs) {
     // Set all towers to common origin
@@ -465,7 +459,6 @@ var congen = function(pat, pwr, rms, fld, spc, orn, trs, phs, hgt, tls, a, b, c,
 
 }
 
-
 var toRadians = function(a) {
 	return a * Math.PI / 180;
 }
@@ -496,56 +489,54 @@ var getQ = function(pwr, K, fld) {
 	return Q;
 }
 
-function am_tower_ref(space,orient,tow_ref) {
-// Adjust database spacing (float) and orientation (float) of towers
-// to a common origin.
-// Loosely based on AMNIGHT routine am_tower_ref.f
-// Return adjusted values in electrical degrees.
-// Output orient always between 0 and 360.
+function am_tower_ref(space,orient,tow_ref){
+	// Adjust database spacing (float) and orientation (float) of towers
+	// to a common origin.
+	// Loosely based on AMNIGHT routine am_tower_ref.f
+	// Return adjusted values in electrical degrees.
+	// Output orient always between 0 and 360.
+	var ntow=space.length;
+	if  (orient.length!=ntow || tow_ref.length!=ntow) throw new Error('Differing sizes for space, orien, tref arrays.');
 
-var ntow=space.length;
-if  (orient.length!=ntow || tow_ref.length!=ntow) throw new Error('Differing sizes for space, orien, tref arrays.');
+	var radian=Math.PI/180.;
+	var degree=180./Math.PI;
 
-var radian=Math.PI/180.;
-var degree=180./Math.PI;
+	var orient_out_rad=[];
+	var space_out_rad=[];
+	
+	for (var itw=0; itw<ntow; itw++) {
+		orient_out_rad[itw]=orient[itw]*radian;
+		space_out_rad[itw]=space[itw]*radian;
 
-var orient_out_rad=[];
-var space_out_rad=[];
+		if (itw>0 && tow_ref[itw]=='1') {
+			var ptw=itw-1;   // Previous tower.
 
-for (var itw=0; itw<ntow; itw++) {
-     orient_out_rad[itw]=orient[itw]*radian;
-     space_out_rad[itw]=space[itw]*radian;
+			var tmp1=space_out_rad[itw]*Math.cos(orient_out_rad[itw]) +
+					space_out_rad[ptw]*Math.cos(orient_out_rad[ptw]);
 
-     if (itw>0 && tow_ref[itw]=='1') {
-         var ptw=itw-1;   // Previous tower.
+			var tmp2=space_out_rad[itw]*Math.sin(orient_out_rad[itw]) +
+					space_out_rad[ptw]*Math.sin(orient_out_rad[ptw]);
 
-         var tmp1=space_out_rad[itw]*Math.cos(orient_out_rad[itw]) +
-                  space_out_rad[ptw]*Math.cos(orient_out_rad[ptw]);
+			space_out_rad[itw]=Math.sqrt(tmp1*tmp1 + tmp2*tmp2);
 
-         var tmp2=space_out_rad[itw]*Math.sin(orient_out_rad[itw]) +
-                  space_out_rad[ptw]*Math.sin(orient_out_rad[ptw]);
+			if (tmp1==0. && tmp2==0.) {
+				orient_out_rad[itw]=0.;
+				}
+			else {
+				orient_out_rad[itw]=Math.atan2(tmp2,tmp1);
+				}
+		}
 
-         space_out_rad[itw]=Math.sqrt(tmp1*tmp1 + tmp2*tmp2);
+		orient[itw]=orient_out_rad[itw]*degree;
+		if (orient[itw]<0.) orient[itw]=orient[itw]+360.;
 
-         if (tmp1==0. && tmp2==0.) {
-             orient_out_rad[itw]=0.;
-            }
-         else {
-               orient_out_rad[itw]=Math.atan2(tmp2,tmp1);
-              }
-     }
+		space[itw]=space_out_rad[itw]*degree;
 
-     orient[itw]=orient_out_rad[itw]*degree;
-     if (orient[itw]<0.) orient[itw]=orient[itw]+360.;
+	}
 
-     space[itw]=space_out_rad[itw]*degree;
+	return [space,orient];
 
-     }
-
-return [space,orient];
 }
-
-
 
 var amPattern = function(idType, idValue, nradial, field, callback) {
 
@@ -585,7 +576,6 @@ var amPattern = function(idType, idValue, nradial, field, callback) {
 	});
 }
 
-
 var applyAmAugs = function(items, augData) {
 	console.log('apply am aug')
 	var i, j, azimuth, center_azimuth, span, radiation_aug, augmentation, Estd;
@@ -613,7 +603,6 @@ var applyAmAugs = function(items, augData) {
 	
 	return items;
 }
-
 
 var getEstd = function(az, items) {
 
@@ -646,8 +635,6 @@ var getEstd = function(az, items) {
 	return e;
 }
 
-
-
 var calAug = function(azimuth, center_azimuth, span, radiation_aug, Estd_center) {
 
 	var D = Math.abs(azimuth - center_azimuth);
@@ -663,8 +650,6 @@ var calAug = function(azimuth, center_azimuth, span, radiation_aug, Estd_center)
 
 	return dEsq;
 }
-
-
 
 var getAmStationData = function(idType, idValue, callback) {
 
@@ -696,6 +681,7 @@ var getAmStationData = function(idType, idValue, callback) {
 	
 	db_lms.any(q)
 	.then(function (data) {
+		db_lms.end();
 		if (data.length == 0) {
 			console.log('\n' + 'no valid record found');
 			callback('no valid record found for this station', null);
@@ -723,6 +709,7 @@ var getAmStationData = function(idType, idValue, callback) {
 					
 			db_lms.any(q)
 			.then(function (data) {	
+
 				if (data.length == 0) {
 					console.log('\n' + 'no valid ant record found');
 					callback('no valid ant record found for this station', null);
@@ -743,7 +730,7 @@ var getAmStationData = function(idType, idValue, callback) {
 				
 				db_lms.any(q)
 				.then(function (data) {
-				
+					db_lms.end();
 					if (data.length == 0) {
 						console.log('\n' + 'no valid ant record found');
 						callback('no valid tower record found for this station', null);
@@ -811,8 +798,6 @@ var addFileNumber = function(antData, applicationData) {
 	return antData;
 }
 
-
-
 var amContour = function(idType, idValue, nradial, field, areaFlag, pop, callback) {
 
 	amPattern(idType, idValue, nradial, field, function(error, result) {
@@ -873,7 +858,8 @@ var getOneAmContour = function(patternData, nradial, field, areaFlag, pop) {retu
 	console.log('\n' + 'NAD27 to WGS84 Query='+q);
 	db_contour.any(q)
 		.then(function (data) {
-		
+			db_contour.end();
+			console.log(data);
 			var field_input = field;
 			
 			var latlon84 = JSON.parse(data[0].latlon);
@@ -1185,7 +1171,6 @@ var getAmPattern = function(req, res) {
 
 	});
 }
-
 
 var getAmContour = function(req, res) {
 	console.log('================== getAmContour API =============');
@@ -1510,7 +1495,6 @@ var subSampleAmPattern = function(amPattern, nradial) {
 	return amPatternNew;
 }
 
-
 function getLatLonFromDist(lat1, lon1, az, d) {
 //az: azimuth in degrees
 //d: distance in km
@@ -1629,10 +1613,3 @@ module.exports.congen = congen;
 module.exports.getAmPattern = getAmPattern;
 module.exports.getAmContour = getAmContour;
 module.exports.amContour = amContour;
-
-
-
-
-
-
-

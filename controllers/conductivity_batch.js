@@ -25,6 +25,7 @@ var getAntListCDBS = function(callback) {
 			 
 	db_lms.any(q)
 	.then(function (data) {
+		db_lms.end();
 		if (data.length == 0) {
 			console.log('\n' + 'no valid record found');
 			callback('no valid record found', null);
@@ -51,6 +52,7 @@ var getAntListContour = function(callback) {
 			 
 	db_contour.any(q)
 	.then(function (data) {
+		db_contour.end();
 		callback(null, data);
 		return;
 		
@@ -74,7 +76,7 @@ var getOneConductivity = function(aData, n, callback) {
 	console.log('\n' + 'NAD27 to WGS84 Query='+q);
 	db_contour.any(q)
 		.then(function (data) {
-					
+			db_contour.end();
 			var latlon84 = JSON.parse(data[0].latlon);
 			console.log(latlon84);
 			
@@ -90,7 +92,7 @@ var getOneConductivity = function(aData, n, callback) {
 			console.log(q)
 			db_lms.any(q)
 			.then(function (data) {
-			
+				db_lms.end();
 				console.log(data);
 				var comm_state = "";
 				if (data.length > 0) {
@@ -123,6 +125,7 @@ var getOneConductivity = function(aData, n, callback) {
 							
 							db_contour.any(q)
 							.then(function (data) {
+								db_contour.end();
 								callback(null, "ok");
 							})
 							.catch(function (err) {
@@ -158,6 +161,7 @@ var getOneConductivity = function(aData, n, callback) {
 							
 							db_contour.any(q)
 							.then(function (data) {
+								db_contour.end();
 								callback(null, "ok");
 							})
 							.catch(function (err) {

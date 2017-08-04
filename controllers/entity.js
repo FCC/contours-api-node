@@ -278,6 +278,7 @@ function getEntity(req, res, callback) {
 		
 		db_lms.any(q)
 		.then(function (data) {
+			db_lms.end();
 			if (data.length == 0) {
 				console.log('\n' + 'no valid record found');
 				callback('no valid record found', null);
@@ -687,16 +688,16 @@ console.log('\n' + 'getOneContour recordData='+JSON.stringify(recordData));
     console.log('\n' + 'NAD27 to WGS84 Query='+q);
 	db_contours.any(q)
 		.then(function (data) {
+			db_contours.end();
+			//console.log('\n' + data)
+			var dum = data[0].st_astext.replace(/^.*\(/, '').replace(/\(.*$/, '');
+			var lon = parseFloat(dum.split(' ')[0]);
+			var lat = parseFloat(dum.split(' ')[1]);
 		
-		//console.log('\n' + data)
-		var dum = data[0].st_astext.replace(/^.*\(/, '').replace(/\(.*$/, '');
-		var lon = parseFloat(dum.split(' ')[0]);
-		var lat = parseFloat(dum.split(' ')[1]);
+			lat = mathjs.round(lat, 10);
+			lon = mathjs.round(lon, 10);
 		
-		lat = mathjs.round(lat, 10);
-		lon = mathjs.round(lon, 10);
-		
-		//console.log('\n' + lat, lon);
+			//console.log('\n' + lat, lon);
 		
 		var inputData = {
 			"serviceType": recordData.serviceType,
@@ -765,6 +766,7 @@ console.log('\n' + 'getOneContour recordData='+JSON.stringify(recordData));
 		
 		db_lms.any(q)
 		.then(function (data) {
+			db_lms.end();
 			//console.log('\n' + 'Query data [pattern] =', data)
 			var ant_rotation = recordData.ant_rotation;
 			if (ant_rotation == null) {
@@ -884,6 +886,7 @@ var getFileNumber = function(application_id, callback) {
 		console.log('getFileNumber q='+q)
 		db_lms.any(q)
 		.then(function (data) {
+			db_lms.end();
 			console.log('data', data)
 			var fileNumber = "";			
 			if (data.length > 0) {				
@@ -924,8 +927,6 @@ var getFileNumber = function(application_id, callback) {
 	}	 
 		
 }
-
-
 
 
 module.exports.getEntity = getEntity;

@@ -10,7 +10,7 @@
         "description": "get projection"
     }],
     "paths": {
-        "/project": {
+        "/project.{format}": {
             "get": {
                 "tags": ["projection"],
                 "summary": "Get Projection",

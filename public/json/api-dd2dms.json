@@ -2,15 +2,15 @@
     "swagger": "2.0",
     "info": {
         "version": "1.5.0",
-        "title": "dd2dms API"
+        "title": "DD2DMS API"
     },
     "basePath": "/api/contours",
     "tags": [{
-        "name": "dd2dms",
+        "name": "DD2DMS",
         "description": "get DD to DMS conversion"
     }],
     "paths": {
-        "/dd2dms": {
+        "/dd2dms.{format}": {
             "get": {
                 "tags": ["dd2dms"],
                 "summary": "Get DD to DMS conversion",

@@ -6,86 +6,6 @@ var dd = require("dms-conversion");
 var isInteger = require("is-integer");
 var db_contour = require('./db_contour.js');
 
-var runPostGIS = function(inLon, inLat, inProj, outProj){
-
-    var q = "SELECT concat(ST_AsLatLonText(ST_Transform(ST_GeomFromText('POINT($1 $2)',$3),$4)) , ' ' , ST_x(ST_Transform(ST_GeomFromText('POINT($1 $2)',$3),$4)), ' ' ,ST_y(ST_Transform(ST_GeomFromText('POINT($1 $2)',$3),$4))) as clist";
-    db_contour.one(q,[inputLon,inputLat])
-        .then(function(data) {
-            console.log(data);
-            var coordsList = data.clist.split(' ');
-                                
-            // outLon and outLat are used to output the coordinates in either DD or DMS format
-            var outLonDD, outLatDD, outLonDMS, outLatDMS
-
-            var outLat = outputPointGJS.coordinates[1];
-            var outLon = outputPointGJS.coordinates[0];
-            
-            // This if statement checks if the outType parameter is included in the URL
-            // If yes, it will check if the value passed is either DMS or DD
-            // If not, it will default to DD
-            if(req.query.outType === undefined){
-                outLon = roundTo(outLon,7);
-                outLat = roundTo(outLat,7);
-                }
-            else{
-                    if (req.query.outType.toUpperCase() === 'DMS'){
-                        dmsC = new DmsCoords(roundTo(outLat,7), roundTo(outLon,7));
-                        console.log(dmsC.dmsArrays);
-                        outLon = dmsC.dmsArrays.longitude[0] + '° ' + 
-                            dmsC.dmsArrays.longitude[1] + "′ " +
-                            roundTo(dmsC.dmsArrays.longitude[2],3) + '″ ' +
-                            dmsC.dmsArrays.longitude[3];
-        
-                        outLat = dmsC.dmsArrays.latitude[0] + '° ' + 
-                            dmsC.dmsArrays.latitude[1] + "′ " +
-                            roundTo(dmsC.dmsArrays.latitude[2],3) + '″ ' +
-                            dmsC.dmsArrays.latitude[3];
-                    }
-                else if (req.query.outType.toUpperCase() === 'DD'){
-                        outLon = roundTo(outLon,7);
-                        outLat = roundTo(outLat,7);
-                    
-                    }
-                else{
-                        res.status(400);
-                        res.setHeader('Content-Type', 'application/json');
-                        res.send(generateErrorJSON('outType parameter invalid', ['outType prameter should be DMS or DD','DMS --> Degrees Minutes Seconds','DD --> Decimal Degrees','If outType parameter is not used in URL, default output is DD']));
-                        
-                        return;
-                    }
-            }
-        
-            // The params is the object to be displayed as JSON
-            var params = {
-                'input':
-                {
-                    'lon': parseFloat(inputLon),
-                    'lat': parseFloat(inputLat),
-                    'projection': porjAssgnRes.inProjName
-                },
-        
-                'output':
-                {
-                    'lon': outLon,
-                    'lat': outLat,
-                    'projection': porjAssgnRes.outProjName
-                }
-            };
-            
-            res.status(200);
-            res.setHeader('Content-Type', 'application/json');
-            res.send(JSON.stringify(params));
-            //res.send('no error');
-            
-        })
-        .catch(function(error) {
-            // error;
-            res.status(400);
-            res.setHeader('Content-Type', 'application/json');
-            res.send('Error');   
-        });
-
-}
 
 var assignInOutProjs = function(inP,outP){
 
@@ -230,13 +150,8 @@ var project = function(req,res){
     inputLat = roundTo(parseFloat(req.query.lat),7);
     //var outputPoint = proj4.transform(porjAssgnRes.inProjDef,porjAssgnRes.outProjDef,[inputLon,inputLat]);
     
-    console.log(inputLon);
-    console.log(inputLat);
-    console.log(porjAssgnRes.inProjCode);
-    console.log(porjAssgnRes.outProjCode);
-
     var q = "SELECT concat(ST_AsLatLonText(ST_Transform(ST_GeomFromText('POINT($1 $2)',$3),$4)) , ' ' , ST_x(ST_Transform(ST_GeomFromText('POINT($1 $2)',$3),$4)), ' ' ,ST_y(ST_Transform(ST_GeomFromText('POINT($1 $2)',$3),$4))) as clist";
-    db_contour.one(q,[inputLon,inputLat,4269,4267])
+    db_contour.one(q,[inputLon,inputLat,porjAssgnRes.inProjCode,porjAssgnRes.outProjCode])
         .then(function(data) {
             console.log(data);
             var coordsList = data.clist.split(' ');

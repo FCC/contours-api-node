@@ -4,6 +4,88 @@ var roundTo = require('round-to');
 var DmsCoords = require("dms-conversion").default;
 var dd = require("dms-conversion");
 var isInteger = require("is-integer");
+var db_contour = require('./db_contour.js');
+
+var runPostGIS = function(inLon, inLat, inProj, outProj){
+
+    var q = "SELECT concat(ST_AsLatLonText(ST_Transform(ST_GeomFromText('POINT($1 $2)',$3),$4)) , ' ' , ST_x(ST_Transform(ST_GeomFromText('POINT($1 $2)',$3),$4)), ' ' ,ST_y(ST_Transform(ST_GeomFromText('POINT($1 $2)',$3),$4))) as clist";
+    db_contour.one(q,[inputLon,inputLat])
+        .then(function(data) {
+            console.log(data);
+            var coordsList = data.clist.split(' ');
+                                
+            // outLon and outLat are used to output the coordinates in either DD or DMS format
+            var outLonDD, outLatDD, outLonDMS, outLatDMS
+
+            var outLat = outputPointGJS.coordinates[1];
+            var outLon = outputPointGJS.coordinates[0];
+            
+            // This if statement checks if the outType parameter is included in the URL
+            // If yes, it will check if the value passed is either DMS or DD
+            // If not, it will default to DD
+            if(req.query.outType === undefined){
+                outLon = roundTo(outLon,7);
+                outLat = roundTo(outLat,7);
+                }
+            else{
+                    if (req.query.outType.toUpperCase() === 'DMS'){
+                        dmsC = new DmsCoords(roundTo(outLat,7), roundTo(outLon,7));
+                        console.log(dmsC.dmsArrays);
+                        outLon = dmsC.dmsArrays.longitude[0] + '° ' + 
+                            dmsC.dmsArrays.longitude[1] + "′ " +
+                            roundTo(dmsC.dmsArrays.longitude[2],3) + '″ ' +
+                            dmsC.dmsArrays.longitude[3];
+        
+                        outLat = dmsC.dmsArrays.latitude[0] + '° ' + 
+                            dmsC.dmsArrays.latitude[1] + "′ " +
+                            roundTo(dmsC.dmsArrays.latitude[2],3) + '″ ' +
+                            dmsC.dmsArrays.latitude[3];
+                    }
+                else if (req.query.outType.toUpperCase() === 'DD'){
+                        outLon = roundTo(outLon,7);
+                        outLat = roundTo(outLat,7);
+                    
+                    }
+                else{
+                        res.status(400);
+                        res.setHeader('Content-Type', 'application/json');
+                        res.send(generateErrorJSON('outType parameter invalid', ['outType prameter should be DMS or DD','DMS --> Degrees Minutes Seconds','DD --> Decimal Degrees','If outType parameter is not used in URL, default output is DD']));
+                        
+                        return;
+                    }
+            }
+        
+            // The params is the object to be displayed as JSON
+            var params = {
+                'input':
+                {
+                    'lon': parseFloat(inputLon),
+                    'lat': parseFloat(inputLat),
+                    'projection': porjAssgnRes.inProjName
+                },
+        
+                'output':
+                {
+                    'lon': outLon,
+                    'lat': outLat,
+                    'projection': porjAssgnRes.outProjName
+                }
+            };
+            
+            res.status(200);
+            res.setHeader('Content-Type', 'application/json');
+            res.send(JSON.stringify(params));
+            //res.send('no error');
+            
+        })
+        .catch(function(error) {
+            // error;
+            res.status(400);
+            res.setHeader('Content-Type', 'application/json');
+            res.send('Error');   
+        });
+
+}
 
 var assignInOutProjs = function(inP,outP){
 
@@ -15,15 +97,18 @@ var assignInOutProjs = function(inP,outP){
 
     if (inP.toUpperCase() === 'WGS84'){
         result.inProjDef = WGS84ProjDef;
-        result.inProjName = 'EPSG:4326 (WGS84)';
+        result.inProjName = 'WGS84';
+        result.inProjCode = 4326;
     }
     else if(inP.toUpperCase() === 'NAD83'){
         result.inProjDef = NAD83ProjDef;
-        result.inProjName = 'EPSG:4269 (NAD83)';
+        result.inProjName = 'NAD83';
+        result.inProjCode = 4269;
     }
     else if(inP.toUpperCase() === 'NAD27'){
         result.inProjDef = NAD27ProjDef;
-        result.inProjName = 'EPSG:4267 (NAD27)';
+        result.inProjName = 'NAD27';
+        result.inProjCode = 4267;
     }
     else{
         result.inProjName = undefined;
@@ -31,15 +116,18 @@ var assignInOutProjs = function(inP,outP){
 
     if (outP.toUpperCase() === 'WGS84'){
         result.outProjDef = WGS84ProjDef;
-        result.outProjName = 'EPSG:4326 (WGS84)';
+        result.outProjName = 'WGS84';
+        result.outProjCode = 4326;
     }
     else if(outP.toUpperCase() === 'NAD83'){
         result.outProjDef = NAD83ProjDef;
-        result.outProjName = 'EPSG:4269 (NAD83)';
+        result.outProjName = 'NAD83';
+        result.outProjCode = 4269;
     }
     else if(outP.toUpperCase() === 'NAD27'){
         result.outProjDef = NAD27ProjDef;
-        result.outProjName = 'EPSG:4267 (NAD27)';
+        result.outProjName = 'NAD27';
+        result.outProjCode = 4267;
     }
     else{
         result.outProjName = undefined;
@@ -111,7 +199,7 @@ var project = function(req,res){
     var porjAssgnRes = assignInOutProjs(inProj,outProj);
 
     // Check if both input and output projections are wrong or not supported
-    if (porjAssgnRes.inProjName === undefined && porjAssgnRes.outProjName === undefined){
+    if (porjAssgnRes.inProjCode === undefined && porjAssgnRes.outProjCode === undefined){
         res.status(400);
         res.setHeader('Content-Type', 'application/json');
         res.send(generateErrorJSON('Either input or output projections invalid', ['inProj and outProj prameters not in proper format or not supported by this API','Supported projections are: ','ESPG 4326, type in URL --> WGS84','ESPG 4269, type in URL --> NAD83','ESPG 4267, type in URL --> NAD27']));
@@ -120,7 +208,7 @@ var project = function(req,res){
     }
 
     // Check if the input projection is wrong or not supported
-    if (porjAssgnRes.inProjName === undefined){
+    if (porjAssgnRes.inProjCode === undefined){
         res.status(400);
         res.setHeader('Content-Type', 'application/json');
         res.send(generateErrorJSON('Input projection invalid', ['inProj and outProj prameters not in proper format or not supported by this API','Supported projections are: ','ESPG 4326, type in URL --> WGS84','ESPG 4269, type in URL --> NAD83','ESPG 4267, type in URL --> NAD27']));
@@ -129,7 +217,7 @@ var project = function(req,res){
     }
 
     // Check if the output projection is wrong or not supported
-    if (porjAssgnRes.outProjName === undefined){
+    if (porjAssgnRes.outProjCode === undefined){
         res.status(400);
         res.setHeader('Content-Type', 'application/json');
         res.send(generateErrorJSON('Output projection invalid', ['inProj and outProj prameters not in proper format or not supported by this API','Supported projections are: ','ESPG 4326, type in URL --> WGS84','ESPG 4269, type in URL --> NAD83','ESPG 4267, type in URL --> NAD27']));
@@ -140,65 +228,75 @@ var project = function(req,res){
     // The following code will create the output results if there are no errors
     inputLon = roundTo(parseFloat(req.query.lon),7);
     inputLat = roundTo(parseFloat(req.query.lat),7);
-    var outputPoint = proj4.transform(porjAssgnRes.inProjDef,porjAssgnRes.outProjDef,[inputLon,inputLat]);
-
-    // outLon and outLat are used to output the coordinates in either DD or DMS format
-    var outLon, outLat, dmsC;
-
-    // This if statement checks if the outType parameter is included in the URL
-    // If yes, it will check if the value passed is either DMS or DD
-    // If not, it will default to DD
-    if(req.query.outType === undefined){
-        outLon = roundTo(outputPoint.x,7);
-        outLat = roundTo(outputPoint.y,7);
-        }
-    else{
-            if (req.query.outType.toUpperCase() === 'DMS'){
-                dmsC = new DmsCoords(roundTo(outputPoint.y,7), roundTo(outputPoint.x,7));
-                outLon = dmsC.dmsArrays.longitude[0] + '° ' + 
-                    dmsC.dmsArrays.longitude[1] + "′ " +
-                    roundTo(dmsC.dmsArrays.longitude[2],3) + '″ ' +
-                    dmsC.dmsArrays.longitude[3];
-
-                outLat = dmsC.dmsArrays.latitude[0] + '° ' + 
-                    dmsC.dmsArrays.latitude[1] + "′ " +
-                    roundTo(dmsC.dmsArrays.latitude[2],3) + '″ ' +
-                    dmsC.dmsArrays.latitude[3];
-            }
-        else if (req.query.outType.toUpperCase() === 'DD'){
-                outLon = roundTo(outputPoint.x,7);
-                outLat = roundTo(outputPoint.y,7);
-            
-            }
-        else{
-                res.status(400);
-                res.setHeader('Content-Type', 'application/json');
-                res.send(generateErrorJSON('outType parameter invalid', ['outType prameter should be DMS or DD','DMS --> Degrees Minutes Seconds','DD --> Decimal Degrees','If outType parameter is not used in URL, default output is DD']));
-                
-                return;
-            }
-    }
-
-    // The params is the object to be displayed as JSON
-    var params = {
-        'input':
-        {
-            'lon': parseFloat(inputLon),
-            'lat': parseFloat(inputLat),
-            'projection': porjAssgnRes.inProjName
-        },
-
-        'output':
-        {
-            'lon': outLon,
-            'lat': outLat,
-            'projection': porjAssgnRes.outProjName
-        }
-    };
+    //var outputPoint = proj4.transform(porjAssgnRes.inProjDef,porjAssgnRes.outProjDef,[inputLon,inputLat]);
     
-    res.status(200);
-    res.setHeader('Content-Type', 'application/json');
-    res.send(JSON.stringify(params));
+    console.log(inputLon);
+    console.log(inputLat);
+    console.log(porjAssgnRes.inProjCode);
+    console.log(porjAssgnRes.outProjCode);
+
+    var q = "SELECT concat(ST_AsLatLonText(ST_Transform(ST_GeomFromText('POINT($1 $2)',$3),$4)) , ' ' , ST_x(ST_Transform(ST_GeomFromText('POINT($1 $2)',$3),$4)), ' ' ,ST_y(ST_Transform(ST_GeomFromText('POINT($1 $2)',$3),$4))) as clist";
+    db_contour.one(q,[inputLon,inputLat,4269,4267])
+        .then(function(data) {
+            console.log(data);
+            var coordsList = data.clist.split(' ');
+                       			
+            // outLon and outLat are used to output the coordinates in either DD or DMS format
+            var outLon, outLat, outLonDD, outLatDD, outLonDMS, outLatDMS;
+
+            outLonDD = coordsList[2];
+            outLatDD = coordsList[3];
+            outLonDMS = coordsList[1];
+            outLatDMS = coordsList[0];
+
+            // This if statement checks if the outType parameter is included in the URL
+            // If yes, it will check if the value passed is either DMS or DD
+            // If not, it will default to DD
+            if(req.query.outType === undefined || req.query.outType.toUpperCase() === 'DD'){
+                outLon = roundTo(parseFloat(outLonDD),7);
+                outLat = roundTo(parseFloat(outLatDD),7);
+                }
+            else if (req.query.outType.toUpperCase() === 'DMS'){
+                        outLon = outLonDMS.replace('"','″ ').replace("'","′ ").replace("°","° ");
+                        outLat = outLatDMS.replace('"','″ ').replace("'","′ ").replace("°","° ");;
+                }
+            else{
+                        res.status(400);
+                        res.setHeader('Content-Type', 'application/json');
+                        res.send(generateErrorJSON('outType parameter invalid', ['outType prameter should be DMS or DD','DMS --> Degrees Minutes Seconds','DD --> Decimal Degrees','If outType parameter is not used in URL, default output is DD']));
+                        return;
+                }
+        
+            // The params is the object to be displayed as JSON
+            var params = {
+                'input':
+                {
+                    'lon': parseFloat(inputLon),
+                    'lat': parseFloat(inputLat),
+                    'projection': porjAssgnRes.inProjName
+                },
+        
+                'output':
+                {
+                    'lon': outLon,
+                    'lat': outLat,
+                    'projection': porjAssgnRes.outProjName
+                }
+            };
+            
+            res.status(200);
+            res.setHeader('Content-Type', 'application/json');
+            res.send(JSON.stringify(params));
+            //res.send('no error');
+            
+        })
+        .catch(function(error) {
+            // error;
+            res.status(400);
+            res.setHeader('Content-Type', 'application/json');
+            res.send('Error');   
+        });
+
 };
 
 var dd2dms = function(req,res){

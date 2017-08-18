@@ -196,7 +196,6 @@ function readLMS(res, callsign, facility_id) {
 	console.log(q)	
 	db_lms.any(q)
 		.then(function (data) {
-			db_lms.end();
 			res.status(200)
 			.json({
 				"status": "success", 
@@ -214,7 +213,7 @@ function readLMS(res, callsign, facility_id) {
 				'statusMessage': 'Error executing LMS query.',
 				'error': err.stack
 			});
-	});	
+		});	
 
 }
 

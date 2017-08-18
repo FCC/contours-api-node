@@ -681,7 +681,6 @@ var getAmStationData = function(idType, idValue, callback) {
 	
 	db_lms.any(q)
 	.then(function (data) {
-		db_lms.end();
 		if (data.length == 0) {
 			console.log('\n' + 'no valid record found');
 			callback('no valid record found for this station', null);
@@ -730,7 +729,6 @@ var getAmStationData = function(idType, idValue, callback) {
 				
 				db_lms.any(q)
 				.then(function (data) {
-					db_lms.end();
 					if (data.length == 0) {
 						console.log('\n' + 'no valid ant record found');
 						callback('no valid tower record found for this station', null);
@@ -858,8 +856,6 @@ var getOneAmContour = function(patternData, nradial, field, areaFlag, pop) {retu
 	console.log('\n' + 'NAD27 to WGS84 Query='+q);
 	db_contour.any(q)
 		.then(function (data) {
-			db_contour.end();
-			console.log(data);
 			var field_input = field;
 			
 			var latlon84 = JSON.parse(data[0].latlon);
@@ -1100,7 +1096,7 @@ var getOneAmContour = function(patternData, nradial, field, areaFlag, pop) {retu
 			console.log('\n' + err);
 			callback(err, null);
 			return;
-		});		
+		});	
 }}
 
 var getAmPattern = function(req, res) {

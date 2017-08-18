@@ -110,7 +110,6 @@ var getStateList = function(db, geom, callback) {
 			"FROM " + CONTOURS_SCHEMA + ".state_2010 ORDER BY id";
 	db.any(q)
 		.then(function (data) {
-			db.end();
 			var fullStateList = [];
 			var partialStateList = [];
 			for (i = 0; i < data.length; i++) {
@@ -126,9 +125,7 @@ var getStateList = function(db, geom, callback) {
 		.catch(function (err) {
 			callback(err, {"fullStateList": [], "partialStateList": []});
 		});
-
 }
-
 
 var getCountyList = function(db, geom, partialStateList, callback) {
 	var i;
@@ -140,7 +137,6 @@ var getCountyList = function(db, geom, partialStateList, callback) {
 		
 	db.any(q)
 		.then(function (data) {
-			db.end();
 			var fullCountyList = [];
 			var partialCountyList = [];
 			for (i = 0; i < data.length; i++) {
@@ -170,7 +166,6 @@ var getTractList = function(db, geom, partialCountyList, callback) {
 		
 	db.any(q)
 		.then(function (data) {
-			db.end();
 			var fullTractList = [];
 			var partialTractList = [];
 			for (i = 0; i < data.length; i++) {
@@ -189,7 +184,6 @@ var getTractList = function(db, geom, partialCountyList, callback) {
 		.catch(function (err) {
 			callback(err, {"fullTractList": [], "partialTractList": []});
 		});
-
 }
 
 
@@ -208,7 +202,6 @@ var getPartialTractPopulation = function(db, geom, partialTractList, callback) {
 		
 	db.any(q)
 		.then(function (data) {
-			db.end();
 			var population = 0;
 			if (data.length > 0) {
 				population = parseInt(data[0].sum);
@@ -234,7 +227,6 @@ var getFullTractPopulation = function(db, fullTractList, callback) {
 		
 	db.any(q)
 		.then(function (data) {
-			db.end();
 			var population = 0;
 			if (data.length > 0) {
 				population = parseInt(data[0].sum);
@@ -260,7 +252,6 @@ var getFullCountyPopulation = function(db, fullCountyList, callback) {
 		
 	db.any(q)
 		.then(function (data) {
-			db.end();
 			var population = 0;
 			if (data.length > 0) {
 				population = parseInt(data[0].sum);
@@ -287,7 +278,6 @@ var getFullStatePopulation = function(db, fullStateList, callback) {
 		
 		db.any(q)
 		.then(function (data) {
-			db.end();
 			var population = 0;
 			if (data.length > 0) {
 				population = parseInt(data[0].sum);

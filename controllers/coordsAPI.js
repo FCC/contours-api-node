@@ -153,9 +153,7 @@ var project = function(req,res){
     var q = "SELECT concat(ST_AsLatLonText(ST_Transform(ST_GeomFromText('POINT($1 $2)',$3),$4)) , ' ' , ST_x(ST_Transform(ST_GeomFromText('POINT($1 $2)',$3),$4)), ' ' ,ST_y(ST_Transform(ST_GeomFromText('POINT($1 $2)',$3),$4))) as clist";
     db_contour.one(q,[inputLon,inputLat,porjAssgnRes.inProjCode,porjAssgnRes.outProjCode])
         .then(function(data) {
-            console.log(data);
-            var coordsList = data.clist.split(' ');
-                       			
+            var coordsList = data.clist.split(' ');          			
             // outLon and outLat are used to output the coordinates in either DD or DMS format
             var outLon, outLat, outLonDD, outLatDD, outLonDMS, outLatDMS;
 

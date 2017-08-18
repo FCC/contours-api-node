@@ -278,7 +278,6 @@ function getEntity(req, res, callback) {
 		
 		db_lms.any(q)
 		.then(function (data) {
-			db_lms.end();
 			if (data.length == 0) {
 				console.log('\n' + 'no valid record found');
 				callback('no valid record found', null);
@@ -687,8 +686,7 @@ console.log('\n' + 'getOneContour recordData='+JSON.stringify(recordData));
 	var q = "SELECT ST_AsText(ST_Transform(ST_GeomFromText('POINT(" + lon_nad27 + " " + lat_nad27 + ")', 4267),4326))";
     console.log('\n' + 'NAD27 to WGS84 Query='+q);
 	db_contours.any(q)
-		.then(function (data) {
-			db_contours.end();
+	.then(function (data) {
 			//console.log('\n' + data)
 			var dum = data[0].st_astext.replace(/^.*\(/, '').replace(/\(.*$/, '');
 			var lon = parseFloat(dum.split(' ')[0]);
@@ -699,175 +697,174 @@ console.log('\n' + 'getOneContour recordData='+JSON.stringify(recordData));
 		
 			//console.log('\n' + lat, lon);
 		
-		var inputData = {
-			"serviceType": recordData.serviceType,
-			"callsign": recordData.fac_callsign,
-			"facilityId": recordData.facility_id,
-			"applicationId": recordData.application_id,
-			"antenna_id": recordData.antenna_id,
-			"antenna_type": recordData.antenna_type,
-			"service": service_use,
-			"station_class": station_class_use,
-			"dom_status": dom_status_use,
-			"eng_record_type": eng_record_type_use,
-			"lat": lat,
-			"lon": lon,
-			"nradial": queryParams.nradial,
-			"rcamsl": rcamsl_use,
-			"field": field_use,
-			"curve": curve_use,
-			"channel": channel_use,
-			"erp": erp_use,
-			"src": queryParams.src,
-			"unit": queryParams.unit,
-		};
+			var inputData = {
+				"serviceType": recordData.serviceType,
+				"callsign": recordData.fac_callsign,
+				"facilityId": recordData.facility_id,
+				"applicationId": recordData.application_id,
+				"antenna_id": recordData.antenna_id,
+				"antenna_type": recordData.antenna_type,
+				"service": service_use,
+				"station_class": station_class_use,
+				"dom_status": dom_status_use,
+				"eng_record_type": eng_record_type_use,
+				"lat": lat,
+				"lon": lon,
+				"nradial": queryParams.nradial,
+				"rcamsl": rcamsl_use,
+				"field": field_use,
+				"curve": curve_use,
+				"channel": channel_use,
+				"erp": erp_use,
+				"src": queryParams.src,
+				"unit": queryParams.unit,
+			};
 		
-		if (!inputData.antenna_id) {
-			inputData.antenna_id = -999;
-		}
-		if (!inputData.antenna_type) {
-			inputData.antenna_type = "N";
-		}
-		
-		console.log('\n' + 'contour inputData='+JSON.stringify(inputData));
-		//check input data
-		var inputOk = true;
-		var invalidParam = '';
-		for (var key in inputData) {
-			if (inputData[key] == undefined) {
-				inputOk = false;
-				invalidParam = key;
+			if (!inputData.antenna_id) {
+				inputData.antenna_id = -999;
 			}
-		}
-		
-		if (!inputOk) {
-			console.log('\n' + 'invalid station data='+invalidParam);
-			callback('invalid station data', null);
-			return;
-		
-		}
-		
-		//get antenna patetrn for directional antenna
-		q = "SELECT * FROM " + LMS_SCHEMA + ".gis_ant_pattern WHERE antenna_id = " + recordData.antenna_id + " ORDER BY azimuth";
-		if(idType == 'applIdUuid'){
-			q = "SELECT antfv.aafv_azimuth azimuth, antfv.aafv_field_value field_value FROM" +
-				" common_schema.application a," + 
-				" mass_media.app_location loc," + 
-				" mass_media.app_antenna ant," + 
-				" mass_media.app_antenna_frequency antf," +
-				" mass_media.app_antenna_field_value antfv" +
-				" WHERE loc.aloc_aapp_application_id = a.aapp_application_id" +
-				" AND loc.aloc_loc_record_id = ant.aant_aloc_loc_record_id" +
-				" AND ant.aant_antenna_record_id = antf.aafq_aant_antenna_record_id" +
-				" AND ant.aant_antenna_record_id = antfv.aafv_aant_antenna_record_id" +
-				" AND a.aapp_application_id = '" + recordData.application_id + "' and ant.aant_antenna_id = '" + recordData.antenna_id + "' order by azimuth";
-		}
-		console.log('\n' + 'oneContour antenna patetrn Query='+q);
-		
-		db_lms.any(q)
-		.then(function (data) {
-			db_lms.end();
-			//console.log('\n' + 'Query data [pattern] =', data)
-			var ant_rotation = recordData.ant_rotation;
-			if (ant_rotation == null) {
-				ant_rotation = 0;
+			if (!inputData.antenna_type) {
+				inputData.antenna_type = "N";
 			}
-			
-			console.log('rotation', ant_rotation);
-			var pattern = getPatternString(data, ant_rotation);
-			
-			var url = "coverage.json?serviceType=" + inputData.serviceType + "&lat=" + inputData.lat + "&lon=" + inputData.lon +
-					"&nradial=" + inputData.nradial + "&rcamsl=" + inputData.rcamsl + "&field=" + inputData.field + "&channel=" + inputData.channel +
-					"&erp=" + inputData.erp + "&curve=" + inputData.curve + "&src=" + inputData.src + "&unit=" + inputData.unit + "&pattern=" + pattern+'&outputcache=false';
-
-			console.log('\n' + 'coverage API URL='+url);
-			
-			var contours_req = new Object;
-			
-			contours_req = 
-				{"query":
-					{
-						"serviceType": inputData.serviceType.toString(),
-						"lat": inputData.lat.toString(),
-						"lon": inputData.lon.toString(),
-						"nradial": queryParams.nradial.toString(),
-						"rcamsl": inputData.rcamsl.toString(),
-						"field": inputData.field.toString(),
-						"channel": inputData.channel.toString(),
-						"erp": inputData.erp.toString(),
-						"curve": inputData.curve.toString(),
-						"src": inputData.src.toString(),
-						"unit": inputData.unit.toString(),
-						"pattern": pattern.toString(),
-						"ant_rotation": 0,
-						"pop": queryParams.pop.toString(),
-						"area": queryParams.area.toString()
-					}
-				};
-				
-			console.log('\n' + 'contours_req='+contours_req);
-			
-			try {
-				console.log('\n' + 'in try')
-				contours.getContours(contours_req, null, function(data){
-				console.log('\n' + 'oneContour coverage from entity' +data);
-				if(data){
-					console.log('contour response code: '+data.features[0].properties.statusCode);
-					if(data.features[0].properties.statusCode == '200'){
-						console.log('using this contour');
-						
-						//get file number
-						getFileNumber(inputData.applicationId, function(error, fileNumber) {
-							if (error) {
-								callback(error, null);
-							}
-							else {
-								var properties = {};
-								properties.callsign = inputData.callsign;
-								properties.facility_id = inputData.facilityId;
-								properties.application_id = inputData.applicationId;
-								properties.file_number = fileNumber;
-								properties.antenna_id = inputData.antenna_id;
-								properties.antenna_type = inputData.antenna_type;
-								properties.service = inputData.service;
-								properties.station_class = inputData.station_class;
-								properties.dom_status = inputData.dom_status;
-								properties.eng_record_type = inputData.eng_record_type;
-								for (var key in data.features[0].properties) {
-									properties[key] = data.features[0].properties[key];
-								}
-								data.features[0].properties = properties;
-								
-								callback(null, data); 
-							}
-						
-						});
-
-
-
-						
-					}
-					else {
-						callback(data.features[0].properties.statusMessage, null);
-					}
-					
-					
+		
+			console.log('\n' + 'contour inputData='+JSON.stringify(inputData));
+			//check input data
+			var inputOk = true;
+			var invalidParam = '';
+			for (var key in inputData) {
+				if (inputData[key] == undefined) {
+					inputOk = false;
+					invalidParam = key;
 				}
-				return;           
-				});
 			}
-			catch(err){
-				callback('error calling coverage', null);  
+		
+			if (!inputOk) {
+				console.log('\n' + 'invalid station data='+invalidParam);
+				callback('invalid station data', null);
 				return;
+			
 			}
+		
+			//get antenna patetrn for directional antenna
+			q = "SELECT * FROM " + LMS_SCHEMA + ".gis_ant_pattern WHERE antenna_id = " + recordData.antenna_id + " ORDER BY azimuth";
+			if(idType == 'applIdUuid'){
+				q = "SELECT antfv.aafv_azimuth azimuth, antfv.aafv_field_value field_value FROM" +
+					" common_schema.application a," + 
+					" mass_media.app_location loc," + 
+					" mass_media.app_antenna ant," + 
+					" mass_media.app_antenna_frequency antf," +
+					" mass_media.app_antenna_field_value antfv" +
+					" WHERE loc.aloc_aapp_application_id = a.aapp_application_id" +
+					" AND loc.aloc_loc_record_id = ant.aant_aloc_loc_record_id" +
+					" AND ant.aant_antenna_record_id = antf.aafq_aant_antenna_record_id" +
+					" AND ant.aant_antenna_record_id = antfv.aafv_aant_antenna_record_id" +
+					" AND a.aapp_application_id = '" + recordData.application_id + "' and ant.aant_antenna_id = '" + recordData.antenna_id + "' order by azimuth";
+			}
+			console.log('\n' + 'oneContour antenna patetrn Query='+q);
+		
+			db_lms.any(q)
+			.then(function (data) {
+				//console.log('\n' + 'Query data [pattern] =', data)
+				var ant_rotation = recordData.ant_rotation;
+				if (ant_rotation == null) {
+					ant_rotation = 0;
+				}
 				
-		})
-		.catch(function (err) {
-			console.log('\n' + err);
-			res.status(400)
-			callback(err, null);
-			return;
-		});
+				console.log('rotation', ant_rotation);
+				var pattern = getPatternString(data, ant_rotation);
+				
+				var url = "coverage.json?serviceType=" + inputData.serviceType + "&lat=" + inputData.lat + "&lon=" + inputData.lon +
+						"&nradial=" + inputData.nradial + "&rcamsl=" + inputData.rcamsl + "&field=" + inputData.field + "&channel=" + inputData.channel +
+						"&erp=" + inputData.erp + "&curve=" + inputData.curve + "&src=" + inputData.src + "&unit=" + inputData.unit + "&pattern=" + pattern+'&outputcache=false';
+
+				console.log('\n' + 'coverage API URL='+url);
+				
+				var contours_req = new Object;
+				
+				contours_req = 
+					{"query":
+						{
+							"serviceType": inputData.serviceType.toString(),
+							"lat": inputData.lat.toString(),
+							"lon": inputData.lon.toString(),
+							"nradial": queryParams.nradial.toString(),
+							"rcamsl": inputData.rcamsl.toString(),
+							"field": inputData.field.toString(),
+							"channel": inputData.channel.toString(),
+							"erp": inputData.erp.toString(),
+							"curve": inputData.curve.toString(),
+							"src": inputData.src.toString(),
+							"unit": inputData.unit.toString(),
+							"pattern": pattern.toString(),
+							"ant_rotation": 0,
+							"pop": queryParams.pop.toString(),
+							"area": queryParams.area.toString()
+						}
+					};
+					
+				console.log('\n' + 'contours_req='+contours_req);
+				
+				try {
+					console.log('\n' + 'in try')
+					contours.getContours(contours_req, null, function(data){
+					console.log('\n' + 'oneContour coverage from entity' +data);
+					if(data){
+						console.log('contour response code: '+data.features[0].properties.statusCode);
+						if(data.features[0].properties.statusCode == '200'){
+							console.log('using this contour');
+							
+							//get file number
+							getFileNumber(inputData.applicationId, function(error, fileNumber) {
+								if (error) {
+									callback(error, null);
+								}
+								else {
+									var properties = {};
+									properties.callsign = inputData.callsign;
+									properties.facility_id = inputData.facilityId;
+									properties.application_id = inputData.applicationId;
+									properties.file_number = fileNumber;
+									properties.antenna_id = inputData.antenna_id;
+									properties.antenna_type = inputData.antenna_type;
+									properties.service = inputData.service;
+									properties.station_class = inputData.station_class;
+									properties.dom_status = inputData.dom_status;
+									properties.eng_record_type = inputData.eng_record_type;
+									for (var key in data.features[0].properties) {
+										properties[key] = data.features[0].properties[key];
+									}
+									data.features[0].properties = properties;
+									
+									callback(null, data); 
+								}
+							
+							});
+
+
+
+							
+						}
+						else {
+							callback(data.features[0].properties.statusMessage, null);
+						}
+						
+						
+					}
+					return;           
+					});
+				}
+				catch(err){
+					callback('error calling coverage', null);  
+					return;
+				}
+					
+			})
+			.catch(function (err) {
+				console.log('\n' + err);
+				res.status(400)
+				callback(err, null);
+				return;
+			});
 	})
 	.catch(function (err) {
 		console.log('\n' + err);
@@ -886,7 +883,6 @@ var getFileNumber = function(application_id, callback) {
 		console.log('getFileNumber q='+q)
 		db_lms.any(q)
 		.then(function (data) {
-			db_lms.end();
 			console.log('data', data)
 			var fileNumber = "";			
 			if (data.length > 0) {				

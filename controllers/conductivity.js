@@ -127,7 +127,6 @@ var findIntersects = function(line, callback) {
 	
 	db_contour.any(q)
 		.then(function (data) {
-			db_contour.end();
 			callback(null, data);	
 		})
 		.catch(function (err) {
@@ -143,7 +142,6 @@ var findIntersection = function (line, seg) {return function(callback) {
 			
 	db_contour.any(q)
 		.then(function (data) {
-			db_contour.end();
 			var result = {"seg": seg, "intersection": data}
 			callback(null, result);
 		})
@@ -480,7 +478,6 @@ var getConductivityFromDB = function(ant_sys_id, application_id, lat_deg, lat_mi
 
 	db_contour.any(q)
 		.then(function (data) {
-			db_contour.end();
 			if (data.length == 0) {
 				var data0 = null;
 			}

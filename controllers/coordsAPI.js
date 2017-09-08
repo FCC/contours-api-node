@@ -150,10 +150,10 @@ var project = function(req,res){
     inputLat = roundTo(parseFloat(req.query.lat),7);
     //var outputPoint = proj4.transform(porjAssgnRes.inProjDef,porjAssgnRes.outProjDef,[inputLon,inputLat]);
     
-    var q = "SELECT concat(ST_AsLatLonText(ST_Transform(ST_GeomFromText('POINT($1 $2)',$3),$4)) , ' ' , ST_x(ST_Transform(ST_GeomFromText('POINT($1 $2)',$3),$4)), ' ' ,ST_y(ST_Transform(ST_GeomFromText('POINT($1 $2)',$3),$4))) as clist";
+    var q = "SELECT concat(ST_AsLatLonText(ST_Transform(ST_GeomFromText('POINT($1 $2)',$3),$4),'D°M′S.SSSSSSS″C') , ' ' , ST_x(ST_Transform(ST_GeomFromText('POINT($1 $2)',$3),$4)), ' ' ,ST_y(ST_Transform(ST_GeomFromText('POINT($1 $2)',$3),$4))) as clist";
     db_contour.one(q,[inputLon,inputLat,porjAssgnRes.inProjCode,porjAssgnRes.outProjCode])
         .then(function(data) {
-            var coordsList = data.clist.split(' ');          			
+            var coordsList = data.clist.split(' ');
             // outLon and outLat are used to output the coordinates in either DD or DMS format
             var outLon, outLat, outLonDD, outLatDD, outLonDMS, outLatDMS;
 
@@ -161,6 +161,7 @@ var project = function(req,res){
             outLatDD = coordsList[3];
             outLonDMS = coordsList[1];
             outLatDMS = coordsList[0];
+
 
             // This if statement checks if the outType parameter is included in the URL
             // If yes, it will check if the value passed is either DMS or DD
@@ -170,8 +171,8 @@ var project = function(req,res){
                 outLat = roundTo(parseFloat(outLatDD),7);
                 }
             else if (req.query.outType.toUpperCase() === 'DMS'){
-                        outLon = outLonDMS.replace('"','″ ').replace("'","′ ").replace("°","° ");
-                        outLat = outLatDMS.replace('"','″ ').replace("'","′ ").replace("°","° ");;
+                        outLon = outLonDMS.replace('″','″ ').replace("′","′ ").replace("°","° ");
+                        outLat = outLatDMS.replace('″','″ ').replace("′","′ ").replace("°","° ");;
                 }
             else{
                         res.status(400);

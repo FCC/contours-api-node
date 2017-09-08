@@ -65,15 +65,6 @@ var generateErrorJSON = function(error_type, error_details){
 
 }
 
-var checkSecVal = function(v){
-    if(v < 0.001){
-        return 0;
-    }
-    else{
-        return roundTo(v,3);
-    }
-}
-
 var project = function(req,res){
 
     if(req.query.lon === undefined || req.query.lat === undefined || req.query.inProj === undefined || req.query.outProj === undefined){
@@ -116,10 +107,10 @@ var project = function(req,res){
     var inProj = req.query.inProj;
     var outProj = req.query.outProj;
     
-    var porjAssgnRes = assignInOutProjs(inProj,outProj);
+    var projAssgnRes = assignInOutProjs(inProj,outProj);
 
     // Check if both input and output projections are wrong or not supported
-    if (porjAssgnRes.inProjCode === undefined && porjAssgnRes.outProjCode === undefined){
+    if (projAssgnRes.inProjCode === undefined && projAssgnRes.outProjCode === undefined){
         res.status(400);
         res.setHeader('Content-Type', 'application/json');
         res.send(generateErrorJSON('Either input or output projections invalid', ['inProj and outProj prameters not in proper format or not supported by this API','Supported projections are: ','ESPG 4326, type in URL --> WGS84','ESPG 4269, type in URL --> NAD83','ESPG 4267, type in URL --> NAD27']));
@@ -128,7 +119,7 @@ var project = function(req,res){
     }
 
     // Check if the input projection is wrong or not supported
-    if (porjAssgnRes.inProjCode === undefined){
+    if (projAssgnRes.inProjCode === undefined){
         res.status(400);
         res.setHeader('Content-Type', 'application/json');
         res.send(generateErrorJSON('Input projection invalid', ['inProj and outProj prameters not in proper format or not supported by this API','Supported projections are: ','ESPG 4326, type in URL --> WGS84','ESPG 4269, type in URL --> NAD83','ESPG 4267, type in URL --> NAD27']));
@@ -137,7 +128,7 @@ var project = function(req,res){
     }
 
     // Check if the output projection is wrong or not supported
-    if (porjAssgnRes.outProjCode === undefined){
+    if (projAssgnRes.outProjCode === undefined){
         res.status(400);
         res.setHeader('Content-Type', 'application/json');
         res.send(generateErrorJSON('Output projection invalid', ['inProj and outProj prameters not in proper format or not supported by this API','Supported projections are: ','ESPG 4326, type in URL --> WGS84','ESPG 4269, type in URL --> NAD83','ESPG 4267, type in URL --> NAD27']));
@@ -148,10 +139,10 @@ var project = function(req,res){
     // The following code will create the output results if there are no errors
     inputLon = roundTo(parseFloat(req.query.lon),7);
     inputLat = roundTo(parseFloat(req.query.lat),7);
-    //var outputPoint = proj4.transform(porjAssgnRes.inProjDef,porjAssgnRes.outProjDef,[inputLon,inputLat]);
+    //var outputPoint = proj4.transform(projAssgnRes.inProjDef,projAssgnRes.outProjDef,[inputLon,inputLat]);
     
     var q = "SELECT concat(ST_AsLatLonText(ST_Transform(ST_GeomFromText('POINT($1 $2)',$3),$4),'D°M′S.SSSSSSS″C') , ' ' , ST_x(ST_Transform(ST_GeomFromText('POINT($1 $2)',$3),$4)), ' ' ,ST_y(ST_Transform(ST_GeomFromText('POINT($1 $2)',$3),$4))) as clist";
-    db_contour.one(q,[inputLon,inputLat,porjAssgnRes.inProjCode,porjAssgnRes.outProjCode])
+    db_contour.one(q,[inputLon,inputLat,projAssgnRes.inProjCode,projAssgnRes.outProjCode])
         .then(function(data) {
             var coordsList = data.clist.split(' ');
             // outLon and outLat are used to output the coordinates in either DD or DMS format
@@ -187,14 +178,14 @@ var project = function(req,res){
                 {
                     'lon': parseFloat(inputLon),
                     'lat': parseFloat(inputLat),
-                    'projection': porjAssgnRes.inProjName
+                    'projection': projAssgnRes.inProjName
                 },
         
                 'output':
                 {
                     'lon': outLon,
                     'lat': outLat,
-                    'projection': porjAssgnRes.outProjName
+                    'projection': projAssgnRes.outProjName
                 }
             };
             
@@ -265,9 +256,10 @@ var dd2dms = function(req,res){
     var ltSec = dmsC.dmsArrays.latitude[2];
     var ltDir = dmsC.dmsArrays.latitude[3];
 
-    // Updating the values of lnSec and ltSec based on if they are less than 0.001 or not
-    lnSec = checkSecVal(lnSec);
-    ltSec = checkSecVal(ltSec);
+    // Round the values of lnSec and ltSec to 7 digits
+    lnSec = roundTo(lnSec,7);
+    ltSec = roundTo(ltSec,7);
+
 
     var outLon = lnDeg + '° ' + 
                 lnMin + "′ " +
@@ -443,10 +435,10 @@ var dms2dd = function(req,res){
 
     inputLonD = parseInt(req.query.lonD);
     inputLonM = parseInt(req.query.lonM);
-    inputLonS = roundTo(parseFloat(req.query.lonS),3);
+    inputLonS = roundTo(parseFloat(req.query.lonS),7);
     inputLatD = parseInt(req.query.latD);
     inputLatM = parseInt(req.query.latM);
-    inputLatS = roundTo(parseFloat(req.query.latS),3);
+    inputLatS = roundTo(parseFloat(req.query.latS),7);
 
     var inputLon = inputLonD + '° ' + inputLonM + '′ ' + inputLonS + '″ ' + inputLonDi.toUpperCase();
     var inputLat = inputLatD + '° ' + inputLatM + '′ ' + inputLatS + '″ ' + inputLatDi.toUpperCase();

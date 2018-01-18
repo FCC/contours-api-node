@@ -21,9 +21,9 @@ if (NODE_ENV == 'DEV' || NODE_ENV == 'LOCAL') {
 
 
 // this function returns the lng(s), lat(s) by passing application_id, facility_id, or callsign
-function getAntena(req, res, callback) {
+function getAntenna(req, res, callback) {
 
-	console.log('\n' + '============ getAntena ============');
+	console.log('\n' + '============ getAntenna ============');
 	// retrieve query parameters
 	var application_id = req.query.applicationId;
 	var facility_id = req.query.facilityId;
@@ -190,7 +190,7 @@ function query_by_application_id(application_id,service_type,res){
 		}
 		else {
 			params = {
-				'antena(s)':
+				'antenna(s)':
 				{
 					'service type': service_type,
 					'application id': application_id,
@@ -247,7 +247,7 @@ function query_by_facility_id(facility_id,service_type,res){
 		}
 		else {
 			params = {
-				'antena(s)':
+				'antenna(s)':
 				{
 					'service type': service_type,
 					'facility id': facility_id,
@@ -327,7 +327,7 @@ function query_by_callsign(callsign,service_type,res){
 				}
 				else {
 					params = {
-						'antena(s)':
+						'antenna(s)':
 						{
 							'service type': service_type,
 							'callsign': callsign,
@@ -354,6 +354,6 @@ function query_by_callsign(callsign,service_type,res){
 	
 }
 
-module.exports.getAntena = getAntena;
+module.exports.getAntenna = getAntenna;
 
 

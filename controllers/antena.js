@@ -28,6 +28,7 @@ function getAntena(req, res, callback) {
 	var application_id = req.query.applicationId;
 	var facility_id = req.query.facilityId;
 	var callsign = req.query.callsign;
+	callsign = callsign.toUpperCase();
 	var service_type = req.query.serviceType;
 	
 	// checkQueryParams return true if parameters are valid

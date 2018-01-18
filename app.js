@@ -476,8 +476,8 @@ app.get('/entity.json', function(req, res){
     });
 });
 
-app.get('/antena.json', function(req, res){
-    antena.getAntena(req, res, function(error, response) {
+app.get('/antenna.json', function(req, res){
+    antena.getAntenna(req, res, function(error, response) {
     if (error){
         res.status(400).send({"status": "error", "statusCode": 400, "statusMessage": error});
     }

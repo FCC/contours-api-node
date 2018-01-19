@@ -190,12 +190,9 @@ function query_by_application_id(application_id,service_type,res){
 		}
 		else {
 			params = {
-				'antenna(s)':
-				{
 					'service type': service_type,
 					'application id': application_id,
-					'coordinates': data
-				}
+					'antenna(s)': data
 			};
 
 			res.status(200);
@@ -247,12 +244,9 @@ function query_by_facility_id(facility_id,service_type,res){
 		}
 		else {
 			params = {
-				'antenna(s)':
-				{
 					'service type': service_type,
 					'facility id': facility_id,
-					'coordinates': data
-				}
+					'antenna(s)': data
 			};
 
 			res.status(200);
@@ -327,12 +321,9 @@ function query_by_callsign(callsign,service_type,res){
 				}
 				else {
 					params = {
-						'antenna(s)':
-						{
 							'service type': service_type,
 							'callsign': callsign,
-							'coordinates': data
-						}
+							'antenna(s)': data
 					};
 
 					res.status(200);

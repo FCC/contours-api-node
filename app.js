@@ -33,7 +33,7 @@ var distance = require('./controllers/distance.js');
 var contours = require('./controllers/contours.js');
 var tvfm_curves = require('./controllers/tvfm_curves.js');
 var entity = require('./controllers/entity.js');
-var antena = require('./controllers/antena.js')
+var antenna = require('./controllers/antenna.js')
 var conductivity = require('./controllers/conductivity.js');
 //var conductivity_r2_2points = require('./controllers/conductivity_r2_2points.js');
 var gwave = require('./controllers/gwave.js');
@@ -385,7 +385,6 @@ app.get('/profile.json', function(req, res){
     });    
 });
 
-
 app.get('/coverage.json', function(req, res){    
     
     var req_url = req.url;
@@ -477,7 +476,7 @@ app.get('/entity.json', function(req, res){
 });
 
 app.get('/antenna.json', function(req, res){
-    antena.getAntenna(req, res, function(error, response) {
+    antenna.getAntenna(req, res, function(error, response) {
     if (error){
         res.status(400).send({"status": "error", "statusCode": 400, "statusMessage": error});
     }

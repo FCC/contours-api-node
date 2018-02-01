@@ -1,34 +1,9 @@
-
-// **********************************************************
-'use strict';
-// **********************************************************
-
-var dotenv = require('dotenv').load();
-var NODE_ENV = process.env.NODE_ENV;
-var NODE_PORT =  process.env.PORT;
-var host =  process.env.HOST;
-var geo_host =  process.env.GEO_HOST;
-var geo_space = process.env.GEO_SPACE;
-var EFS_ELEVATION_DATASET = process.env.EFS_ELEVATION_DATASET;
-var LMS_PG = process.env.LMS_PG;
-var LMS_SCHEMA = process.env.LMS_SCHEMA;
+var LMS_SCHEMA = 'mass_media';
 var db_lms = require('./db_lms.js');
-var contours = require('./contours.js');
-var CONTEXT_PATH = process.env.CONTEXT_PATH || 'api/contours/';
-if (NODE_ENV == 'DEV' || NODE_ENV == 'LOCAL') {
-	var CONTEXT_PATH = '';
-}
 
 
 // this function returns the lng(s), lat(s) by passing application_id, facility_id, or callsign
 function getAntenna(req, res, callback) {
-
-	res.status(200).send({
-		'status': 'Testing',
-		'statusCode':'200',
-		'statusMessage': 'Testing testing testing'
-	});
-	return
 
 	console.log('\n' + '============ getAntenna ============');
 	// retrieve query parameters

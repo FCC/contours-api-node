@@ -23,6 +23,13 @@ if (NODE_ENV == 'DEV' || NODE_ENV == 'LOCAL') {
 // this function returns the lng(s), lat(s) by passing application_id, facility_id, or callsign
 function getAntenna(req, res, callback) {
 
+	res.status(200).send({
+		'status': 'Testing',
+		'statusCode':'200',
+		'statusMessage': 'Testing testing testing'
+	});
+	return
+
 	console.log('\n' + '============ getAntenna ============');
 	// retrieve query parameters
 	var application_id = req.query.applicationId;

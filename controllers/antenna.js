@@ -28,7 +28,6 @@ function getAntenna(req, res, callback) {
 	var application_id = req.query.applicationId;
 	var facility_id = req.query.facilityId;
 	var callsign = req.query.callsign;
-	callsign = callsign.toUpperCase();
 	var service_type = req.query.serviceType;
 	
 	// checkQueryParams return true if parameters are valid
@@ -58,6 +57,7 @@ function getAntenna(req, res, callback) {
 			query_by_facility_id(facility_id,service_type,res);
 		}
 		else if (application_id == undefined && facility_id == undefined && callsign != undefined){
+			callsign = callsign.toUpperCase()
 			query_by_callsign(callsign,service_type,res);
 		}
 	}

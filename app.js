@@ -32,6 +32,7 @@ var station = require('./controllers/station.js');
 var distance = require('./controllers/distance.js');
 var contours = require('./controllers/contours.js');
 var tvfm_curves = require('./controllers/tvfm_curves.js');
+var testing = require('./controllers/testing.js');
 var antenna = require('./controllers/antenna.js');
 var entity = require('./controllers/entity.js');
 var conductivity = require('./controllers/conductivity.js');
@@ -154,6 +155,14 @@ app.get('/dms2dd.json', function(req,res){
 
 app.get('/dd2dms.json', function(req,res){
     coordsAPI.dd2dms(req,res);
+});
+
+app.get('/antenna.json', function(req,res){
+    antenna.getAntenna(req,res);
+});
+
+app.get('/testing.json', function(req,res){
+    testing.getTesting(req,res);
 });
 //**********************************************************
 
@@ -471,18 +480,6 @@ app.get('/entity.json', function(req, res){
     else  {
     res.send(response);
     }
-    });
-});
-
-app.get('/antenna.json', function(req, res){
-    antenna.getAntenna(req, res, function(error, response) {
-    if (error){
-        res.status(400).send({"status": "error", "statusCode": 400, "statusMessage": error});
-    }
-    else{
-        res.status(200).send(response);
-    }
-
     });
 });
 

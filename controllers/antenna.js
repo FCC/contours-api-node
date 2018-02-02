@@ -1,7 +1,6 @@
 var LMS_SCHEMA = 'mass_media';
 var db_lms = require('./db_lms.js');
 
-
 // this function returns the lng(s), lat(s) by passing application_id, facility_id, or callsign
 function getAntenna(req, res, callback) {
 

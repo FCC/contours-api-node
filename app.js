@@ -45,7 +45,6 @@ var coordsAPI = require('./controllers/coordsAPI.js');
 
 // **********************************************************
 // config
-
 //var configEnv = require('./config/env.json');
 
 var NODE_ENV = process.env.NODE_ENV;

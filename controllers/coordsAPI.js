@@ -370,7 +370,7 @@ var dms2dd = function(req,res){
     }
     
     // Check if lonD is wrong or out of range
-    if ((!isInteger(inputLonD) || -180 > inputLonD || inputLonD > 180)){ 
+    if ((!isInteger(inputLonD) || 0 > inputLonD || inputLonD > 180)){ 
         res.status(400);
         res.setHeader('Content-Type', 'application/json');
         res.send(generateErrorJSON('Longitude degrees error', ['lonD parameter not a whole number or out of range','Valid longitudes range from -180 to 180']));
@@ -378,7 +378,7 @@ var dms2dd = function(req,res){
     }
 
     // Check if latD is wrong or out of range
-    if ((!isInteger(inputLatD) || -90 > inputLatD || inputLatD > 90)){ 
+    if ((!isInteger(inputLatD) || 0 > inputLatD || inputLatD > 90)){ 
         res.status(400);
         res.setHeader('Content-Type', 'application/json');
         res.send(generateErrorJSON('Latitude degrees error', ['latD parameter not a whole number or out of range','Valid latitudes range from -90 to 90']));

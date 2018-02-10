@@ -3,7 +3,6 @@ var db_lms = require('./db_lms.js');
 
 // this function returns the lng(s), lat(s) by passing application_id, facility_id, or callsign
 function getAntenna(req, res, callback) {
-
 	console.log('\n' + '============ getAntenna ============');
 	// retrieve query parameters
 	var application_id = req.query.applicationId;
@@ -25,7 +24,7 @@ function getAntenna(req, res, callback) {
 		res.status(400).send({
 			'status': 'error',
 			'statusCode':'400',
-			'statusMessage': 'The code is not implemented yet to accept am service type.'
+			'statusMessage': 'The code is not implemented yet to accept am service type. ' + process.version
 		});
 		return;
 	}
@@ -154,8 +153,9 @@ function query_by_application_id(application_id,service_type,res){
 					else -999::numeric
 				end as lat
 			from ${eng_data_table}
-			where application_id = ${application_id} ;`;
+			where application_id = ${application_id};`;
 	
+
 	db_lms.any(q)
 	.then(function (data) {
 
@@ -179,7 +179,7 @@ function query_by_application_id(application_id,service_type,res){
 			res.status(200);
 			res.setHeader('Content-Type','application/json');
 			res.send(JSON.stringify(params));
-			return;
+			
 		}
 
 	})
@@ -209,7 +209,7 @@ function query_by_facility_id(facility_id,service_type,res){
 					else -999::numeric
 				end as lat
 			from ${eng_data_table}
-			where facility_id = ${facility_id} ;`;
+			where facility_id = ${facility_id};`;
 	
 	db_lms.any(q)
 	.then(function (data) {

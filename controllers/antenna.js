@@ -179,6 +179,7 @@ function query_by_application_id(application_id,service_type,res){
 			res.status(200);
 			res.setHeader('Content-Type','application/json');
 			res.send(JSON.stringify(params));
+			return;
 		}
 
 	})
@@ -233,6 +234,7 @@ function query_by_facility_id(facility_id,service_type,res){
 			res.status(200);
 			res.setHeader('Content-Type','application/json');
 			res.send(JSON.stringify(params));
+			return;
 		}
 
 	})
@@ -310,7 +312,8 @@ function query_by_callsign(callsign,service_type,res){
 					res.status(200);
 					res.setHeader('Content-Type','application/json');
 					res.send(JSON.stringify(params));
-			}
+					return;
+				}
 			})
 			.catch(function (err) {
 				console.log('\n' + err);

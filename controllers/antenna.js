@@ -3,7 +3,6 @@ var db_lms = require('./db_lms.js');
 
 // this function returns the lng(s), lat(s) by passing application_id, facility_id, or callsign
 function getAntenna(req, res, callback) {
-
 	console.log('\n' + '============ getAntenna ============');
 	// retrieve query parameters
 	var application_id = req.query.applicationId;
@@ -25,7 +24,7 @@ function getAntenna(req, res, callback) {
 		res.status(400).send({
 			'status': 'error',
 			'statusCode':'400',
-			'statusMessage': 'The code is not implemented yet to accept am service type.'
+			'statusMessage': 'The code is not implemented yet to accept am service type. ' + process.version
 		});
 		return;
 	}
@@ -138,23 +137,22 @@ function query_by_application_id(application_id,service_type,res){
 	
 	var eng_data_table = LMS_SCHEMA + ".gis_" + service_type + "_eng_data";
 
-	var	q = `select
-				case
-				when lon_dir = 'W'
-					then round(((lon_deg + lon_min/60 + lon_sec/3600)*-1)::numeric,7)
-					when lon_dir = 'E'
-					then round((lon_deg + lon_min/60 + lon_sec/3600)::numeric,7)
-					else -999::numeric
-				end as lng,
-				case
-					when lat_dir = 'N'
-					then round((lat_deg + lat_min/60 + lat_sec/3600)::numeric,7)
-					when lat_dir = 'S'
-					then round(((lat_deg + lat_min/60 + lat_sec/3600)*-1)::numeric,7)
-					else -999::numeric
-				end as lat
-			from ${eng_data_table}
-			where application_id = ${application_id} ;`;
+	var	q = "select case when lon_dir = 'W' ";
+	q = q + "then round(((lon_deg + lon_min/60 + lon_sec/3600)*-1)::numeric,7) ";
+	q = q + "when lon_dir = 'E' ";
+	q = q + "then round((lon_deg + lon_min/60 + lon_sec/3600)::numeric,7) ";
+	q = q + "else -999::numeric ";
+	q = q + "end as lng, "
+	q = q + "case "
+	q = q + "when lat_dir = 'N' ";
+	q = q + "then round((lat_deg + lat_min/60 + lat_sec/3600)::numeric,7) ";
+	q = q + "when lat_dir = 'S' ";
+	q = q + "then round(((lat_deg + lat_min/60 + lat_sec/3600)*-1)::numeric,7) ";
+	q = q + "else -999::numeric ";
+	q = q + "end as lat ";
+	q = q + "from " + eng_data_table + " ";
+	q = q + "where application_id = "+application_id+";";
+	
 	
 	db_lms.any(q)
 	.then(function (data) {
@@ -179,6 +177,7 @@ function query_by_application_id(application_id,service_type,res){
 			res.status(200);
 			res.setHeader('Content-Type','application/json');
 			res.send(JSON.stringify(params));
+			
 		}
 
 	})
@@ -192,23 +191,21 @@ function query_by_facility_id(facility_id,service_type,res){
 	
 	var eng_data_table = LMS_SCHEMA + ".gis_" + service_type + "_eng_data";
 
-	var	q = `select
-				case
-				when lon_dir = 'W'
-					then round(((lon_deg + lon_min/60 + lon_sec/3600)*-1)::numeric,7)
-					when lon_dir = 'E'
-					then round((lon_deg + lon_min/60 + lon_sec/3600)::numeric,7)
-					else -999::numeric
-				end as lng,
-				case
-					when lat_dir = 'N'
-					then round((lat_deg + lat_min/60 + lat_sec/3600)::numeric,7)
-					when lat_dir = 'S'
-					then round(((lat_deg + lat_min/60 + lat_sec/3600)*-1)::numeric,7)
-					else -999::numeric
-				end as lat
-			from ${eng_data_table}
-			where facility_id = ${facility_id} ;`;
+	var	q = "select case when lon_dir = 'W' ";
+	q = q + "then round(((lon_deg + lon_min/60 + lon_sec/3600)*-1)::numeric,7) ";
+	q = q + "when lon_dir = 'E' ";
+	q = q + "then round((lon_deg + lon_min/60 + lon_sec/3600)::numeric,7) ";
+	q = q + "else -999::numeric ";
+	q = q + "end as lng, "
+	q = q + "case "
+	q = q + "when lat_dir = 'N' ";
+	q = q + "then round((lat_deg + lat_min/60 + lat_sec/3600)::numeric,7) ";
+	q = q + "when lat_dir = 'S' ";
+	q = q + "then round(((lat_deg + lat_min/60 + lat_sec/3600)*-1)::numeric,7) ";
+	q = q + "else -999::numeric ";
+	q = q + "end as lat ";
+	q = q + "from " + eng_data_table + " ";
+	q = q + "where application_id = "+facility_id+";";
 	
 	db_lms.any(q)
 	.then(function (data) {
@@ -233,6 +230,7 @@ function query_by_facility_id(facility_id,service_type,res){
 			res.status(200);
 			res.setHeader('Content-Type','application/json');
 			res.send(JSON.stringify(params));
+			return;
 		}
 
 	})
@@ -244,9 +242,9 @@ function query_by_facility_id(facility_id,service_type,res){
 
 function query_by_callsign(callsign,service_type,res){
 	
-	var q1 = `SELECT facility_id
-			 FROM mass_media.gis_facility
-			 where fac_callsign = '${callsign}';`;
+	var q1 = "SELECT facility_id ";
+	q1 = q1 + "FROM mass_media.gis_facility ";
+	q1 = q1 = "where fac_callsign = "+callsign+";";
 	
 	var fac_ids = [];
 	db_lms.any(q1)
@@ -269,23 +267,21 @@ function query_by_callsign(callsign,service_type,res){
 			
 			var eng_data_table = LMS_SCHEMA + ".gis_" + service_type + "_eng_data";
 
-			var	q2 = `select
-					case
-					when lon_dir = 'W'
-						then round(((lon_deg + lon_min/60 + lon_sec/3600)*-1)::numeric,7)
-						when lon_dir = 'E'
-						then round((lon_deg + lon_min/60 + lon_sec/3600)::numeric,7)
-						else -999::numeric
-					end as lng,
-					case
-						when lat_dir = 'N'
-						then round((lat_deg + lat_min/60 + lat_sec/3600)::numeric,7)
-						when lat_dir = 'S'
-						then round(((lat_deg + lat_min/60 + lat_sec/3600)*-1)::numeric,7)
-						else -999::numeric
-					end as lat
-				from ${eng_data_table}
-				where facility_id in (${fac_ids});`;
+			var	q2 = "select case when lon_dir = 'W' ";
+			q2 = q2 + "then round(((lon_deg + lon_min/60 + lon_sec/3600)*-1)::numeric,7) ";
+			q2 = q2 + "when lon_dir = 'E' ";
+			q2 = q2 + "then round((lon_deg + lon_min/60 + lon_sec/3600)::numeric,7) ";
+			q2 = q2 + "else -999::numeric ";
+			q2 = q2 + "end as lng, "
+			q2 = q2 + "case "
+			q2 = q2 + "when lat_dir = 'N' ";
+			q2 = q2 + "then round((lat_deg + lat_min/60 + lat_sec/3600)::numeric,7) ";
+			q2 = q2 + "when lat_dir = 'S' ";
+			q2 = q2 + "then round(((lat_deg + lat_min/60 + lat_sec/3600)*-1)::numeric,7) ";
+			q2 = q2 + "else -999::numeric ";
+			q2 = q2 + "end as lat ";
+			q2 = q2 + "from " + eng_data_table + " ";
+			q2 = q2 + "where facility_id in ("+fac_ids+");";
 
 			db_lms.any(q2)
 			.then(function (data) {
@@ -310,7 +306,8 @@ function query_by_callsign(callsign,service_type,res){
 					res.status(200);
 					res.setHeader('Content-Type','application/json');
 					res.send(JSON.stringify(params));
-			}
+					return;
+				}
 			})
 			.catch(function (err) {
 				console.log('\n' + err);

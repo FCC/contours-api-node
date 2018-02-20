@@ -57,11 +57,11 @@ function check_query_params(application_id,facility_id,callsign,service_type,res
 	// if none of the three params is passed,
 	// send 400 response explaining the need to use one of the three params
 	if (numDefined === 0) {
-		console.log('\n' + 'must provide one of callsign, facilityId, or applicationId');
+		console.log('\n' + 'must provide (callsign, facilityId, or applicationId) plus serviceType.');
 		res.status(400).send({
 			'status': 'error',
 			'statusCode':'400',
-			'statusMessage': 'must provide one of callsign, facilityId, or applicationId.'
+			'statusMessage': 'must provide (callsign, facilityId, or applicationId) plus serviceType.'
 		});
 		return false;
 	}
@@ -69,11 +69,11 @@ function check_query_params(application_id,facility_id,callsign,service_type,res
 	// if more than one of the three params are passed,
 	// send 400 response explaining that the user can pass only on of three params
 	if (numDefined > 1) {
-		console.log('\n' + 'should provide only one of callsign, facilityId, or applicationId');
+		console.log('\n' + 'should provide only callsign, facilityId, or applicationId');
 		res.status(400).send({
 			'status': 'error',
 			'statusCode':'400',
-			'statusMessage': 'should provide only one of callsign, facilityId, or applicationId.'
+			'statusMessage': 'should provide only callsign, facilityId, or applicationId.'
 		});
 		return false;
 	}
@@ -205,7 +205,9 @@ function query_by_facility_id(facility_id,service_type,res){
 	q = q + "else -999::numeric ";
 	q = q + "end as lat ";
 	q = q + "from " + eng_data_table + " ";
-	q = q + "where application_id = "+facility_id+";";
+	q = q + "where facility_id = "+facility_id+";";
+	
+	console.log(q);
 	
 	db_lms.any(q)
 	.then(function (data) {
@@ -244,7 +246,7 @@ function query_by_callsign(callsign,service_type,res){
 	
 	var q1 = "SELECT facility_id ";
 	q1 = q1 + "FROM mass_media.gis_facility ";
-	q1 = q1 = "where fac_callsign = "+callsign+";";
+	q1 = q1 + "where fac_callsign = '"+callsign+"';";
 	
 	var fac_ids = [];
 	db_lms.any(q1)
@@ -264,6 +266,7 @@ function query_by_callsign(callsign,service_type,res){
 			for (var record in data){
 				fac_ids.push((data[record].facility_id).toString());
 			}
+
 			
 			var eng_data_table = LMS_SCHEMA + ".gis_" + service_type + "_eng_data";
 
@@ -282,6 +285,8 @@ function query_by_callsign(callsign,service_type,res){
 			q2 = q2 + "end as lat ";
 			q2 = q2 + "from " + eng_data_table + " ";
 			q2 = q2 + "where facility_id in ("+fac_ids+");";
+
+			console.log(q2);
 
 			db_lms.any(q2)
 			.then(function (data) {

@@ -2,7 +2,7 @@ var LMS_SCHEMA = 'mass_media';
 var db_lms = require('./db_lms.js');
 
 // this function returns the lng(s), lat(s) by passing application_id, facility_id, or callsign
-function getAntenna(req, res, callback) {
+function getAntenna(req, res) {
 	console.log('\n' + '============ getAntenna ============');
 	// retrieve query parameters
 	var application_id = req.query.applicationId;
@@ -24,12 +24,11 @@ function getAntenna(req, res, callback) {
 		res.status(400).send({
 			'status': 'error',
 			'statusCode':'400',
-			'statusMessage': 'The code is not implemented yet to accept am service type. ' + process.version
+			'statusMessage': 'The code is not implemented yet to accept am service type'
 		});
 		return;
 	}
 	else {
-		// 
 		if (application_id != undefined && facility_id == undefined && callsign == undefined){
 			query_by_application_id(application_id,service_type,res);
 		}
@@ -41,10 +40,21 @@ function getAntenna(req, res, callback) {
 			query_by_callsign(callsign,service_type,res);
 		}
 	}
-
 }
 
 function check_query_params(application_id,facility_id,callsign,service_type,res){
+	
+	// check if service is not tv, fm, or am, then if not return 400 response
+	if ( !(['tv', 'am', 'fm'].includes(service_type.toLowerCase())) ) {
+		console.log('\n' + 'invalid serviceType value');
+		res.status(400).send({
+			'status': 'error',
+			'statusCode':'400',
+			'statusMessage': 'Invalid serviceType value: '+service_type+' - must be tv, fm, or am.'
+		});
+		return false;
+	}
+	
 	// check which of the three params is passed "callsign, facility_id, or application_id"
 	var v3 = [application_id, facility_id, callsign];
 	var numDefined = 0;
@@ -78,7 +88,6 @@ function check_query_params(application_id,facility_id,callsign,service_type,res
 		return false;
 	}
 
-
 	// check if applicationId is used and invalid, return 400 response
 	if (application_id != undefined) {
 		if (application_id == '' || !application_id.match(/^\d+$/)) {
@@ -86,7 +95,7 @@ function check_query_params(application_id,facility_id,callsign,service_type,res
 			res.status(400).send({
 			'status': 'error',
 			'statusCode':'400',
-			'statusMessage': 'Invalid applicationId value.'
+			'statusMessage': 'invalid applicationId value: '+application_id
 			});
 			return false;
 		}
@@ -94,12 +103,23 @@ function check_query_params(application_id,facility_id,callsign,service_type,res
 
 	// check if facilityId is used and invalid, return 400 response
 	if (facility_id != undefined) {
-		if ( facility_id == '' || !facility_id.match(/^\d+$/)) {
+		// check if facility id is in numeric format
+		if (facility_id == '' || !facility_id.match(/^\d+$/)) {
 			console.log('\n' + 'invalid facilityId value');
 			res.status(400).send({
 			'status': 'error',
 			'statusCode':'400',
-			'statusMessage': 'Invalid facilityId value.'
+			'statusMessage': 'Invalid facilityId value: '+facility_id
+			});
+			return false;
+		}
+		// facility_id=0 are for proposed locations for stations.
+		if (facility_id == '0'){
+			console.log('\n' + 'invalid facilityId value of 0');
+			res.status(400).send({
+			'status': 'error',
+			'statusCode':'400',
+			'statusMessage': 'Invalid facilityId value. The value 0 is for proposed locations for stations.'
 			});
 			return false;
 		}
@@ -107,29 +127,31 @@ function check_query_params(application_id,facility_id,callsign,service_type,res
 
 	// check if callsign is used and invalid, return 400 response
 	if (callsign != undefined) {
+		// check if callsign has only numeric, chars, and -s
 		if (callsign == '' || !callsign.match(/^[a-zA-Z0-9-]+$/)) {
 		
 			console.log('\n' + 'invalid callsign value');
 			res.status(400).send({
 				'status': 'error',
 				'statusCode':'400',
-				'statusMessage': 'Invalid callsign value.'
+				'statusMessage': 'invalid callsign value: '+callsign
 			});
 			return false;
 		}
-	}
 
-	// check if service is not tv, fm, or am, then if not return 400 response
-	if ( !(['tv', 'am', 'fm'].includes(service_type.toLowerCase())) ) {
-		console.log('\n' + 'invalid serviceType value');
-		res.status(400).send({
-			'status': 'error',
-			'statusCode':'400',
-			'statusMessage': 'Invalid serviceType value - must be tv, fm, or am.'
-		});
-		return false;
-	}
+		// check if callsign is 'NEW', 'VACANT', 
+		if (['NEW','VACANT','NEW-DT','XE','XENVA2','NEWDT'].includes(callsign.toUpperCase())){
 
+			console.log('\n' + 'irregular callsign value');
+			res.status(400).send({
+				'status': 'error',
+				'statusCode':'400',
+				'statusMessage': 'irregular callsign value: '+callsign
+			});
+			return false;
+		}
+
+	}
 	return true;
 }
 
@@ -137,7 +159,7 @@ function query_by_application_id(application_id,service_type,res){
 	
 	var eng_data_table = LMS_SCHEMA + ".gis_" + service_type + "_eng_data";
 
-	var	q = "select case when lon_dir = 'W' ";
+	var	q = "select distinct case when lon_dir = 'W' ";
 	q = q + "then round(((lon_deg + lon_min/60 + lon_sec/3600)*-1)::numeric,7) ";
 	q = q + "when lon_dir = 'E' ";
 	q = q + "then round((lon_deg + lon_min/60 + lon_sec/3600)::numeric,7) ";
@@ -163,7 +185,7 @@ function query_by_application_id(application_id,service_type,res){
 			res.status(400).send({
 				'status': 'error',
 				'statusCode':'400',
-				'statusMessage': 'applicationId not found in database.'
+				'statusMessage': 'applicationId: '+application_id+', not found in database'
 			});
 			return;
 		}
@@ -173,7 +195,7 @@ function query_by_application_id(application_id,service_type,res){
 					'application id': application_id,
 					'antenna(s)': data
 			};
-
+			console.log('\n' + 'success!');
 			res.status(200);
 			res.setHeader('Content-Type','application/json');
 			res.send(JSON.stringify(params));
@@ -191,7 +213,7 @@ function query_by_facility_id(facility_id,service_type,res){
 	
 	var eng_data_table = LMS_SCHEMA + ".gis_" + service_type + "_eng_data";
 
-	var	q = "select case when lon_dir = 'W' ";
+	var	q = "select distinct case when lon_dir = 'W' ";
 	q = q + "then round(((lon_deg + lon_min/60 + lon_sec/3600)*-1)::numeric,7) ";
 	q = q + "when lon_dir = 'E' ";
 	q = q + "then round((lon_deg + lon_min/60 + lon_sec/3600)::numeric,7) ";
@@ -206,9 +228,7 @@ function query_by_facility_id(facility_id,service_type,res){
 	q = q + "end as lat ";
 	q = q + "from " + eng_data_table + " ";
 	q = q + "where facility_id = "+facility_id+";";
-	
-	console.log(q);
-	
+		
 	db_lms.any(q)
 	.then(function (data) {
 
@@ -218,9 +238,8 @@ function query_by_facility_id(facility_id,service_type,res){
 			res.status(400).send({
 				'status': 'error',
 				'statusCode':'400',
-				'statusMessage': 'facilityId not found in database.'
+				'statusMessage': 'facilityId: '+facility_id+', not found in database.'
 			});
-			return;
 		}
 		else {
 			params = {
@@ -229,10 +248,10 @@ function query_by_facility_id(facility_id,service_type,res){
 					'antenna(s)': data
 			};
 
+			console.log('\n' + 'success!');
 			res.status(200);
 			res.setHeader('Content-Type','application/json');
 			res.send(JSON.stringify(params));
-			return;
 		}
 
 	})
@@ -244,11 +263,10 @@ function query_by_facility_id(facility_id,service_type,res){
 
 function query_by_callsign(callsign,service_type,res){
 	
-	var q1 = "SELECT facility_id ";
+	var q1 = "SELECT facility_id, fac_country, fac_status, fac_callsign ";
 	q1 = q1 + "FROM mass_media.gis_facility ";
 	q1 = q1 + "where fac_callsign = '"+callsign+"';";
 	
-	var fac_ids = [];
 	db_lms.any(q1)
 	.then(function (data) {
 
@@ -257,20 +275,70 @@ function query_by_callsign(callsign,service_type,res){
 			res.status(400).send({
 				'status': 'error',
 				'statusCode':'400',
-				'statusMessage': 'callsign not found in database.'
+				'statusMessage': 'callsign: '+callsign+', not found in database'
 			});
-			return;
 		}
 		else {
 
-			for (var record in data){
-				fac_ids.push((data[record].facility_id).toString());
+			// check if facility_id = 0
+			if(data[0].facility_id == 0){
+				console.log('\n' + 'callsign returns facilityId value of 0');
+				res.status(400).send({
+				'status': 'error',
+				'statusCode':'400',
+				'statusMessage': 'The callsign '+callsign+' returns a facilityId value of 0. The value 0 is for proposed locations for stations.'
+				});
+				return false;
+			}
+			
+			// check if fac_country is no US
+			if(data[0].fac_country != 'US'){
+				console.log('\n' + 'Callsign value outside US boundary.');
+				res.status(400).send({
+					'status': 'error',
+					'statusCode':'400',
+					'statusMessage': 'callsign value: '+callsign+', outside the US boundary'
+				});
+				return false;
 			}
 
-			
+			// check if the callsign starts with D for deleted
+			if(data[0].fac_callsign.toUpperCase().startsWith('D')) {
+
+				console.log('\n' + 'Deleted callsign value.');
+				res.status(400).send({
+					'status': 'error',
+					'statusCode':'400',
+					'statusMessage': 'callsign value: '+callsign+', marked deleted.'
+				});
+				return false;
+			}
+
+			// check if fac_status is LICAN for License Cancelled
+			if(data[0].fac_status == 'LICAN'){
+				console.log('\n' + 'Callsign has a status of (license cancelled).');
+				res.status(400).send({
+					'status': 'error',
+					'statusCode':'400',
+					'statusMessage': 'callsign: '+callsign+', status of (license cancelled).'
+				});
+				return false;
+			}
+
+			// check if fac_status is FVOID for Facility Void
+			if(data[0].fac_status == 'FVOID'){
+				console.log('\n' + 'Callsign has a status of (facility void).');
+				res.status(400).send({
+					'status': 'error',
+					'statusCode':'400',
+					'statusMessage': 'callsign: '+callsign+', status of (facility void).'
+				});
+				return false;
+			}
+							
 			var eng_data_table = LMS_SCHEMA + ".gis_" + service_type + "_eng_data";
 
-			var	q2 = "select case when lon_dir = 'W' ";
+			var	q2 = "select distinct case when lon_dir = 'W' ";
 			q2 = q2 + "then round(((lon_deg + lon_min/60 + lon_sec/3600)*-1)::numeric,7) ";
 			q2 = q2 + "when lon_dir = 'E' ";
 			q2 = q2 + "then round((lon_deg + lon_min/60 + lon_sec/3600)::numeric,7) ";
@@ -284,9 +352,7 @@ function query_by_callsign(callsign,service_type,res){
 			q2 = q2 + "else -999::numeric ";
 			q2 = q2 + "end as lat ";
 			q2 = q2 + "from " + eng_data_table + " ";
-			q2 = q2 + "where facility_id in ("+fac_ids+");";
-
-			console.log(q2);
+			q2 = q2 + "where facility_id = "+data[0].facility_id+";";
 
 			db_lms.any(q2)
 			.then(function (data) {
@@ -297,9 +363,8 @@ function query_by_callsign(callsign,service_type,res){
 					res.status(400).send({
 						'status': 'error',
 						'statusCode':'400',
-						'statusMessage': 'facilityId of callsign '+ callsign +' not found in database.'
+						'statusMessage': 'facilityId of callsign: '+ callsign +', not found in database'
 					});
-					return;
 				}
 				else {
 					params = {
@@ -308,10 +373,11 @@ function query_by_callsign(callsign,service_type,res){
 							'antenna(s)': data
 					};
 
+					console.log('\n' + 'success!');
 					res.status(200);
 					res.setHeader('Content-Type','application/json');
 					res.send(JSON.stringify(params));
-					return;
+					//return;
 				}
 			})
 			.catch(function (err) {
@@ -329,5 +395,3 @@ function query_by_callsign(callsign,service_type,res){
 }
 
 module.exports.getAntenna = getAntenna;
-
-

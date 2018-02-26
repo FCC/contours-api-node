@@ -24,12 +24,11 @@ function getAntenna(req, res) {
 		res.status(400).send({
 			'status': 'error',
 			'statusCode':'400',
-			'statusMessage': 'The code is not implemented yet to accept am service type. ' + process.version
+			'statusMessage': 'The code is not implemented yet to accept am service type'
 		});
 		return;
 	}
 	else {
-		// 
 		if (application_id != undefined && facility_id == undefined && callsign == undefined){
 			query_by_application_id(application_id,service_type,res);
 		}
@@ -41,7 +40,6 @@ function getAntenna(req, res) {
 			query_by_callsign(callsign,service_type,res);
 		}
 	}
-
 }
 
 function check_query_params(application_id,facility_id,callsign,service_type,res){
@@ -52,7 +50,7 @@ function check_query_params(application_id,facility_id,callsign,service_type,res
 		res.status(400).send({
 			'status': 'error',
 			'statusCode':'400',
-			'statusMessage': 'Invalid serviceType value - must be tv, fm, or am.'
+			'statusMessage': 'Invalid serviceType value: '+service_type+' - must be tv, fm, or am.'
 		});
 		return false;
 	}
@@ -97,7 +95,7 @@ function check_query_params(application_id,facility_id,callsign,service_type,res
 			res.status(400).send({
 			'status': 'error',
 			'statusCode':'400',
-			'statusMessage': 'Invalid applicationId value.'
+			'statusMessage': 'invalid applicationId value: '+application_id
 			});
 			return false;
 		}
@@ -111,7 +109,7 @@ function check_query_params(application_id,facility_id,callsign,service_type,res
 			res.status(400).send({
 			'status': 'error',
 			'statusCode':'400',
-			'statusMessage': 'Invalid facilityId value.'
+			'statusMessage': 'Invalid facilityId value: '+facility_id
 			});
 			return false;
 		}
@@ -136,7 +134,7 @@ function check_query_params(application_id,facility_id,callsign,service_type,res
 			res.status(400).send({
 				'status': 'error',
 				'statusCode':'400',
-				'statusMessage': 'Invalid callsign value.'
+				'statusMessage': 'invalid callsign value: '+callsign
 			});
 			return false;
 		}
@@ -144,81 +142,14 @@ function check_query_params(application_id,facility_id,callsign,service_type,res
 		// check if callsign is 'NEW', 'VACANT', 
 		if (['NEW','VACANT','NEW-DT','XE','XENVA2','NEWDT'].includes(callsign.toUpperCase())){
 
-			console.log('\n' + 'Irregular callsign value');
+			console.log('\n' + 'irregular callsign value');
 			res.status(400).send({
 				'status': 'error',
 				'statusCode':'400',
-				'statusMessage': 'Irregular callsign value.'
+				'statusMessage': 'irregular callsign value: '+callsign
 			});
 			return false;
 		}
-
-		// check if callsign starts with D
-		if (callsign.toUpperCase().startsWith('D')) {
-
-			console.log('\n' + 'Deleted callsign value');
-			res.status(400).send({
-				'status': 'error',
-				'statusCode':'400',
-				'statusMessage': 'This callsign value is deleted.'
-			});
-			return false;
-		}
-
-		// Use pg sql to check other columns
-
-		var q = "SELECT facility_id, fac_country, fac_status ";
-		q = q + "FROM mass_media.gis_facility ";
-		q = q + "where fac_callsign = '"+callsign+"';";
-		
-		db_lms.any(q)
-		.then(function (data) {
-			
-			if(data[0].facility_id == 0){
-				console.log('\n' + 'callsign returns facilityId value of 0');
-				res.status(400).send({
-				'status': 'error',
-				'statusCode':'400',
-				'statusMessage': 'The callsign '+callsign+' returns a facilityId value of 0. The value 0 is for proposed locations for stations.'
-				});
-				return false;
-			}
-			
-			if(data[0].fac_country != 'US'){
-				console.log('\n' + 'Callsign value outside US boundary.');
-				res.status(400).send({
-					'status': 'error',
-					'statusCode':'400',
-					'statusMessage': 'This callsign value is outside the US boundary.'
-				});
-				return false;
-			}
-
-			if(data[0].fac_status == 'LICAN'){
-				console.log('\n' + 'Callsign has a status of (license cancelled).');
-				res.status(400).send({
-					'status': 'error',
-					'statusCode':'400',
-					'statusMessage': 'This callsign has a status of (license cancelled).'
-				});
-				return false;
-			}
-
-			if(data[0].fac_status == 'FVOID'){
-				console.log('\n' + 'Callsign has a status of (facility void).');
-				res.status(400).send({
-					'status': 'error',
-					'statusCode':'400',
-					'statusMessage': 'This callsign has a status of (facility void).'
-				});
-				return false;
-			}
-
-		})
-		.catch(function (err) {
-			console.log('\n' + err);
-			callback(err, null);
-		});
 
 	}
 	return true;
@@ -254,7 +185,7 @@ function query_by_application_id(application_id,service_type,res){
 			res.status(400).send({
 				'status': 'error',
 				'statusCode':'400',
-				'statusMessage': 'applicationId not found in database.'
+				'statusMessage': 'applicationId: '+application_id+', not found in database'
 			});
 			return;
 		}
@@ -264,7 +195,7 @@ function query_by_application_id(application_id,service_type,res){
 					'application id': application_id,
 					'antenna(s)': data
 			};
-
+			console.log('\n' + 'success!');
 			res.status(200);
 			res.setHeader('Content-Type','application/json');
 			res.send(JSON.stringify(params));
@@ -297,9 +228,7 @@ function query_by_facility_id(facility_id,service_type,res){
 	q = q + "end as lat ";
 	q = q + "from " + eng_data_table + " ";
 	q = q + "where facility_id = "+facility_id+";";
-	
-	console.log(q);
-	
+		
 	db_lms.any(q)
 	.then(function (data) {
 
@@ -309,9 +238,8 @@ function query_by_facility_id(facility_id,service_type,res){
 			res.status(400).send({
 				'status': 'error',
 				'statusCode':'400',
-				'statusMessage': 'facilityId not found in database.'
+				'statusMessage': 'facilityId: '+facility_id+', not found in database.'
 			});
-			return;
 		}
 		else {
 			params = {
@@ -320,10 +248,10 @@ function query_by_facility_id(facility_id,service_type,res){
 					'antenna(s)': data
 			};
 
+			console.log('\n' + 'success!');
 			res.status(200);
 			res.setHeader('Content-Type','application/json');
 			res.send(JSON.stringify(params));
-			return;
 		}
 
 	})
@@ -335,11 +263,10 @@ function query_by_facility_id(facility_id,service_type,res){
 
 function query_by_callsign(callsign,service_type,res){
 	
-	var q1 = "SELECT facility_id ";
+	var q1 = "SELECT facility_id, fac_country, fac_status, fac_callsign ";
 	q1 = q1 + "FROM mass_media.gis_facility ";
 	q1 = q1 + "where fac_callsign = '"+callsign+"';";
 	
-	var fac_ids = [];
 	db_lms.any(q1)
 	.then(function (data) {
 
@@ -348,11 +275,66 @@ function query_by_callsign(callsign,service_type,res){
 			res.status(400).send({
 				'status': 'error',
 				'statusCode':'400',
-				'statusMessage': 'callsign not found in database.'
+				'statusMessage': 'callsign: '+callsign+', not found in database'
 			});
-			return;
 		}
 		else {
+
+			// check if facility_id = 0
+			if(data[0].facility_id == 0){
+				console.log('\n' + 'callsign returns facilityId value of 0');
+				res.status(400).send({
+				'status': 'error',
+				'statusCode':'400',
+				'statusMessage': 'The callsign '+callsign+' returns a facilityId value of 0. The value 0 is for proposed locations for stations.'
+				});
+				return false;
+			}
+			
+			// check if fac_country is no US
+			if(data[0].fac_country != 'US'){
+				console.log('\n' + 'Callsign value outside US boundary.');
+				res.status(400).send({
+					'status': 'error',
+					'statusCode':'400',
+					'statusMessage': 'callsign value: '+callsign+', outside the US boundary'
+				});
+				return false;
+			}
+
+			// check if the callsign starts with D for deleted
+			if(data[0].fac_callsign.toUpperCase().startsWith('D')) {
+
+				console.log('\n' + 'Deleted callsign value.');
+				res.status(400).send({
+					'status': 'error',
+					'statusCode':'400',
+					'statusMessage': 'callsign value: '+callsign+', marked deleted.'
+				});
+				return false;
+			}
+
+			// check if fac_status is LICAN for License Cancelled
+			if(data[0].fac_status == 'LICAN'){
+				console.log('\n' + 'Callsign has a status of (license cancelled).');
+				res.status(400).send({
+					'status': 'error',
+					'statusCode':'400',
+					'statusMessage': 'callsign: '+callsign+', status of (license cancelled).'
+				});
+				return false;
+			}
+
+			// check if fac_status is FVOID for Facility Void
+			if(data[0].fac_status == 'FVOID'){
+				console.log('\n' + 'Callsign has a status of (facility void).');
+				res.status(400).send({
+					'status': 'error',
+					'statusCode':'400',
+					'statusMessage': 'callsign: '+callsign+', status of (facility void).'
+				});
+				return false;
+			}
 							
 			var eng_data_table = LMS_SCHEMA + ".gis_" + service_type + "_eng_data";
 
@@ -381,9 +363,8 @@ function query_by_callsign(callsign,service_type,res){
 					res.status(400).send({
 						'status': 'error',
 						'statusCode':'400',
-						'statusMessage': 'facilityId of callsign '+ callsign +' not found in database.'
+						'statusMessage': 'facilityId of callsign: '+ callsign +', not found in database'
 					});
-					return;
 				}
 				else {
 					params = {
@@ -392,10 +373,11 @@ function query_by_callsign(callsign,service_type,res){
 							'antenna(s)': data
 					};
 
+					console.log('\n' + 'success!');
 					res.status(200);
 					res.setHeader('Content-Type','application/json');
 					res.send(JSON.stringify(params));
-					return;
+					//return;
 				}
 			})
 			.catch(function (err) {
@@ -413,5 +395,3 @@ function query_by_callsign(callsign,service_type,res){
 }
 
 module.exports.getAntenna = getAntenna;
-
-

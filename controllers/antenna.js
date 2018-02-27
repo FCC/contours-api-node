@@ -9,6 +9,16 @@ function getAntenna(req, res) {
 	var facility_id = req.query.facilityId;
 	var callsign = req.query.callsign;
 	var service_type = req.query.serviceType;
+
+	if (application_id == undefined && facility_id == undefined && callsign == undefined && service_type == undefined){
+		console.log('\n' + 'missing parameters');
+		res.status(400).send({
+			'status': 'error',
+			'statusCode':'400',
+			'statusMessage': 'must provide (callsign, facilityId, or applicationId) plus serviceType'
+		});
+
+	}
 	
 	// checkQueryParams return true if parameters are valid
 	// if there is an error, it returns false + it sends 400 response
@@ -26,7 +36,6 @@ function getAntenna(req, res) {
 			'statusCode':'400',
 			'statusMessage': 'The code is not implemented yet to accept am service type'
 		});
-		return;
 	}
 	else {
 		if (application_id != undefined && facility_id == undefined && callsign == undefined){
@@ -44,17 +53,6 @@ function getAntenna(req, res) {
 
 function check_query_params(application_id,facility_id,callsign,service_type,res){
 	
-	// check if service is not tv, fm, or am, then if not return 400 response
-	if ( !(['tv', 'am', 'fm'].includes(service_type.toLowerCase())) ) {
-		console.log('\n' + 'invalid serviceType value');
-		res.status(400).send({
-			'status': 'error',
-			'statusCode':'400',
-			'statusMessage': 'Invalid serviceType value: '+service_type+' - must be tv, fm, or am'
-		});
-		return false;
-	}
-	
 	// check which of the three params is passed "callsign, facility_id, or application_id"
 	var v3 = [application_id, facility_id, callsign];
 	var numDefined = 0;
@@ -66,12 +64,12 @@ function check_query_params(application_id,facility_id,callsign,service_type,res
 
 	// if none of the three params is passed,
 	// send 400 response explaining the need to use one of the three params
-	if (numDefined === 0) {
-		console.log('\n' + 'must provide (callsign, facilityId, or applicationId) plus serviceType.');
+	if (numDefined === 0 && service_type != undefined) {
+		console.log('\n' + 'must provide callsign, facilityId, or applicationId');
 		res.status(400).send({
 			'status': 'error',
 			'statusCode':'400',
-			'statusMessage': 'must provide (callsign, facilityId, or applicationId) plus serviceType'
+			'statusMessage': 'missing callsign, facilityId, or applicationId'
 		});
 		return false;
 	}
@@ -84,6 +82,17 @@ function check_query_params(application_id,facility_id,callsign,service_type,res
 			'status': 'error',
 			'statusCode':'400',
 			'statusMessage': 'should provide only callsign, facilityId, or applicationId'
+		});
+		return false;
+	}
+
+	// check if service is not tv, fm, or am, then if not return 400 response
+	if ( !(['tv', 'am', 'fm'].includes(service_type.toLowerCase())) ) {
+		console.log('\n' + 'invalid serviceType value');
+		res.status(400).send({
+			'status': 'error',
+			'statusCode':'400',
+			'statusMessage': 'Invalid serviceType value: '+service_type+' - must be tv, fm, or am'
 		});
 		return false;
 	}

@@ -20,7 +20,7 @@ function getAntenna(req, res) {
 	
 	// this condition should be removed once the am table is re-structured
 	if (service_type.toLowerCase() == 'am'){
-		console.log('\n' + 'The code is not implemented yet to accept am service type.');
+		console.log('\n' + 'The code is not implemented yet to accept am service type');
 		res.status(400).send({
 			'status': 'error',
 			'statusCode':'400',
@@ -50,7 +50,7 @@ function check_query_params(application_id,facility_id,callsign,service_type,res
 		res.status(400).send({
 			'status': 'error',
 			'statusCode':'400',
-			'statusMessage': 'Invalid serviceType value: '+service_type+' - must be tv, fm, or am.'
+			'statusMessage': 'Invalid serviceType value: '+service_type+' - must be tv, fm, or am'
 		});
 		return false;
 	}
@@ -71,7 +71,7 @@ function check_query_params(application_id,facility_id,callsign,service_type,res
 		res.status(400).send({
 			'status': 'error',
 			'statusCode':'400',
-			'statusMessage': 'must provide (callsign, facilityId, or applicationId) plus serviceType.'
+			'statusMessage': 'must provide (callsign, facilityId, or applicationId) plus serviceType'
 		});
 		return false;
 	}
@@ -83,7 +83,7 @@ function check_query_params(application_id,facility_id,callsign,service_type,res
 		res.status(400).send({
 			'status': 'error',
 			'statusCode':'400',
-			'statusMessage': 'should provide only callsign, facilityId, or applicationId.'
+			'statusMessage': 'should provide only callsign, facilityId, or applicationId'
 		});
 		return false;
 	}
@@ -119,7 +119,7 @@ function check_query_params(application_id,facility_id,callsign,service_type,res
 			res.status(400).send({
 			'status': 'error',
 			'statusCode':'400',
-			'statusMessage': 'Invalid facilityId value. The value 0 is for proposed locations for stations.'
+			'statusMessage': 'Invalid facilityId value. The value 0 is for proposed locations for stations'
 			});
 			return false;
 		}
@@ -199,7 +199,6 @@ function query_by_application_id(application_id,service_type,res){
 			res.status(200);
 			res.setHeader('Content-Type','application/json');
 			res.send(JSON.stringify(params));
-			
 		}
 
 	})
@@ -238,7 +237,7 @@ function query_by_facility_id(facility_id,service_type,res){
 			res.status(400).send({
 				'status': 'error',
 				'statusCode':'400',
-				'statusMessage': 'facilityId: '+facility_id+', not found in database.'
+				'statusMessage': 'facilityId: '+facility_id+', not found in database'
 			});
 		}
 		else {
@@ -286,7 +285,7 @@ function query_by_callsign(callsign,service_type,res){
 				res.status(400).send({
 				'status': 'error',
 				'statusCode':'400',
-				'statusMessage': 'The callsign '+callsign+' returns a facilityId value of 0. The value 0 is for proposed locations for stations.'
+				'statusMessage': 'callsign '+callsign+' returns a facilityId value of 0 (proposed location for a station)'
 				});
 				return false;
 			}
@@ -309,7 +308,7 @@ function query_by_callsign(callsign,service_type,res){
 				res.status(400).send({
 					'status': 'error',
 					'statusCode':'400',
-					'statusMessage': 'callsign value: '+callsign+', marked deleted.'
+					'statusMessage': 'callsign value: '+callsign+', marked deleted'
 				});
 				return false;
 			}
@@ -320,7 +319,7 @@ function query_by_callsign(callsign,service_type,res){
 				res.status(400).send({
 					'status': 'error',
 					'statusCode':'400',
-					'statusMessage': 'callsign: '+callsign+', status of (license cancelled).'
+					'statusMessage': 'callsign: '+callsign+', status of (license cancelled)'
 				});
 				return false;
 			}
@@ -331,7 +330,7 @@ function query_by_callsign(callsign,service_type,res){
 				res.status(400).send({
 					'status': 'error',
 					'statusCode':'400',
-					'statusMessage': 'callsign: '+callsign+', status of (facility void).'
+					'statusMessage': 'callsign: '+callsign+', status of (facility void)'
 				});
 				return false;
 			}
@@ -377,7 +376,6 @@ function query_by_callsign(callsign,service_type,res){
 					res.status(200);
 					res.setHeader('Content-Type','application/json');
 					res.send(JSON.stringify(params));
-					//return;
 				}
 			})
 			.catch(function (err) {

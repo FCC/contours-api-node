@@ -1,0 +1,80 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "version": "1.5.0",
+        "title": "Antenna API"
+    },
+    "basePath": "/api/contours",
+    "tags": [{
+        "name": "antenna",
+        "description": "get antenna coordinates for FM and TV"
+    }],
+    "paths": {
+        "/antenna.{format}": {
+            "get": {
+                "tags": ["antenna"],
+                "summary": "Get antenna coordinates",
+                "description": "Get the antenna coordinates based on serviceType (TV or FM), by passing serviceType and either applicationId, facilityId, or callsign. ",
+                "parameters": [{
+                    "name": "serviceType",
+                    "x-label": "Service Type",
+                    "x-display": true,
+                    "in": "query",
+                    "description": "Type of broadcast service. <br /><br />Valid values: tv or fm",
+                    "required": true,
+                    "type": "string",
+                    "defaultValue": "tv",
+                    "enum": [
+                        "tv",
+                        "fm"
+                    ]
+                }, {
+                    "name": "callsign",
+                    "x-label": "Call Sign",
+                    "x-display": true,
+                    "in": "query",
+                    "description": "Set of characters that serve as the public identification for a broadcast radio or television station.<br /><br /><b>Must provide callsign, facilityid, or applicationid</b>.",
+                    "required": false,
+                    "type": "string",
+                    "default": ""                    
+                }, {
+                    "name": "facilityId",
+                    "x-label": "Facility ID",
+                    "x-display": true,
+                    "in": "query",
+                    "description": "The unique integer number that identifies a station.<br /><br /><b>Must provide callsign, facilityid, or applicationid</b>.",
+                    "required": false,
+                    "type": "string",
+                    "default": ""                    
+                }, {
+                    "name": "applicationId",
+                    "x-label": "Application ID",
+                    "x-display": true,
+                    "in": "query",
+                    "description": "Unique ID assigned to an application.<br /><br /><b>Must provide callsign, facilityid, or applicationid</b>.",
+                    "required": false,
+                    "type": "string",
+                    "default": ""                    
+                }, {
+                    "name": "format",
+                    "in": "path",
+                    "description": "Format for the returned results.<br /><br />Defaults to json.",
+                    "required": false,
+                    "type": "string",
+                    "default": "json",
+                    "enum": [
+                        "json"
+                    ]
+                }],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                },
+                "produces": [
+                    "application/json"
+                ]
+            }
+        }
+    }
+}

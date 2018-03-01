@@ -1259,7 +1259,6 @@ function tvfmfs_comment(i)
 }
 
 
-
 function fzq(Q) // for F(50,90) curves prediction
 {
     var k;
@@ -1285,26 +1284,25 @@ function fzq(Q) // for F(50,90) curves prediction
 
 }   // end fzq  
 
-
 function round_power(power_in, error_flag)
 {
 
-/************************************************************************
-*
-*     This subroutine will round the power in accordance with the FCC
-*     Rules section 73.212.
-*
-*     POWER_IN   = Unrounded power in Watts or kilowatts; real; input.
-*     POWER_OUT  = Rounded power in Watts or kilowatts; real; output.
-*     ERROR_FLAG = 0; no errors; integer; output.
-*                = 1; Input power is less than minimum allowed,
-*                     POWER_OUT set equal to POWER_IN.
-*                = 2; Input power greater than maximum allowed,
-*                     POWER_OUT set equal to POWER_IN.
-*
-*                     ...kalagian...11/3/86...
-*
-***********************************************************************/
+	/************************************************************************
+	*
+	*     This subroutine will round the power in accordance with the FCC
+	*     Rules section 73.212.
+	*
+	*     POWER_IN   = Unrounded power in Watts or kilowatts; real; input.
+	*     POWER_OUT  = Rounded power in Watts or kilowatts; real; output.
+	*     ERROR_FLAG = 0; no errors; integer; output.
+	*                = 1; Input power is less than minimum allowed,
+	*                     POWER_OUT set equal to POWER_IN.
+	*                = 2; Input power greater than maximum allowed,
+	*                     POWER_OUT set equal to POWER_IN.
+	*
+	*                     ...kalagian...11/3/86...
+	*
+	***********************************************************************/
 
       var power_out = 0.0;
       var round_factor = 0.0;
@@ -1344,7 +1342,6 @@ function round_power(power_in, error_flag)
 
       return(power_out);
 }   
-
 
 function getDistance(req, res, callback) {
 
@@ -1409,25 +1406,27 @@ function getDistance(req, res, callback) {
 			return callback(dataObj);
 		}
 		
-		if ( !haat.match(/^\d+\.?\d*$/)) {
+		// ** Ahmad Aburizaiza **
+		// the regexp fixed to include negative numbers
+		if (!haat.match(/^-?\d+\.?\d*$/)) {
 			console.log('invalid haat value');
 			dataObj.statusMessage = 'Invalid haat value.';
 			return callback(dataObj);
 		}
 		
-		if ( !field.match(/^-?\d+\.?\d*$/)) {
+		if (!field.match(/^-?\d+\.?\d*$/)) {
 			console.log('invalid field value');
 			dataObj.statusMessage = 'Invalid field value';
 			return callback(dataObj);
 		}
 		
-		if ( !erp.match(/^\d+\.?\d*$/)) {
+		if (!erp.match(/^\d+\.?\d*$/)) {
 			console.log('invalid erp value');
 			dataObj.statusMessage = 'Invalid erp value.';
 			return callback(dataObj);
 		}
 		
-		if ( channel && !channel.match(/\d+$/)) {
+		if (channel && !channel.match(/\d+$/)) {
 			console.log('invalid channel value');
 			dataObj.statusMessage = 'Invalid channel value.';
 			return callback(dataObj);
@@ -1438,25 +1437,37 @@ function getDistance(req, res, callback) {
 			dataObj.statusMessage = 'Invalid curve value.';
 			return callback(dataObj);
 		}
-		
+		// ** Ahmad Aburizaiza **
+		/*
 		if ( parseFloat(haat) < 30 || parseFloat(haat) > 1600) {
 			console.log('HAAT value out of range [30, 1600]');
 			dataObj.statusMessage = 'HAAT value out of range [30, 1600].';
 			return callback(dataObj);
 		}
-		
+		*/
+
+		// ** Ahmad Aburizaiza **
+		// the above if statement is modified with a new one to include values
+		// less than 30 including negative numbers
+		if (parseFloat(haat) > 1600.0){
+			console.log('HAAT value out of range ( > 1600)');
+			dataObj.statusMessage = 'HAAT value cannot exceed 1600.';
+			return callback(dataObj);
+		}
+
 		if ( parseFloat(curve) < 0 || parseFloat(curve) > 2) {
 			console.log('Curve value out of range [0, 2]');
 			dataObj.statusMessage = 'Curve value out of range [0, 2].';
 			return callback(dataObj);
 		}
 
+		/*
 		if(serviceType === 'fm' && (channel !== '6' || channel == undefined)){
 			console.log('Channel 6 is the only valid channel for FM services');
 			dataObj.statusMessage = 'Only channel 6 allowed for FM services';
 			return callback(dataObj);
 		}
-		
+		*/
 
 		var fs_or_dist = 2
 		var flag = [];
@@ -1468,12 +1479,20 @@ function getDistance(req, res, callback) {
 		channel = parseFloat(channel);
 		curve = parseFloat(curve);
 		
-		var channel_use = channel;
 		if (serviceType.toLowerCase() == 'fm') {
-			channel_use = 6;
+			channel = 6;
+		}
+
+		// ** Ahmad Aburizaiza **
+		// update the value of haat to 30 if it is less than 30
+		// the value is updated in tvfmfs_metric(..) but not returned
+		// for the post code that requires the updated haat value
+		if(parseFloat(haat) < 30.0){
+			haat = 30.0;
 		}
 		
-		var distance = tvfmfs_metric(erp, haat, channel_use, field, distance, fs_or_dist, curve, flag);
+		
+		var distance = tvfmfs_metric(erp, haat, channel, field, distance, fs_or_dist, curve, flag);
 
 		console.log('distance=');
 		console.log(distance);

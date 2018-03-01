@@ -33,7 +33,7 @@
                     "label": "HAAT",
                     "display": true,
                     "in": "query",
-                    "description": "Height Above Average Terrain<br /><br />Values must be between 30-1600 meters.",
+                    "description": "Height Above Average Terrain<br /><br />Values must be between 30-1600 meters.<br />If the value passed is less than 30,<br />the code will use the value 30 instead.",
                     "required": true,
                     "type": "number",
                     "default": ""
@@ -51,7 +51,7 @@
                     "label": "Channel",
                     "display": true,
                     "in": "query",
-                    "description": "Required for TV.",
+                    "description": "Required for TV not for FM.<br />Any value passed for FM will be reset to 6 since channel 6 is the only valid channel for FM services.",
                     "required": false,
                     "type": "integer",
                     "default": ""

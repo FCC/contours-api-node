@@ -360,7 +360,8 @@ function query_by_callsign(callsign,service_type,res){
 			q2 = q2 + "else -999::numeric ";
 			q2 = q2 + "end as lat ";
 			q2 = q2 + "from " + eng_data_table + " ";
-			q2 = q2 + "where facility_id = "+data[0].facility_id+";";
+			q2 = q2 + "where asd_service = 'FM' and fm_dom_status = 'LIC' and eng_record_type = 'C' ";
+			q2 = q2 + "and facility_id = "+data[0].facility_id+";";
 
 			db_lms.any(q2)
 			.then(function (data) {

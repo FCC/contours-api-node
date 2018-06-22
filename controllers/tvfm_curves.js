@@ -1539,9 +1539,63 @@ function getResult(req, res, callback) {
 
 			result = getDistance(haat, serviceType, channel, curve, field, erp);
 		} else if (computationMethod == 1) {
+			if (distance == undefined) {
+				console.log('Mssing distance.');
+				dataObj.statusMessage = 'Missing distance';
+				return callback(dataObj);
+			}
+
+			if (erp == undefined) {
+				console.log('Mssing erp.');
+				dataObj.statusMessage = 'Missing erp';
+				return callback(dataObj);
+			}
+
+			if (!distance.match(/^-?\d+\.?\d*$/)) {
+				console.log('Invalid distance value.')
+				dataObj.statusMessage = 'Invalid distance value';
+				return callback(dataObj);
+			}
+
+			if (!erp.match(/^\d+\.?\d*$/)) {
+				console.log('Invalid erp value.')
+				dataObj.statusMessage = 'Invalid erp value';
+				return callback(dataObj);
+			}
+
+			distance = parseFloat(distance);
+			erp = parseFloat(erp);
+
 			result = getFieldStrength(haat, serviceType, channel, curve, erp, distance);
 		} else if (computationMethod == 2) {
 			console.log(channel);
+
+			if (distance == undefined) {
+				console.log('Mssing distance.');
+				dataObj.statusMessage = 'Missing distance';
+				return callback(dataObj);
+			}
+
+			if (field == undefined) {
+				console.log('Mssing field strength.');
+				dataObj.statusMessage = 'Missing field';
+				return callback(dataObj);
+			}
+
+			if (!distance.match(/^-?\d+\.?\d*$/)) {
+				console.log('Invalid distance value.')
+				dataObj.statusMessage = 'Invalid distance value';
+				return callback(dataObj);
+			}
+
+			if (!field.match(/^-?\d+\.?\d*$/)) {
+				console.log('Invalid field strength value.')
+				dataObj.statusMessage = 'Invalid field value';
+				return callback(dataObj);
+			}
+
+			distance = parseFloat(distance);
+			field = parseFloat(field);
 			result = getMaxPower(haat, serviceType, channel, curve, field, distance);
 		}
 

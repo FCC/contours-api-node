@@ -1368,8 +1368,6 @@ function getResult(req, res, callback) {
 		var serviceType = req.query.serviceType;
 		var computationMethod = req.query.computationMethod;
 
-		console.log(req.query);
-
 		var dataObj = new Object;
 		dataObj['status'] = 'error';
 		dataObj['statusCode'] = '400';
@@ -1487,8 +1485,6 @@ function getResult(req, res, callback) {
 			return callback(dataObj);
 		}
 
-
-
 		haat = parseFloat(haat);
 		channel = parseFloat(channel);
 		curve = parseFloat(curve);
@@ -1568,8 +1564,6 @@ function getResult(req, res, callback) {
 
 			result = getFieldStrength(haat, serviceType, channel, curve, erp, distance);
 		} else if (computationMethod == 2) {
-			console.log(channel);
-
 			if (distance == undefined) {
 				console.log('Mssing distance.');
 				dataObj.statusMessage = 'Missing distance';

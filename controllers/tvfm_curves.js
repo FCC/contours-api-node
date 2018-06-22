@@ -1682,9 +1682,9 @@ function getMaxPower(haat, serviceType, channel, curve, field, distance) {
 
 function getDistance(haat, serviceType, channel, curve, field, erp) {
 	console.log('================ Start CURVES Distance API ===================');
-
 	var fs_or_dist = 2;
 	var flag = [];
+	var distance = 0;
 	var distance = tvfmfs_metric(erp, haat, channel, field, distance, fs_or_dist, curve, flag);
 	return distance;
 }

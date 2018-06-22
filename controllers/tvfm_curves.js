@@ -838,11 +838,11 @@ function tvfmfs_metric(erp, haat, channel, field, distance, fs_or_dist, curve, f
     
           if (fs_or_dist == 3)  //find FM ERP, given a HAAT and a distance
              {   
-                var field_for_erp = 60.;       // 60 dBu used to determin equivalence
+				var field_for_erp = 60.;       // 60 dBu used to determin equivalence
                 erp = 1.0;                     // initial value
-                //if(channel < 200) flag[17]=1;  // No TV calculations here
+                if(channel < 200) flag[17]=1;  // No TV calculations here
                 curve = 0;                     // Service contour only
-                channel = 250;
+                //channel = 250;
              }
 
          erp_db = 10.0 * (Math.log(erp)/Math.log(10));  
@@ -1385,6 +1385,30 @@ function getResult(req, res, callback) {
 
 		serviceType = serviceType.toLowerCase();
 
+		// *** COMPUTATION METHOD CHECKS *** //
+		// Valid values:
+		// 0: distance (default)
+		// 1: field strength
+		// 2: max ERP
+		if (computationMethod == undefined) {
+			computationMethod = '0';
+			console.log('Computation method not provided. Forcing 0 (distance) for backward compatibility.');
+		}
+
+		if (!computationMethod.match(/^\d+$/)) {
+			console.log('invalid computationMethod value');
+			dataObj.statusMessage = 'Invalid computationMethod value.';
+			return callback(dataObj);
+		}
+
+		computationMethod = parseFloat(computationMethod);
+
+		if (computationMethod < 0 || computationMethod > 2) {
+			console.log('Computation method value out of range [0, 2]');
+			dataObj.statusMessage = 'Computation method value out of range [0, 2].';
+			return callback(dataObj);
+		}
+
 		var tv_fm_list = ['tv', 'fm'];
 		if (tv_fm_list.indexOf(serviceType) < 0) {
 			console.log('invalid serviceType value');
@@ -1414,16 +1438,18 @@ function getResult(req, res, callback) {
 		}
 
 		// *** CHANNEL CHECKS *** //
-		if (serviceType == 'tv' && channel == undefined) {
-			console.log('Missing channel');
-			dataObj.statusMessage = 'Missing channel.';
-			return callback(dataObj);
-		} else if (serviceType == 'fm') {
-			channel = '6';
+		if (channel == undefined) {
+			if (serviceType == 'tv') {
+				console.log('Missing channel');
+				dataObj.statusMessage = 'Missing channel.';
+				return callback(dataObj);
+			} else if ((serviceType == 'fm') && ((computationMethod == 0) || (computationMethod == 1))) {
+				channel = '6';
+			} else {
+				channel = '250';
+			}
 		}
 
-		// ** Ahmad Aburizaiza **
-		// the regexp fixed to include negative numbers
 		if (channel && !channel.match(/\d+$/)) {
 			console.log('invalid channel value');
 			dataObj.statusMessage = 'Invalid channel value.';
@@ -1461,36 +1487,11 @@ function getResult(req, res, callback) {
 			return callback(dataObj);
 		}
 
-		// *** COMPUTATION METHOD CHECKS *** //
-		// Valid values:
-		// 0: distance (default)
-		// 1: field strength
-		// 2: max ERP
-		if (computationMethod == undefined) {
-			computationMethod = '0';
-			console.log('Computation method not provided. Forcing 0 (distance) for backward compatibility.');
-		}
 
-		if (!computationMethod.match(/^\d+$/)) {
-			console.log('invalid computationMethod value');
-			dataObj.statusMessage = 'Invalid computationMethod value.';
-			return callback(dataObj);
-		}
-
-		if (parseFloat(computationMethod) < 0 || parseFloat(computationMethod) > 2) {
-			console.log('Computation method value out of range [0, 2]');
-			dataObj.statusMessage = 'Computation method value out of range [0, 2].';
-			return callback(dataObj);
-		}
 
 		haat = parseFloat(haat);
 		channel = parseFloat(channel);
 		curve = parseFloat(curve);
-		computationMethod = parseFloat(computationMethod);
-
-		if (serviceType.toLowerCase() == 'fm') {
-			channel = 6;
-		}
 
 		// ** Ahmad Aburizaiza **
 		// update the value of haat to 30 if it is less than 30
@@ -1507,6 +1508,7 @@ function getResult(req, res, callback) {
 		// CM 1 (Field Strength) - Requires distance and ERP
 		// CM 2 (ERP) - Requires distance and field strength
 		var result = -1;
+
 		if (computationMethod == 0) {
 			if (field == undefined) {
 				console.log('Mssing field strength.');
@@ -1539,6 +1541,7 @@ function getResult(req, res, callback) {
 		} else if (computationMethod == 1) {
 			result = getFieldStrength(haat, serviceType, channel, curve, erp, distance);
 		} else if (computationMethod == 2) {
+			console.log(channel);
 			result = getMaxPower(haat, serviceType, channel, curve, field, distance);
 		}
 
@@ -1577,21 +1580,22 @@ function getResult(req, res, callback) {
 			dataObj.channel = channel;
 			dataObj.curve = curve;
 			dataObj.serviceType = serviceType;
+			dataObj.computationMethod = computationMethod;
 			if (computationMethod == 0) {
+				dataObj.computedField = "distance";
 				dataObj.distance = mathjs.round(result, 3);
-				dataObj.field = nathjs.round(field, 1);
+				dataObj.field = mathjs.round(field, 1);
 				dataObj.erp = mathjs.round(erp, 3);
-				dataObj.computationMethod = "distance";
 			} else if (computationMethod == 1) {
+				dataObj.computedField = "field";
 				dataObj.distance = mathjs.round(distance, 3);
 				dataObj.field = mathjs.round(result, 1);
 				dataObj.erp = mathjs.round(erp, 3);
-				dataObj.computationMethod = "field_strength";
 			} else if (computationMethod == 2) {
+				dataObj.computedField = "erp";
 				dataObj.distance = mathjs.round(distance,3);
 				dataObj.field = mathjs.round(field, 1);
 				dataObj.erp = mathjs.round(result, 3);
-				dataObj.computationMethod = "erp";
 			}
 			dataObj.distance_unit = 'km';
 			dataObj.field_unit = 'dbu';
@@ -1621,13 +1625,11 @@ function getFieldStrength(haat, serviceType, channel, curve, erp, distance) {
 
 function getMaxPower(haat, serviceType, channel, curve, field, distance) {
 	console.log('================ Start CURVES Max ERP API ===================');
-	//var fs_or_dist = 3;
+	var fs_or_dist = 3;
 	var flag = [];
-	//var erp = 0;
-	//var erp = tvfmfs_metric(erp, haat, channel, field, distance, fs_or_dist, curve, flag);
-	//return erp;
-	flag[19] = 1;
-	return flag;
+	var erp = 0;
+	var erp = tvfmfs_metric(erp, haat, channel, field, distance, fs_or_dist, curve, flag);
+	return erp;
 }
 
 function getDistance(haat, serviceType, channel, curve, field, erp) {

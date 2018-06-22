@@ -668,7 +668,7 @@ function getCoverageData(req, res, success) {
 function getDistanceData(req, res, success) {
     console.log('app getDistanceData');
     try {
-        tvfm_curves.getDistance(req, res, function(data){
+        tvfm_curves.getResult(req, res, function(data){
             console.log('app getDistanceData data='+data);
             if(data){
                 return success(null, data);    
@@ -677,7 +677,7 @@ function getDistanceData(req, res, success) {
         });
     }
     catch(err){
-        console.error('\n\n getCoverageData err '+err);  
+        console.error('\n\n getDistanceData err '+err);  
         return success(err, null);
     }  
 }

@@ -7,15 +7,29 @@
     "basePath": "/api/contours",
     "tags": [{
         "name": "distance",
-        "description": "get distance data"
+        "description": "get distance/power/field strength data"
     }],
     "paths": {
         "/distance.{format}": {
             "get": {
                 "tags": ["distance"],
                 "summary": "Get Distance",
-                "description": "Get Distance data based on dBu, HAAT, and curve type. Response returned in JSON format.",
+                "description": "Get CURVES data based on HAAT and curve type. If two of the three data points (e.g., field strength, power, and distance) are provided, the third will be calculated. Response returned in JSON format.",
                 "parameters": [{
+                    "name": "computationMethod",
+                    "label": "Computation Method",
+                    "display": true,
+                    "in": "query",
+                    "description": "Specifies the input/output combination.<br/><br/>1: Calculate distance from field strength and power (default)<br/>2: Calculate field strength from distance and power<br>3: Calculate max power from field strength and distance",
+                    "required": false,
+                    "type": "string",
+                    "defualt": "1",
+                    "enum": [
+                        "1",
+                        "2",
+                        "3"
+                    ]
+                }, {
                     "name": "serviceType",
                     "label": "Service Type",
                     "display": true,
@@ -38,15 +52,6 @@
                     "type": "number",
                     "default": ""
                 }, {
-                    "name": "field",
-                    "label": "field",
-                    "display": true,
-                    "in": "query",
-                    "description": "Field strength (e.g. 28 dBu).",
-                    "required": true,
-                    "type": "number",
-                    "default": ""
-                }, {
                     "name": "channel",
                     "label": "Channel",
                     "display": true,
@@ -56,12 +61,30 @@
                     "type": "integer",
                     "default": ""
                 }, {
+                    "name": "field",
+                    "label": "field",
+                    "display": true,
+                    "in": "query",
+                    "description": "Field strength data point (e.g. 28 dBu). At least two data points are required (see computation method).",
+                    "required": false,
+                    "type": "number",
+                    "default": ""
+                }, {
                     "name": "erp",
                     "label": "ERP (kW)",
                     "display": true,
                     "in": "query",
-                    "description": "Effective Radiation Power (kW)",
-                    "required": true,
+                    "description": "Effective Radiation Power (kW) data point. At least two data points are required (see computation method).",
+                    "required": false,
+                    "type": "number",
+                    "default": ""
+                }, {
+                    "name": "distance",
+                    "label": "Distance (m)",
+                    "display": true,
+                    "in": "query",
+                    "description": "Distance (m) data point. At least two data points are required (see computation method).",
+                    "required": false,
                     "type": "number",
                     "default": ""
                 }, {

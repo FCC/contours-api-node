@@ -1637,7 +1637,7 @@ function getResult(req, res, callback) {
 			} else if (computationMethod == 1) {
 				dataObj.computedField = "field";
 				dataObj.distance = mathjs.round(distance, 3);
-				dataObj.field = mathjs.round(result, 1);
+				dataObj.field = mathjs.round(result, 3);
 				dataObj.erp = mathjs.round(erp, 3);
 			} else if (computationMethod == 2) {
 				dataObj.computedField = "erp";
@@ -1666,25 +1666,25 @@ function getFieldStrength(haat, serviceType, channel, curve, erp, distance) {
 	console.log('================ Start CURVES Field Strength API ===================');
 	var fs_or_dist = 1;
 	var flag = [];
-	var field = 0;
 	var field = tvfmfs_metric(erp, haat, channel, field, distance, fs_or_dist, curve, flag);
 	return field;
 }
 
 function getMaxPower(haat, serviceType, channel, curve, field, distance) {
 	console.log('================ Start CURVES Max ERP API ===================');
-	var fs_or_dist = 3;
+	var fs_or_dist = 1;
 	var flag = [];
-	var erp = 0;
-	var erp = tvfmfs_metric(erp, haat, channel, field, distance, fs_or_dist, curve, flag);
-	return erp;
+	var erp = 1;
+	var field2 = getFieldStrength(haat, serviceType, channel, curve, erp, distance);
+	var power_in = Math.pow(10,(field-field2)/10);
+	var power_out = round_power(power_in);
+	return power_out;
 }
 
 function getDistance(haat, serviceType, channel, curve, field, erp) {
 	console.log('================ Start CURVES Distance API ===================');
 	var fs_or_dist = 2;
 	var flag = [];
-	var distance = 0;
 	var distance = tvfmfs_metric(erp, haat, channel, field, distance, fs_or_dist, curve, flag);
 	return distance;
 }

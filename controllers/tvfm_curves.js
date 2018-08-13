@@ -1618,6 +1618,7 @@ function getResult(req, res, callback) {
 //		} else if (result < 0) {
 //			dataObj.statusMessage = 'CURVES error occurred when calculating computation method'
 //			return callback(dataObj);
+
 		} else {
 			dataObj.status = 'success';
 			dataObj.statusCode = '200';

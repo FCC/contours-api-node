@@ -313,7 +313,6 @@ var ZGRI  = [ -3.71902,-3.54008,-3.43161,-3.35279,-3.29053,-3.23888,-3.19465,-3.
 
 function itplbv(lx, ly, x, y, z, n, u, v, w)
 {
-
     // declarations and initializations
 
        	
@@ -384,7 +383,7 @@ function itplbv(lx, ly, x, y, z, n, u, v, w)
 	ixpv = -1;
 	iypv = -1;
 	for (k = 0; k < n; k++) {
-		if (u[k] >= x[lxm1]) {       
+		if (u[k] >= x[lxm1]) {  
 			ix = lx;
 		} else {
 			if (u[k] < x[0]) {
@@ -769,7 +768,7 @@ function itplbv(lx, ly, x, y, z, n, u, v, w)
 		dx = u[k] - x3;
 		w[k] = q0 + dx * (q1 + dx * (q2 + dx * q3));
 
-        }
+		}
       
 }  // end itplbv function ---------------------------------------------------------------------
 
@@ -871,7 +870,6 @@ function tvfmfs_metric(erp, haat, channel, field, distance, fs_or_dist, curve, f
 		  {
                     field = (106.92 - (20.0 * (Math.log(distance)/Math.log(10)))) + erp_db;
                        // Math.log(x)/Math.log(10) = log10(x) which is not supported in some browsers (Internet Explorer)
-
                     flag[1] = 1;
 
                     return field;
@@ -886,7 +884,7 @@ function tvfmfs_metric(erp, haat, channel, field, distance, fs_or_dist, curve, f
                     h[0] = haat;       // Only one point sought
                     d[0] = distance;
           
-                    RL = 0.0;
+					RL = 0.0;
 
 	            if ((channel >= 2 && channel <= 6) || (channel >= 200 && channel <= 300)) // FM & analog TV channels 2-6
 	              {
@@ -932,7 +930,8 @@ function tvfmfs_metric(erp, haat, channel, field, distance, fs_or_dist, curve, f
 		         }
                        else if (curve == 1) 
 		         {
-                           itplbv(id10, ih10, D10, H10, F51HV, j, d, h, f);
+						   itplbv(id10, ih10, D10, H10, F51HV, j, d, h, f);
+
 		         }
                        else if (curve==2)
                          {
@@ -969,7 +968,7 @@ function tvfmfs_metric(erp, haat, channel, field, distance, fs_or_dist, curve, f
 		         }
                        else if (curve == 1) // F(50,10)
 		        {
-                           itplbv(id10, ih10, D10, H10, F51U, j, d, h, f);
+						   itplbv(id10, ih10, D10, H10, F51U, j, d, h, f);
 		        }
                     else if (curve==2)  // F(50,90)
                         {
@@ -1002,7 +1001,7 @@ function tvfmfs_metric(erp, haat, channel, field, distance, fs_or_dist, curve, f
                 {  ;  }  // no changes to field value
 	      if(curve==0 || curve == 1) 
                 { 
-                  field = f[0] + erp_db; 
+				  field = f[0] + erp_db; 
                 } 
              else if(curve == 2)
                 {
@@ -1616,9 +1615,9 @@ function getResult(req, res, callback) {
 			comments = comments.replace(/;$/, '');
 			dataObj.statusMessage = comments;
 			return callback(dataObj);
-		} else if (result < 0) {
-			dataObj.statusMessage = 'CURVES error occurred when calculating computation method'
-			return callback(dataObj);
+//		} else if (result < 0) {
+//			dataObj.statusMessage = 'CURVES error occurred when calculating computation method'
+//			return callback(dataObj);
 		} else {
 			dataObj.status = 'success';
 			dataObj.statusCode = '200';

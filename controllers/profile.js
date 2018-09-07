@@ -13,6 +13,8 @@ var geo_host =  process.env.GEO_HOST;
 var geo_space = process.env.GEO_SPACE;
 var EFS_ELEVATION_DATASET = process.env.EFS_ELEVATION_DATASET;
 
+const DEFAULT_OUTPUT_FORMAT = 'json';
+
 var fs = require('fs');
 //var async = require('async');
 var GeoJSON = require('geojson');
@@ -40,6 +42,18 @@ function getProfile(req, res, callback) {
 		output_data = [];
 		
 		var url = req.url;
+
+		// If this function is called internally, req.url won't be set. The URL is used to
+		// determine the output format (e.g. profile.json). If req.url isn't set, see if
+		// the req parameter has a format parameter. If neither are provided, use the
+		// DEFAULT_OUTPUT_FORMAT.
+		if (url === undefined) {
+			format = req.query.format;
+			if (format === undefined) {
+				format = DEFAULT_OUTPUT_FORMAT;
+			}
+		}
+
 		var returnJson;
 
 		var dataObj = new Object;		
@@ -268,7 +282,9 @@ function getProfile(req, res, callback) {
             return callback(returnJson);            
 		}
 		
-		format = url.replace(/\?.*$/i, '').replace(/^.*\./, '');
+		if (url !== undefined) {
+			format = url.replace(/\?.*$/i, '').replace(/^.*\./, '');
+		}
 		
 		var i, j;
 		dataObj.lat = lat;

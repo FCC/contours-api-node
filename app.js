@@ -44,6 +44,8 @@ var amPattern = require('./controllers/amPattern.js');
 var coordsAPI = require('./controllers/coordsAPI.js');
 //var conductivity_batch = require('./controllers/conductivity_batch.js');
 
+var batch = require('./controllers/batch.js');
+
 // **********************************************************
 // config
 //var configEnv = require('./config/env.json');
@@ -521,6 +523,21 @@ app.get('/getAmContour.json', function(req, res){
     amPattern.getAmContour(req, res);
 });
 
+// Batch Processor
+app.post('/batch.json', function(req, res) {
+    processBatch(req, res, function(error, response) {
+        if (error) {
+            res.status(400).send({
+                'status': 'error',
+                'statusCode': 400,
+                'statusMessage': error
+            });
+        } else {
+            res.send(response);
+        }
+    });
+});
+
 
 // **********************************************************
 // error
@@ -578,6 +595,17 @@ var server = app.listen(NODE_PORT, function () {
 if (NODE_ENV == "DEV") {
 	//conductivity_batch.startBatch();
 	
+}
+
+function processBatch(req, res, success) {
+    console.log('processing batch request');
+    try {
+        batch.process(req, res, success);
+    }
+    catch(err) {
+        console.error('\n\n processBatch err '+err);  
+        return success(err, null);
+    }  
 }
 
 function getCachedData(req, req_key, success){

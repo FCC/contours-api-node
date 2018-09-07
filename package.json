@@ -4,7 +4,7 @@
   "description": "FCC Contour API - Node.js",
   "main": "app.js",
   "scripts": {
-    "start": "npm cache clean && npm install && node app.js",
+    "start": "npm cache verify && npm install && node app.js",
     "test": "./node_modules/.bin/istanbul cover ./node_modules/mocha/bin/_mocha ./test/**/test-*.js || exit 0"
   },
   "repository": {

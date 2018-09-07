@@ -598,14 +598,9 @@ if (NODE_ENV == "DEV") {
 }
 
 function processBatch(req, res, success) {
-    console.log("processing batch request");
+    console.log('processing batch request');
     try {
-        batch.process(req, res, function(data){
-			if(data) {
-				return success(null, data);    
-			}
-			return success(null, null);			
-		});
+        batch.process(req, res, success);
     }
     catch(err) {
         console.error('\n\n processBatch err '+err);  

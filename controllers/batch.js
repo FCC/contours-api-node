@@ -1,15 +1,19 @@
 'use strict';
 
 var profile = require('./profile.js');
+var distance = require('./distance.js');
 
 const MIME_JSON = 'application/json';
 const PROFILE_KEY = 'profile';
+const DISTANCE_KEY = 'distance';
 const SUPPORTED = [
-    PROFILE_KEY
+    PROFILE_KEY,
+    DISTANCE_KEY
 ];
 const MAX_BATCH = 500;
+const TRUNCATE_BATCH = false;
 
-var execProfile;
+var execProfile, execDistance, buildResponseObject;
 
 function process(req, res, callback) {
     var response = {};
@@ -69,9 +73,13 @@ function process(req, res, callback) {
 
     var numRequests = payload.requests.length;
     if (numRequests > MAX_BATCH) {
-        console.log('exceeds max batch size');
-        response.statusMessage = 'Number of requests exceeds maximum batch size ('+MAX_BATCH+')';
-        return callback(response);
+        if (TRUNCATE_BATCH) {
+            numRequests = MAX_BATCH;
+        } else {
+            console.log('exceeds max batch size');
+            response.statusMessage = 'Number of requests exceeds maximum batch size ('+MAX_BATCH+')';
+            return callback(response);
+        }
     }
 
     // Correct JSON schema provided for the batch processor, but the individual requests may still 
@@ -85,26 +93,20 @@ function process(req, res, callback) {
     for (var i=0; i<numRequests; i++) {
         // Loop through each request and send it to the API
 
-        output.requests[i] = payload.requests[i];
+        output.requests[i] = {};
+        output.requests[i].request = payload.requests[i];
         output.requests[i].sequenceNumber = i;
 
+        output.responses[i] = {};
+
+        // Call the appropriate proxy function for each api specified in the payload.
         if (payload.api === PROFILE_KEY) {
-            output.responses[i] = execProfile(output.requests[i], res, function(err, data) {
-                var dataObj = {};
-                if (err) {
-                    dataObj.status = 'error';
-                    dataObj.statusCode = 400;
-                    dataObj.statusMessage = err;
-                } else {
-                    dataObj.status = 'success';
-                    dataObj.statusCode = 200;
-                    dataObj.statusMessage = 'ok';
-                    dataObj.data = data;
-                }
-                return dataObj;
-            });
-            output.responses[i].sequenceNumber = i;
+            output.responses[i] = execProfile(output.requests[i].request);
+        } else if (payload.api === DISTANCE_KEY) {
+            output.responses[i] = execDistance(output.requests[i].request);
         }
+
+        output.responses[i].sequenceNumber = i;
 
     }
 
@@ -115,34 +117,89 @@ function process(req, res, callback) {
     return callback(response);
 }
 
-execProfile = function(jsonRequest, response, success) {
+/*
+ * Proxy Functions - Each API that is batched needs a proxy function to parse the
+ * request object, pass it to the respective controller, and return the response.
+ */
+
+// Proxy function for the PROFILE API
+function execProfile(req) {
     var apiRequest = {
         'query': {}
     };
+
+    var apiResponse = {};
+
     // We need to mock the query string parameter object so all items need to be strings.
     // Default to empty string if one wasn't provided
-    apiRequest.query.lat = jsonRequest.lat.toString() || '';
-    apiRequest.query.lon = jsonRequest.lon.toString() || '';
-    apiRequest.query.azimuth = jsonRequest.azimuth.toString() || '';
-    apiRequest.query.start = jsonRequest.start.toString() || '';
-    apiRequest.query.end = jsonRequest.end.toString() || '';
-    apiRequest.query.num_points = jsonRequest.num_points.toString() || '';
-    apiRequest.query.src = jsonRequest.src.toString() || '';
-    apiRequest.query.unit = jsonRequest.unit.toString() || '';
-    apiRequest.query.format = jsonRequest.format.toString() || 'json';
+    apiRequest.query.lat = req.lat.toString() || '';
+    apiRequest.query.lon = req.lon.toString() || '';
+    apiRequest.query.azimuth = req.azimuth.toString() || '';
+    apiRequest.query.start = req.start.toString() || '';
+    apiRequest.query.end = req.end.toString() || '';
+    apiRequest.query.num_points = req.num_points.toString() || '';
+    apiRequest.query.src = req.src.toString() || '';
+    apiRequest.query.unit = req.unit.toString() || '';
+    apiRequest.query.format = req.format.toString() || 'json';
 
     try {
-        return profile.getProfile(apiRequest, response, function(data){
-            if(data){
-                return success(null, data);    
-            }
-            return success(null, null);           
+        profile.getProfile(apiRequest, apiResponse, function(data) {
+            apiResponse = buildResponseObject(data, null);
         });
     }
     catch(err) {
         console.error('\n\n execProfile err '+err);  
-        return success(err, null);
-    }  
-};
+        apiResponse = buildResponseObject(null, err);
+    }
+    return apiResponse;
+}
+
+// Proxy function for the DISTANCE API
+function execDistance(req) {
+    var apiRequest = {
+        'query': {}
+    };
+
+    var apiResponse = {};
+
+    // We need to mock the query string parameter object so all items need to be strings.
+    // Default to empty string if one wasn't provided
+    apiRequest.query.computationMethod = req.computationMethod.toString() || '';
+    apiRequest.query.serviceType = req.serviceType.toString() || '';
+    apiRequest.query.haat = req.haat.toString() || '';
+    apiRequest.query.channel = req.channel.toString() || '';
+    apiRequest.query.field = req.field.toString() || '';
+    apiRequest.query.erp = req.erp.toString() || '';
+    apiRequest.query.distance = req.distance.toString() || '';
+    apiRequest.query.curve = req.curve.toString() || '';
+    apiRequest.query.format = req.format.toString() || 'json';
+
+    try {
+        distance.getDistance(apiRequest, apiResponse, function(data) {
+            apiResponse = buildResponseObject(data, null);
+        });
+    }
+    catch(err) {
+        console.error('\n\n execProfile err '+err);  
+        apiResponse = buildResponseObject(null, err);
+    }
+    return apiResponse;
+}
+
+// Common response object format. Will be used by the proxy functions.
+function buildResponseObject(data, err) {
+    var dataObj = {};
+    if (err) {
+        dataObj.status = 'error';
+        dataObj.statusCode = 400;
+        dataObj.statusMessage = err;
+    } else {
+        dataObj.status = 'success';
+        dataObj.statusCode = 200;
+        dataObj.statusMessage = 'ok';
+        dataObj.data = data;
+    }
+    return dataObj;
+}
 
 module.exports.process = process;

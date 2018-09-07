@@ -7,13 +7,12 @@ const MIME_JSON = 'application/json';
 const PROFILE_KEY = 'profile';
 const DISTANCE_KEY = 'distance';
 const SUPPORTED = [
-    PROFILE_KEY,
-    DISTANCE_KEY
+    PROFILE_KEY
 ];
 const MAX_BATCH = 500;
 const TRUNCATE_BATCH = false;
 
-var execProfile, execDistance, buildResponseObject;
+var execProfile, execDistance, buildResponseObject, getString;
 
 function process(req, res, callback) {
     var response = {};
@@ -99,7 +98,7 @@ function process(req, res, callback) {
 
         output.responses[i] = {};
 
-        // Call the appropriate proxy function for each api specified in the payload.
+        // Call the appropriate proxy function for the API specified in the payload
         if (payload.api === PROFILE_KEY) {
             output.responses[i] = execProfile(output.requests[i].request);
         } else if (payload.api === DISTANCE_KEY) {
@@ -132,15 +131,15 @@ function execProfile(req) {
 
     // We need to mock the query string parameter object so all items need to be strings.
     // Default to empty string if one wasn't provided
-    apiRequest.query.lat = req.lat.toString() || '';
-    apiRequest.query.lon = req.lon.toString() || '';
-    apiRequest.query.azimuth = req.azimuth.toString() || '';
-    apiRequest.query.start = req.start.toString() || '';
-    apiRequest.query.end = req.end.toString() || '';
-    apiRequest.query.num_points = req.num_points.toString() || '';
-    apiRequest.query.src = req.src.toString() || '';
-    apiRequest.query.unit = req.unit.toString() || '';
-    apiRequest.query.format = req.format.toString() || 'json';
+    apiRequest.query.lat = getString(req.lat);
+    apiRequest.query.lon = getString(req.lon);
+    apiRequest.query.azimuth = getString(req.azimuth);
+    apiRequest.query.start = getString(req.start);
+    apiRequest.query.end = getString(req.end);
+    apiRequest.query.num_points = getString(req.num_points);
+    apiRequest.query.src = getString(req.src);
+    apiRequest.query.unit = getString(req.unit);
+    apiRequest.query.format = getString(req.format);
 
     try {
         profile.getProfile(apiRequest, apiResponse, function(data) {
@@ -164,15 +163,15 @@ function execDistance(req) {
 
     // We need to mock the query string parameter object so all items need to be strings.
     // Default to empty string if one wasn't provided
-    apiRequest.query.computationMethod = req.computationMethod.toString() || '';
-    apiRequest.query.serviceType = req.serviceType.toString() || '';
-    apiRequest.query.haat = req.haat.toString() || '';
-    apiRequest.query.channel = req.channel.toString() || '';
-    apiRequest.query.field = req.field.toString() || '';
-    apiRequest.query.erp = req.erp.toString() || '';
-    apiRequest.query.distance = req.distance.toString() || '';
-    apiRequest.query.curve = req.curve.toString() || '';
-    apiRequest.query.format = req.format.toString() || 'json';
+    apiRequest.query.computationMethod = getString(req.computationMethod);
+    apiRequest.query.serviceType = getString(req.serviceType);
+    apiRequest.query.haat = getString(req.haat);
+    apiRequest.query.channel = getString(req.channel);
+    apiRequest.query.field = getString(req.field);
+    apiRequest.query.erp = getString(req.erp);
+    apiRequest.query.distance = getString(req.distance);
+    apiRequest.query.curve = getString(req.curve);
+    apiRequest.query.format = getString(req.format);
 
     try {
         distance.getDistance(apiRequest, apiResponse, function(data) {
@@ -200,6 +199,14 @@ function buildResponseObject(data, err) {
         dataObj.data = data;
     }
     return dataObj;
+}
+
+function getString(param) {
+    if (param === undefined || param === null) {
+        return '';
+    } else {
+        return param.toString();
+    }
 }
 
 module.exports.process = process;

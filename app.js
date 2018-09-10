@@ -525,16 +525,8 @@ app.get('/getAmContour.json', function(req, res){
 
 // Batch Processor
 app.post('/batch.json', function(req, res) {
-    processBatch(req, res, function(error, response) {
-        if (error) {
-            res.status(400).send({
-                'status': 'error',
-                'statusCode': 400,
-                'statusMessage': error
-            });
-        } else {
-            res.send(response);
-        }
+    processBatch(req, res, function(response) {
+        res.status(parseInt(response.statusCode)).send(response);
     });
 });
 

@@ -27,13 +27,6 @@ function process(req, res, callback) {
         return callback(response);
     }
 
-    if (!req.accepts(MIME_JSON)) {
-        console.log('invalid accepts header');
-        response.statusCode = 406;
-        response.statusMessage = 'Not Acceptable';
-        return callback(response);
-    }
-
     var payload = req.body;
 
     // Verify that the API name is one that supports batch calls
@@ -154,6 +147,7 @@ function execProfile(req) {
 }
 
 // Proxy function for the DISTANCE API
+/* istanbul ignore next */
 function execDistance(req) {
     var apiRequest = {
         'query': {}

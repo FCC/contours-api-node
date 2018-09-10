@@ -17,7 +17,7 @@ var execProfile, execDistance, buildResponseObject, getString;
 function process(req, res, callback) {
     var response = {};
     response.status = 'error';
-    response.statusCode = '400';
+    response.statusCode = 400;
     response.statusMessage = '';
 
     // Check HTTP headers
@@ -102,7 +102,7 @@ function process(req, res, callback) {
 
     }
 
-    response.statusCode = '200';
+    response.statusCode = 200;
     response.statusMessage = 'ok';
     response.status = 'success';
     response.data = output;
@@ -184,11 +184,11 @@ function buildResponseObject(data, err) {
     var dataObj = {};
     if (err) {
         dataObj.status = 'error';
-        dataObj.statusCode = '400';
+        dataObj.statusCode = 400;
         dataObj.statusMessage = err;
     } else {
         dataObj.status = 'success';
-        dataObj.statusCode = '200';
+        dataObj.statusCode = 200;
         dataObj.statusMessage = 'ok';
         dataObj.data = data;
     }

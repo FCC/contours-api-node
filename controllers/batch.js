@@ -17,20 +17,13 @@ var execProfile, execDistance, buildResponseObject, getString;
 function process(req, res, callback) {
     var response = {};
     response.status = 'error';
-    response.statusCode = 400;
+    response.statusCode = '400';
     response.statusMessage = '';
 
     // Check HTTP headers
     if (!req.is(MIME_JSON)) {
         console.log('invalid content-type header');
         response.statusMessage = 'The Content-Type header was not set properly.';
-        return callback(response);
-    }
-
-    if (!req.accepts(MIME_JSON)) {
-        console.log('invalid accepts header');
-        response.statusCode = 406;
-        response.statusMessage = 'Not Acceptable';
         return callback(response);
     }
 
@@ -45,7 +38,7 @@ function process(req, res, callback) {
 
     if (SUPPORTED.indexOf(payload.api) < 0) {
         console.log('invalid api');
-        response.statusCode = 501;
+        response.statusCode = '501';
         response.statusMessage = 'API not supported';
         return callback(response);
     }
@@ -109,7 +102,7 @@ function process(req, res, callback) {
 
     }
 
-    response.statusCode = 200;
+    response.statusCode = '200';
     response.statusMessage = 'ok';
     response.status = 'success';
     response.data = output;

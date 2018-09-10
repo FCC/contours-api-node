@@ -38,7 +38,7 @@ function process(req, res, callback) {
 
     if (SUPPORTED.indexOf(payload.api) < 0) {
         console.log('invalid api');
-        response.statusCode = '501';
+        response.statusCode = 501;
         response.statusMessage = 'API not supported';
         return callback(response);
     }

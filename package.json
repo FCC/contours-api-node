@@ -5,7 +5,8 @@
   "main": "app.js",
   "scripts": {
     "start": "npm cache verify && npm install && node app.js",
-    "test": "./node_modules/.bin/istanbul cover ./node_modules/mocha/bin/_mocha ./test/**/test-*.js || exit 0"
+    "test": "istanbul cover --hook-run-in-context ./node_modules/mocha/bin/_mocha ./test/**/test-*.js --recursive --exit",
+    "test-old": "./node_modules/.bin/istanbul cover ./node_modules/mocha/bin/_mocha ./test/**/test-*.js || exit 0"
   },
   "repository": {
     "type": "git",
@@ -60,7 +61,7 @@
   },
   "devDependencies": {
     "bootstrap": "^3.3.7",
-    "chai": "^3.5.0",
+    "chai": "^4.1.2",
     "font-awesome": "^4.7.0",
     "grunt": "^1.0.1",
     "grunt-autoprefixer": "^3.0.4",
@@ -80,7 +81,7 @@
     "mocha": "^5.2.0",
     "nodemon": "^1.10.0",
     "sinon": "^1.17.6",
-    "supertest": "^3.1.0",
+    "supertest": "^3.3.0",
     "time-grunt": "^1.4.0"
   }
 }

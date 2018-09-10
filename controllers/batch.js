@@ -147,6 +147,7 @@ function execProfile(req) {
 }
 
 // Proxy function for the DISTANCE API
+/* istanbul ignore next */
 function execDistance(req) {
     var apiRequest = {
         'query': {}
@@ -183,11 +184,11 @@ function buildResponseObject(data, err) {
     var dataObj = {};
     if (err) {
         dataObj.status = 'error';
-        dataObj.statusCode = 400;
+        dataObj.statusCode = '400';
         dataObj.statusMessage = err;
     } else {
         dataObj.status = 'success';
-        dataObj.statusCode = 200;
+        dataObj.statusCode = '200';
         dataObj.statusMessage = 'ok';
         dataObj.data = data;
     }

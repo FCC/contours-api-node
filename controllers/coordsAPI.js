@@ -256,9 +256,13 @@ var dd2dms = function(req,res){
     var ltSec = dmsC.dmsArrays.latitude[2];
     var ltDir = dmsC.dmsArrays.latitude[3];
 
+    // Use toFixed because very, very small numbers (e.g., e^-15) will be NaN using roundTo
+    lnSec = parseFloat(lnSec.toFixed(7));
+    ltSec = parseFloat(ltSec.toFixed(7));
+
     // Round the values of lnSec and ltSec to 7 digits
-    lnSec = roundTo(lnSec,7);
-    ltSec = roundTo(ltSec,7);
+    //lnSec = roundTo(lnSec,7);
+    //ltSec = roundTo(ltSec,7);
 
 
     var outLon = lnDeg + '° ' + 

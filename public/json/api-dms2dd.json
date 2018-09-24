@@ -41,7 +41,7 @@
                     "in": "query",
                     "description": "Latitude Direction",
                     "required": true,
-                    "type": "number",
+                    "type": "string",
                     "default": ""
                 }, {
                     "name": "lonD",
@@ -69,7 +69,7 @@
                     "in": "query",
                     "description": "Longitude Direction",
                     "required": true,
-                    "type": "number",
+                    "type": "string",
                     "default": ""
                 }, {
                     "name": "format",

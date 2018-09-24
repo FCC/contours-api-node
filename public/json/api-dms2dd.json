@@ -42,7 +42,11 @@
                     "description": "Latitude Direction",
                     "required": true,
                     "type": "string",
-                    "default": ""
+                    "default": "",
+                    "enum": [
+                        "N",
+                        "S"
+                    ]
                 }, {
                     "name": "lonD",
                     "in": "query",
@@ -70,7 +74,11 @@
                     "description": "Longitude Direction",
                     "required": true,
                     "type": "string",
-                    "default": ""
+                    "default": "",
+                    "enum": [
+                        "W",
+                        "E"
+                    ]
                 }, {
                     "name": "format",
                     "x-label": "Format",

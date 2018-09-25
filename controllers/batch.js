@@ -2,17 +2,20 @@
 
 var profile = require('./profile.js');
 var distance = require('./distance.js');
+var contours = require('./contours.js');
 
 const MIME_JSON = 'application/json';
 const PROFILE_KEY = 'profile';
 const DISTANCE_KEY = 'distance';
+const COVERAGE_KEY = 'coverage';
 const SUPPORTED = [
-    PROFILE_KEY
+    PROFILE_KEY,
+    COVERAGE_KEY
 ];
-const MAX_BATCH = 500;
+const MAX_BATCH = 100;
 const TRUNCATE_BATCH = false;
 
-var execProfile, execDistance, buildResponseObject, getString;
+var execProfile, execDistance, execCoverage, buildResponseObject, getString;
 
 function process(req, res, callback) {
     var response = {};
@@ -96,6 +99,8 @@ function process(req, res, callback) {
             output.responses[i] = execProfile(output.requests[i].request);
         } else if (payload.api === DISTANCE_KEY) {
             output.responses[i] = execDistance(output.requests[i].request);
+        } else if (payload.api === COVERAGE_KEY) {
+            output.responses[i] = execCoverage(output.requests[i].request);
         }
 
         output.responses[i].sequenceNumber = i;
@@ -141,6 +146,45 @@ function execProfile(req) {
     }
     catch(err) {
         console.error('\n\n execProfile err '+err);  
+        apiResponse = buildResponseObject(null, err);
+    }
+    return apiResponse;
+}
+
+// Proxy function for the COVERAGE API
+function execCoverage(req) {
+    var apiRequest = {
+        'query': {}
+    };
+
+    var apiResponse = {};
+
+    // We need to mock the query string parameter object so all items need to be strings.
+    // Default to empty string if one wasn't provided
+    apiRequest.query.serviceType = getString(req.serviceType);
+    apiRequest.query.lat = getString(req.lat);
+    apiRequest.query.lon = getString(req.lon);
+    apiRequest.query.nradial = getString(req.nradial);
+    apiRequest.query.rcamsl = getString(req.rcamsl);
+    apiRequest.query.channel = getString(req.channel);
+    apiRequest.query.field = getString(req.field);
+    apiRequest.query.erp = getString(req.erp);
+    apiRequest.query.curve = getString(req.curve);
+    apiRequest.query.pattern = getString(req.pattern);
+    apiRequest.query.ant_rotation = getString(req.ant_rotation);
+    apiRequest.query.pop = getString(req.pop);
+    apiRequest.query.area = getString(req.area);
+    apiRequest.query.src = getString(req.src);
+    apiRequest.query.unit = getString(req.unit);
+    apiRequest.query.format = getString(req.format);
+
+    try {
+        contours.getContours(apiRequest, apiResponse, function(data) {
+            apiResponse = buildResponseObject(data, null);
+        });
+    }
+    catch(err) {
+        console.error('\n\n execCoverage err '+err);  
         apiResponse = buildResponseObject(null, err);
     }
     return apiResponse;

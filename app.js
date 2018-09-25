@@ -5,9 +5,9 @@
 // **********************************************************
 // require 
 
-var http = require("http");
-var https = require("https");
-var url = require('url');
+//var http = require('http');
+//var https = require('https');
+//var url = require('url');
 var express = require('express');
 
 var path = require('path');
@@ -16,7 +16,7 @@ var fs = require('fs');
 var morgan = require('morgan');
 var cors = require('cors');
 var Memcached = require('memcached');
-var async = require('async');
+//var async = require('async');
 var helmet = require('helmet');
 
 var bodyparser = require('body-parser');
@@ -28,8 +28,8 @@ var contour = require('./controllers/contour.js');
 var elevation = require('./controllers/elevation.js');
 var haat = require('./controllers/haat.js');
 var profile = require('./controllers/profile.js');
-var station = require('./controllers/station.js');
-var distance = require('./controllers/distance.js');
+//var station = require('./controllers/station.js');
+//var distance = require('./controllers/distance.js');
 var contours = require('./controllers/contours.js');
 var tvfm_curves = require('./controllers/tvfm_curves.js');
 var testing = require('./controllers/testing.js');
@@ -45,6 +45,8 @@ var coordsAPI = require('./controllers/coordsAPI.js');
 //var conductivity_batch = require('./controllers/conductivity_batch.js');
 
 var batch = require('./controllers/batch.js');
+
+var overlap = require('./controllers/overlap.js');
 
 // **********************************************************
 // config
@@ -95,7 +97,9 @@ var cached_param = 'outputcache';
 
 var logDirectory = path.join(__dirname,'/log');
 
-fs.existsSync(logDirectory) || fs.mkdirSync(logDirectory);
+if (!fs.existsSync(logDirectory)) {
+    fs.mkdirSync(logDirectory);
+}
 
 var accessLogStream = fsr.getStream({
     filename: logDirectory + '/fcc-pdf-%DATE%.log',
@@ -103,7 +107,7 @@ var accessLogStream = fsr.getStream({
     verbose: false
 });
 
-app.use(morgan('combined', {stream: accessLogStream}))
+app.use(morgan('combined', {stream: accessLogStream}));
 
 // **********************************************************
 // parser
@@ -185,8 +189,8 @@ app.use('/api/contours', function(req, res, next) {
 	//	}
     //}
 	var newUrl = req.originalUrl.split('api/contours')[1];
-	if (newUrl == "" || newUrl == undefined) {
-		newUrl = "/";
+	if (newUrl === '' || newUrl === undefined) {
+		newUrl = '/';
 	}
 	console.log('redirect to /');
 	res.redirect(301, newUrl);
@@ -201,14 +205,14 @@ app.param('uuid', function(req, res, next, uuid){
     } else {
         return next();
     }
-})
+});
 
 app.param('ext', function(req, res, next, ext) {
     // check format of id
     var route = req.route.path;
     //console.log('\n  route : ' + route );
     
-    if (!route === '/download/:uuid.:ext') {    // skip for downloads
+    if (route !== '/download/:uuid.:ext') {    // skip for downloads
         if(!serverCheck.checkExt(ext)){
             return serverSend.sendErr(res, 'json', 'invalid_ext');
         } else {
@@ -223,7 +227,7 @@ app.param('ext', function(req, res, next, ext) {
 app.get('/elevation.json', function(req, res){
     var req_url = req.url;
     var req_key = removeVariableFromURL(req_url, cached_param);
-    console.log('------------ Elevation API ------------------')
+    console.log('------------ Elevation API ------------------');
     console.log('request url:'+req_url);    
    
     getCachedData(req, req_key, function(err, data) {
@@ -245,8 +249,9 @@ app.get('/elevation.json', function(req, res){
                 }                
                 console.log('elevation: '+data);
                 memcached.set(req_key, data, memcached_lifetime, function( err, result ){
-                    if( err ) console.error( 'memcached set err='+err );
-                    
+                    if (err) {
+                        console.error( 'memcached set err='+err );
+                    }                    
                     console.log('memcached.set result='+result );
                     memcached.end(); // as we are 100% certain we are not going to use the connection again, we are going to end it
                 });
@@ -317,7 +322,7 @@ app.get('/haat.json', function(req, res){
     //haat.getHAAT(req, res);
     var req_url = req.url;
     var req_key = removeVariableFromURL(req_url, cached_param);
-    console.log('------------ HAAT API ------------------')
+    console.log('------------ HAAT API ------------------');
     console.log('request url:'+req_url);    
    
     getCachedData(req, req_key, function(err, data) {
@@ -338,8 +343,9 @@ app.get('/haat.json', function(req, res){
                     return;            
                 }                                
                 memcached.set(req_key, data, memcached_lifetime, function( err, result ){
-                    if( err ) console.error( 'memcached set err='+err );
-                    
+                    if (err) {
+                        console.error( 'memcached set err='+err );
+                    }                    
                     console.log('memcached.set result='+result );
                     memcached.end(); // as we are 100% certain we are not going to use the connection again, we are going to end it
                 });
@@ -360,29 +366,29 @@ app.get('/profile.json', function(req, res){
     //profile.getProfile(req, res);
     var req_url = req.url;
     var req_key = removeVariableFromURL(req_url, cached_param);
-    console.log('------------ Profile API ------------------')
+    console.log('------------ Profile API ------------------');
     console.log('request url:'+req_url);    
    
     getCachedData(req, req_key, function(err, data) {
-        if(err){
+        if(err) {
             console.error('callback getCachedData err: '+err);
             return;            
         }
-        if(data){
+        if(data) {
             console.log('response from ElastiCache');
             console.log('--------- Profile API return complete -----------');
             res.status(data.features[0].properties.statusCode).send(data);
             return;
-        }
-        else {
+        } else {
             getProfileData(req, res, function(err, data) {
-                if(err){
+                if (err) {
                     console.error('getProfileData err: '+err);
                     return;            
                 }                                
                 memcached.set(req_key, data, memcached_lifetime, function( err, result ){
-                    if( err ) console.error( 'memcached set err='+err );
-                    
+                    if (err) {
+                        console.error( 'memcached set err='+err );
+                    }                    
                     console.log('memcached.set result='+result );
                     memcached.end(); // as we are 100% certain we are not going to use the connection again, we are going to end it
                 });
@@ -399,29 +405,29 @@ app.get('/coverage.json', function(req, res){
     
     var req_url = req.url;
     var req_key = removeVariableFromURL(req_url, cached_param);
-    console.log('------------ Coverage API ------------------')
+    console.log('------------ Coverage API ------------------');
     console.log('request url:'+req_url);    
    
     getCachedData(req, req_key, function(err, data) {
-        if(err){
+        if (err) {
             console.error('callback getCachedData err: '+err);
             return;            
         }
-        if(data){
+        if (data) {
             console.log('response from ElastiCache');
             console.log('--------- Coverage API return complete -----------');
             res.status(data.features[0].properties.statusCode).send(data);
             return;
-        }
-        else {
+        } else {
             getCoverageData(req, res, function(err, data) {
-                if(err){
+                if (err) {
                     console.error('getCoverageData err: '+err);
                     return;            
                 }                                
                 memcached.set(req_key, data, memcached_lifetime, function( err, result ){
-                    if( err ) console.error( 'memcached set err='+err );
-                    
+                    if (err) {
+                        console.error( 'memcached set err='+err );
+                    }                    
                     console.log('memcached.set result='+result );
                     memcached.end(); // as we are 100% certain we are not going to use the connection again, we are going to end it
                 });
@@ -439,29 +445,29 @@ app.get('/distance.json', function(req, res){
     //tvfm_curves.getDistance(req, res);
     var req_url = req.url;
     var req_key = removeVariableFromURL(req_url, cached_param);
-    console.log('------------ Distance API ------------------')
+    console.log('------------ Distance API ------------------');
     console.log('request url:'+req_url);    
    
     getCachedData(req, req_key, function(err, data) {
-        if(err){
+        if (err) {
             console.error('callback getCachedData err: '+err);
             return;            
         }
-        if(data){
+        if (data) {
             console.log('response from ElastiCache');
             console.log('--------- Distance API return complete -----------');
             res.status(data.statusCode).send(data);
             return;
-        }
-        else {
+        } else {
             getDistanceData(req, res, function(err, data) {
-                if(err){
+                if (err) {
                     console.error('getCoverageData err: '+err);
                     return;            
                 }                                
                 memcached.set(req_key, data, memcached_lifetime, function( err, result ){
-                    if( err ) console.error( 'memcached set err='+err );
-                    
+                    if (err) {
+                        console.error( 'memcached set err='+err );
+                    }                    
                     console.log('memcached.set result='+result );
                     memcached.end(); // as we are 100% certain we are not going to use the connection again, we are going to end it
                 });
@@ -476,34 +482,49 @@ app.get('/distance.json', function(req, res){
 
 app.get('/entity.json', function(req, res){
     entity.getEntity(req, res, function(error, response) {
-    if (error) {
-        res.status(400).send({"status": "error", "statusCode": 400, "statusMessage": error});
-    }
-    else  {
-    res.send(response);
-    }
+        if (error) {
+            res.status(400).send(
+                {
+                    'status': 'error',
+                    'statusCode': 400,
+                    'statusMessage': 'error'
+                }
+            );
+        } else  {
+            res.send(response);
+        }
     });
 });
 
 app.get('/conductivity.json', function(req, res){
     conductivity.fetchConductivity(req, res, function(error, response) {
-    if (error) {
-        res.status(400).send({"status": "error", "statusCode": 400, "statusMessage": error});
-    }
-    else  {
-    res.status(200).send(response);
-    }
+        if (error) {
+            res.status(400).send(
+                {
+                    'status': 'error',
+                    'statusCode': 400,
+                    'statusMessage': 'error'
+                }
+            );
+        } else  {
+            res.send(response);
+        }
     });
 });
 
 app.get('/conductivity_r2.json', function(req, res){
     conductivity_r2_2points.fetchConductivity(req, res, function(error, response) {
-    if (error) {
-        res.status(400).send({"status": "error", "statusCode": 400, "statusMessage": error});
-    }
-    else  {
-    res.status(200).send(response);
-    }
+        if (error) {
+            res.status(400).send(
+                {
+                    'status': 'error',
+                    'statusCode': 400,
+                    'statusMessage': 'error'
+                }
+            );
+        } else  {
+            res.status(200).send(response);
+        }
     });
 });
 
@@ -521,6 +542,18 @@ app.get('/getAmPattern.json', function(req, res){
 
 app.get('/getAmContour.json', function(req, res){
     amPattern.getAmContour(req, res);
+});
+
+app.get('/fmover.json', function(req, res) {
+    getFmOverlapAnalysis(req, res, function(err, data) {
+        if (err) {
+            console.error('getFmOverlapAnalysis err: '+err);
+            return;            
+        }                                
+        console.log('--------- FM Overlap Analysis (FMOVER) API return complete -----------');
+        res.status(data.features[0].properties.statusCode).send(data);
+        return;     
+    });
 });
 
 // Batch Processor
@@ -584,7 +617,7 @@ var server = app.listen(NODE_PORT, function () {
 
 });
 
-if (NODE_ENV == "DEV") {
+if (NODE_ENV === 'DEV') {
 	//conductivity_batch.startBatch();
 	
 }
@@ -604,12 +637,13 @@ function getCachedData(req, req_key, success){
     var outputcache = req.query.outputcache;
     console.log('Cache req_key = '+req_key);
     console.log('outputcache param = '+outputcache);
-    if(outputcache && outputcache === 'false'){
+    if (outputcache && outputcache === 'false'){
         return success(null, null);
-    }
-    else {
+    } else {
         memcached.get( req_key, function( err, result ){
-            if( err ) console.error('memcached.get err='+err );        
+            if (err) {
+                console.error('memcached.get err='+err );
+            }
             console.log('getCachedData memcached.get='+result);
             memcached.end(); // as we are 100% certain we are not going to use the connection again, we are going to end it
             return success(null, result);
@@ -632,6 +666,22 @@ function getElevationData(req, res, success) {
         console.error('\n\n getElevationData err '+err);  
         return success(err, null);
     }  
+}
+
+function getFmOverlapAnalysis(req, res, success) {
+    console.log('app getFmOverlapAnalysis');
+    try {
+        overlap.getFmOverlap(req, res, function(data) {
+            console.log('app getFmOverlapAnalysis data='+data);
+            if (data) {
+                return success(null, data);
+            }
+            return success(null, null);
+        });
+    } catch (err) {
+        console.error('\n\n getFmOverlapAnalysis err '+err);
+        return success(err, null);
+    }
 }
 
 function getHaatData(req, res, success) {
@@ -723,7 +773,7 @@ function getContourData(req, res, success) {
 function getContourJson(req, res){    
     var req_url = req.url;
     var req_key = removeVariableFromURL(req_url, cached_param);
-    console.log('------------ Contour API ------------------')
+    console.log('------------ Contour API ------------------');
     console.log('request url:'+req_url);    
    
     getCachedData(req, req_key, function(err, data) {
@@ -741,17 +791,17 @@ function getContourJson(req, res){
             }             
             res.status(resp_status).send(dataJson);    
             return;
-        }
-        else {
+        } else {
             getContourData(req, res, function(err, ret_obj, data) {
-                if(err){
+                if (err) {
                     console.error('getElevationData err: '+err);
                     return;            
                 } 
-                if(data){
+                if (data) {
                     memcached.set(req_key, data, memcached_lifetime, function( err, result ){
-                    if( err ) console.error( 'memcached set err='+err );
-                    
+                        if (err) {
+                            console.error( 'memcached set err='+err );
+                        }
                         console.log('memcached.set result='+result );
                         memcached.end(); // as we are 100% certain we are not going to use the connection again, we are going to end it
                     });
@@ -778,9 +828,9 @@ function getContourJson(req, res){
 
 function removeVariableFromURL(url_string, variable_name) {
     var URL = String(url_string);
-    var regex = new RegExp( "\\?" + variable_name + "=[^&]*&?", "gi");
+    var regex = new RegExp('\\?' + variable_name + '=[^&]*&?', 'gi');
     URL = URL.replace(regex,'?');
-    regex = new RegExp( "\\&" + variable_name + "=[^&]*&?", "gi");
+    regex = new RegExp('\\&' + variable_name + '=[^&]*&?', 'gi');
     URL = URL.replace(regex,'&');
     URL = URL.replace(/(\?|&)$/,'');
     regex = null;

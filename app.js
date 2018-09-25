@@ -409,7 +409,7 @@ app.get('/coverage.json', function(req, res){
         }
         if(data){
             console.log('response from ElastiCache');
-            console.log('--------- Profile API return complete -----------');
+            console.log('--------- Coverage API return complete -----------');
             res.status(data.features[0].properties.statusCode).send(data);
             return;
         }

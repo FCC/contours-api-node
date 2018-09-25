@@ -85,12 +85,22 @@ function process(req, res, callback) {
         'requests': new Array(numRequests),
         'responses': new Array(numRequests)
     };
+
+    var echoText;
+
     for (var i=0; i<numRequests; i++) {
         // Loop through each request and send it to the API
 
+        if (payload.requests[i].echo !== undefined) {
+            echoText = payload.requests[i].echo;
+            delete(payload.requests[i].echo);
+        } else {
+            echoText = i;
+        }
+
         output.requests[i] = {};
         output.requests[i].request = payload.requests[i];
-        output.requests[i].sequenceNumber = i;
+        output.requests[i].echo = echoText;
 
         output.responses[i] = {};
 
@@ -103,7 +113,7 @@ function process(req, res, callback) {
             output.responses[i] = execCoverage(output.requests[i].request);
         }
 
-        output.responses[i].sequenceNumber = i;
+        output.responses[i].echo = echoText;
 
     }
 

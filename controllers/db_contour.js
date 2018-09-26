@@ -1,5 +1,6 @@
 
-var dotenv = require('dotenv').load();
+var dotenv = require('dotenv');
+dotenv.load();
 
 var CONTOURS_PG = process.env.CONTOURS_PG;
 

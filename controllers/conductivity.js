@@ -10,7 +10,7 @@ var CONTOURS_SCHEMA = process.env.CONTOURS_SCHEMA;
 
 var db_contour = require('./db_contour.js');
 
-console.log(CONTOURS_PG)
+//console.log(CONTOURS_PG)
 
 var promise = require('bluebird');
 var options = {

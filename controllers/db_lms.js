@@ -1,5 +1,6 @@
 
-var dotenv = require('dotenv').load();
+var dotenv = require('dotenv');
+dotenv.load();
 
 var LMS_PG = process.env.LMS_PG;
 

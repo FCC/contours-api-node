@@ -1,10 +1,17 @@
 'use strict';
 
+var dotenv = require('dotenv');
+dotenv.load();
+
+var NODE_ENV = process.env.NODE_ENV;
+var db_lms = (NODE_ENV === 'DEV') ? require('./db_lms.js') : require('./db_lms_live.js');
+
 function getFmOverlap(req, res, callback) {
     var dataObj = {};
     dataObj.statusCode = 400;
-    dataObj.statusMessage = 'error';
-    dataObj.status = '';
+    dataObj.statusMessage = '';
+    dataObj.status = 'error';
+    dataObj.connStr = '';
 
     try {
         console.log('\n================== start FM overlap (FMOVER) analysis process ==============');
@@ -81,47 +88,53 @@ function getFmOverlap(req, res, callback) {
 
         var antennaQuery = 'SELECT afv.aafv_azimuth, afv.aafv_field_value, afv.aafv_addl_azimuth_ind '+
             'FROM mass_media.app_antenna_field_value afv, mass_media.app_antenna ant '+
-            'WHERE to_number(ant.aant_antenna_id,"99999999") = $1 '+
+            'WHERE ant.aant_antenna_id = $1 '+
             'AND ant.aant_antenna_record_id=afv.aafv_aant_antenna_record_id';
 
-            dbLMS.task(t => {
-                return t.map(appQuery, { 'appIds': appList }, app => {
-                    if (app.aant_antenna_id !== null) {
-                        return t.any(antennaQuery, app.aant_antenna_id).then(field_values => {
-                            app.field_values = field_values;
-                            return app;
-                        });
-                    } else {
+        db_lms.task(t => {
+            return t.map(appQuery, { 'appIds': appList }, app => {
+                if (app.aant_antenna_id !== null) {
+                    return t.any(antennaQuery, app.aant_antenna_id).then(field_values => {
+                        app.field_values = field_values;
                         return app;
-                    }
-                }).then(t.batch);
-            })
-            .then(data => {
-                if (data.length < 2) {
-                    throw "Please verify application IDs.";
+                    });
+                } else {
+                    return app;
                 }
+            }).then(t.batch);
+        })
+        .then(data => {
+            if (data.length < 2) {
+                throw 'Please verify application IDs.';
+            }
 
-                // Stuff
+            // Temporary
+            tOutput = data;
+            responseObj = tOutput;
+            // Test to see which database we're connected to
+            var $p = db_lms.$cn;
+            var connStr = $p.replace(/:\/\/(.*):(.*)@/,'://$1:<masked>@');
+            dataObj.connStr = connStr;
 
-                return responseObj;
-            })
-            .then(responseObj => {
-                dataObj.status = "success";
-                dataObj.statusCode = 200;
-                dataObj.statusMessage = "ok";
-                dataObj.responseObj = responseObj;
-                return dataObj;
-            })
-            .catch(error => {
-                console.log(error);
-                dataObj.status = "error";
-                dataObj.statusCode = 400;
-                dataObj.statusMessage = error;
-                return dataObj;
-            })
-            .done(obj => {
-                return callback(obj);
-            });
+            return responseObj;
+        })
+        .then(responseObj => {
+            dataObj.status = 'success';
+            dataObj.statusCode = 200;
+            dataObj.statusMessage = 'ok';
+            dataObj.responseObj = responseObj;
+            return dataObj;
+        })
+        .catch(error => {
+            console.log(error);
+            dataObj.status = 'error';
+            dataObj.statusCode = 400;
+            dataObj.statusMessage = error;
+            return dataObj;
+        })
+        .done(obj => {
+            return callback(obj);
+        });
 
     } catch (err) {
         console.log('err='+err);

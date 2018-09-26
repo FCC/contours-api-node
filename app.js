@@ -22,7 +22,8 @@ var helmet = require('helmet');
 var bodyparser = require('body-parser');
 var package_json = require('./package.json');
 
-var dotenv = require('dotenv').load();
+var dotenv = require('dotenv');
+dotenv.load();
 
 var contour = require('./controllers/contour.js');
 var elevation = require('./controllers/elevation.js');
@@ -70,9 +71,7 @@ console.log('## ENV ## GEO_SPACE: '+process.env.GEO_SPACE);
 console.log('## ENV ## ELASTICACHE_ENDPOINT: '+process.env.ELASTICACHE_ENDPOINT);
 console.log('## ENV ## ELASTICACHE_LIFETIME: '+process.env.ELASTICACHE_LIFETIME);
 console.log('## ENV ## EFS_ELEVATION_DATASET: '+process.env.EFS_ELEVATION_DATASET);
-console.log('## ENV ## CONTOURS_PG: '+process.env.CONTOURS_PG);
 console.log('## ENV ## CONTOURS_SCHEMA: '+process.env.CONTOURS_SCHEMA);
-console.log('## ENV ## LMS_PG: '+process.env.LMS_PG);
 console.log('## ENV ## LMS_SCHEMA: '+process.env.LMS_SCHEMA);
 
 
@@ -551,7 +550,10 @@ app.get('/fmover.json', function(req, res) {
             return;            
         }                                
         console.log('--------- FM Overlap Analysis (FMOVER) API return complete -----------');
-        res.status(data.features[0].properties.statusCode).send(data);
+        res.status(data.statusCode).send(data);
+
+
+        //res.status(data.features[0].properties.statusCode).send(data);
         return;     
     });
 });

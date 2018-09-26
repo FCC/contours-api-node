@@ -12,6 +12,7 @@ function getFmOverlap(req, res, callback) {
     dataObj.statusMessage = '';
     dataObj.status = 'error';
     dataObj.connStr = '';
+    dataObj.env = NODE_ENV;
 
     try {
         console.log('\n================== start FM overlap (FMOVER) analysis process ==============');

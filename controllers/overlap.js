@@ -3,10 +3,19 @@
 var dotenv = require('dotenv');
 dotenv.load();
 
-var NODE_ENV = process.env.NODE_ENV;
-var db_lms = (NODE_ENV === 'DEV') ? require('./db_lms.js') : require('./db_lms_live.js');
+var db_lms;
 
 function getFmOverlap(req, res, callback) {
+    var NODE_ENV = process.env.NODE_ENV;
+    if (NODE_ENV === 'DEV') {
+        // We can't use LMS LIVE in Contours DEV
+        console.log('Using: '+process.env.LMS_PG);
+        db_lms = require('./db_lms.js');
+    } else {
+        console.log('Using: '+process.env.LMS_LIVE_PG);
+        db_lms = require('./db_lms_live.js');
+    }
+
     var dataObj = {};
     dataObj.statusCode = 400;
     dataObj.statusMessage = '';
@@ -115,6 +124,7 @@ function getFmOverlap(req, res, callback) {
             // Test to see which database we're connected to
             var $p = db_lms.$cn;
             var connStr = $p.replace(/:\/\/(.*):(.*)@/,'://$1:<masked>@');
+            console.log($p);
             dataObj.connStr = connStr;
 
             return responseObj;

@@ -93,13 +93,12 @@ function process(req, res, callback) {
 
         if (payload.requests[i].echo !== undefined) {
             echoText = payload.requests[i].echo;
-            delete(payload.requests[i].echo);
         } else {
             echoText = i;
         }
 
         output.requests[i] = {};
-        output.requests[i].request = payload.requests[i];
+        output.requests[i] = payload.requests[i];
         output.requests[i].echo = echoText;
 
         output.responses[i] = {};

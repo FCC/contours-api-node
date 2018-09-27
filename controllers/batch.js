@@ -105,11 +105,11 @@ function process(req, res, callback) {
 
         // Call the appropriate proxy function for the API specified in the payload
         if (payload.api === PROFILE_KEY) {
-            output.responses[i] = execProfile(output.requests[i].request);
+            output.responses[i] = execProfile(output.requests[i]);
         } else if (payload.api === DISTANCE_KEY) {
-            output.responses[i] = execDistance(output.requests[i].request);
+            output.responses[i] = execDistance(output.requests[i]);
         } else if (payload.api === COVERAGE_KEY) {
-            output.responses[i] = execCoverage(output.requests[i].request);
+            output.responses[i] = execCoverage(output.requests[i]);
         }
 
         output.responses[i].echo = echoText;

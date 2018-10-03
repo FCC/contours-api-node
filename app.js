@@ -46,7 +46,6 @@ var coordsAPI = require('./controllers/coordsAPI.js');
 //var conductivity_batch = require('./controllers/conductivity_batch.js');
 
 var batch = require('./controllers/batch.js');
-var data = require('./data/updateData.js');
 
 var overlap = require('./controllers/overlap.js');
 

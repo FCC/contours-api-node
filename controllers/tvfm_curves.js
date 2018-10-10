@@ -1396,11 +1396,16 @@ function getResult(req, res, callback) {
 			return callback(dataObj);
 		}
 
+		// * Sam Bressi 10/10/18
+		// Removing this block. If haat is greater than 1600, the calculator will
+		//  override it to 1600.
+		/*
 		if (parseFloat(haat) > 1600.0) {
 			console.log('HAAT value out of range ( > 1600)');
 			dataObj.statusMessage = 'HAAT value cannot exceed 1600.';
 			return callback(dataObj);
 		}
+		*/
 
 		// *** CHANNEL CHECKS *** //
 		if (channel === undefined) {
@@ -1462,6 +1467,11 @@ function getResult(req, res, callback) {
 		// for the post code that requires the updated haat value
 		if (parseFloat(haat) < 30.0) {
 			haat = 30.0;
+		}
+
+		// We have to do the same for haat greater than 1600
+		if (parseFloat(haat) > 1600) {
+			haat = 1600;
 		}
 
 		// *** END REQUIRED FIELD CHECKS *** //

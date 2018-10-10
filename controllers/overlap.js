@@ -7,8 +7,7 @@ var constants = require('./constants.js');
 var haat = require('./haat.js');
 var profile = require('./profile.js');
 var curves = require('./tvfm_curves.js');
-
-var sprong = require('./libCommon/sprong.js');
+var contours = require('./contours.js');
 
 var roundTo = require('round-to');
 
@@ -21,9 +20,6 @@ const FS_SWITCH = 2;
 const DBU_SWITCH = 1;
 const PR_CURVE = 0;
 const IX_CURVE = 1;
-const SPRONG_DIRECTION = constants.SPRONG_COUNTERCLOCKWISE;
-const BTWEEN_COORD_UNITS = 'dd';
-const BTWEEN_DIST_UNITS = 'km';
 
 const GET_APPLICATION_SQL = 'SELECT app.aapp_application_id, app.aapp_file_num, app.aapp_callsign, '+
     'loc.aloc_lat_dir, loc.aloc_lat_deg, loc.aloc_lat_mm, loc.aloc_lat_ss, loc.aloc_long_dir, '+
@@ -146,6 +142,168 @@ function cleanAntennaData(application, antenna, pattern) {
     delete application.antenna.pattern.rotation;
     delete application.field_values;
     return application;
+}
+
+function dsprong2(clat, clong, dist, az) {
+    var DMC = 111.18;
+    var TOL = 0.08;
+
+    var alat = constants.RADIAN * clat;
+    var along = constants.RADIAN * clong;
+    var blat, blong;
+    if (dist >= TOL) {
+        var isig = 0;
+        var a = az % 360.0;
+        if (a < 0.0) {
+            a = 360.0 + a;
+        }
+        if (a > 180.0) {
+            a = 360.0 - a;
+            isig = 1;
+        }
+
+        a = a * constants.RADIAN;
+        var bb = constants.PI_HALF - alat;
+        var cc = dist * constants.RADIAN / DMC;
+        var sinbb = Math.sin(bb);
+        var cosbb = Math.cos(bb);
+        var coscc = Math.cos(cc);
+        var cosaa = cosbb * coscc + sinbb * Math.sin(cc) * Math.cos(a);
+        if(cosaa <= -1.0) {
+            cosaa = -1.0;
+        }
+        if (cosaa >= 1.0) {
+            cosaa = 1.0;
+        }
+        var aa = Math.acos(cosaa);
+        var cosc = (coscc - cosaa * cosbb) / (Math.sin(aa) * sinbb);
+        if (cosc <= -1.0) {
+            cosc = -1.0;
+        }
+        if (cosc >= 1.0) {
+            cosc = 1.0;
+        }
+        var c = Math.acos(cosc);
+        blat = constants.PI_HALF - aa;
+        blong = along - c;
+        if (isig === 1) {
+            blong = along + c;
+        }
+        if (blong > constants.PI) {
+            blong = blong - constants.TWO_PI;
+        }
+        if (blong < constants.PI * -1) {
+            blong = blong + constants.TWO_PI;
+        }
+        blat = blat * constants.DEGREE;
+        blong = blong * constants.DEGREE;
+    } else {
+        blat = alat;
+        blong = along;
+    }
+
+    return {
+        'blat': blat,
+        'blong': blong
+    };
+}
+
+function btween2(clat, clong, dlat, dlong) {
+    var az1, az2, dist, amdlat;
+    var DMC = 111.18;
+    var TOL = 4.0e-6;
+    var alat = clat * constants.RADIAN;
+    var along = clong * constants.RADIAN;
+    var blat = dlat * constants.RADIAN;
+    var blong = dlong * constants.RADIAN;
+    var isig = 0;
+    var jsig = 0;
+    var aa = constants.PI_HALF - blat;
+    var bb = constants.PI_HALF - alat;
+    var c = along - blong;
+    var cc;
+    if (Math.abs(c) < TOL) {
+        amdlat = (alat + blat) / 2.0 * constants.DEGREE;
+        if (Math.abs(alat - blat) < TOL) {
+            dist = 0.0;
+            az1 = 0.0;
+            az2 = 0.0;
+        } else {
+            cc = Math.abs(aa - bb);
+            dist = (cc * constants.DEGREE * DMC);
+            if(aa > bb) {
+                az1 = 180.0;
+                az2 = 0.0;
+            } else {
+                az1 = 0.0;
+                az2 = 180.0;
+            }
+        }
+    } else {
+        if (c <= 0.0) {
+            isig = 1;
+            c = Math.abs(c);
+        }
+        if (c >= constants.PI) {
+            jsig = 1;
+            c = constants.PI * 2.0 - c;
+        }
+        var cosaa = Math.cos(aa);
+        var cosbb = Math.cos(bb);
+        var sinaa = Math.sin(aa);
+        var sinbb = Math.sin(bb);
+        var dcoscc = cosaa * cosbb + sinaa * sinbb * Math.cos(c);
+        var coscc = dcoscc;
+        if (coscc < -1.0) {
+            coscc = -1.0;
+        }
+        if (coscc > 1.0) {
+            coscc = 1.0;
+        }
+        cc = Math.acos(coscc);
+        dist = cc * constants.DEGREE * DMC;
+        var sincc = Math.sin(cc);
+        var cosa = (cosaa - cosbb * dcoscc) / (sinbb * sincc);
+        if (cosa < -1.0) {
+            cosa = -1.0;
+        }
+        if (cosa > 1.0) {
+            cosa = 1.0;
+        }
+        var a = Math.acos(cosa) * constants.DEGREE;
+        var cosb = (cosbb - dcoscc * cosaa) / (sincc * sinaa);
+        if (cosb < -1.0) {
+            cosb = -1.0;
+        }
+        if (cosb > 1.0) {
+            cosb = 1.0;
+        }
+        var b = constants.DEGREE * Math.acos(cosb);
+        var cchalf = cc / 2.0;
+        var cosdd = cosbb * Math.cos(cchalf) + sinbb * Math.sin(cchalf) * cosa;
+        if (cosdd < -1.0) {
+            cosdd = -1.0;
+        }
+        if (cosdd > 1.0) {
+            cosdd = 1.0;
+        }
+        var dd = constants.DEGREE * Math.acos(cosdd);
+        amdlat = 90.0 - dd;
+        if(isig === jsig) {
+            az1 = a;
+            az2 = 360.0 - b;
+        } else {
+            az1 = 360.0 - a;
+            az2 = b;
+        }
+    }
+
+    return {
+        'az1': az1,
+        'az2': az2,
+        'dist': dist,
+        'amdlat': amdlat
+    };
 }
 
 function getNondirectionalPattern(erp, degrees) {
@@ -667,147 +825,6 @@ function getDirectionalERPs(napp, apps) {
     return output;
 }
 
-function runbtween(lat1_in, lon1_in, lat2_in, lon2_in) {
-    var azimuth_deg_1, azimuth_deg_2;
-    var isig = 0;
-    var jsig = 0;
-    var a, aa, b, bb, c, cc, cchalf, dd;
-    var dist, midpoint_lat;
-    var cosa, cosaa, sinaa, cosb, cosbb, sinbb, dcoscc, coscc, sincc, cosdd;
-    
-    aa = constants.PI_HALF - lat2_in;
-    bb = constants.PI_HALF - lat1_in;
-    c = lon1_in - lon2_in;
-
-    if (Math.abs(c) >= 0.000004) {
-        if (c <= 0.0) {
-            isig = 1;
-            c = Math.abs(c);
-        }
-        if (c >= Math.PI) {
-            jsig = 1;
-            c = Math.PI * 2 - c;
-        }
-        cosaa = Math.cos(aa);
-        cosbb = Math.cos(bb);
-        sinaa = Math.sin(aa);
-        sinbb = Math.sin(bb);
-        dcoscc = cosaa * cosbb + sinaa * sinbb * Math.cos(c);
-        coscc = dcoscc;
-        if (coscc < -1.0) {
-            coscc = -1.0;
-        }
-        if (coscc > 1.0) {
-            coscc = 1.0;
-        }
-        cc = Math.acos(coscc);
-        dist = (cc * constants.DEGREE * constants.DMC);
-        sincc = Math.sin(cc);
-        cosa = (cosaa - cosbb * dcoscc) / (sinbb * sincc);
-        if (cosa < -1.0) {
-            cosa = -1.0;
-        }
-        if (cosa > 1.0) {
-            cosa = 1.0;
-        }
-        a = constants.DEGREE * Math.acos(cosa);
-        cosb = (cosbb - dcoscc * cosaa) / (sincc * sinaa);
-        if (cosb < -1.0) {
-            cosb = -1.0;
-        }
-        if (cosb > 1.0) {
-            cosb = 1.0;
-        }
-        b = constants.DEGREE * Math.acos(cosb);
-        cchalf = cc / 2.0;
-        cosdd = cosbb * Math.cos(cchalf) + sinbb * Math.sin(cchalf) * cosa;
-        if (cosdd < -1.0) {
-            cosdd = -1.0;
-        }
-        if (cosdd > 1.0) {
-            cosdd = 1.0;
-        }
-        dd = constants.DEGREE * Math.acos(cosdd);
-        midpoint_lat = 90.0 - dd;
-        if (isig !== jsig) {
-            azimuth_deg_1 = 360.0 - a;
-            azimuth_deg_2 = b;
-        } else {
-            azimuth_deg_1 = a;
-            azimuth_deg_2 = 360.0 - b;
-        }
-    } else {
-        midpoint_lat = (lat1_in + lat2_in) / (2.0 * constants.DEGREE);
-        if (Math.abs(lat1_in - lat2_in) >= 0.000004) {
-            cc = Math.abs(aa - bb);
-            dist = (cc * constants.DEGREE * constants.DMC);
-            if (aa > bb) {
-                azimuth_deg_1 = 180.0;
-                azimuth_deg_2 = 0.0;
-            } else {
-                azimuth_deg_1 = 0.0;
-                azimuth_deg_2 = 180.0;
-            }
-        } else {
-            dist = 0.0;
-            azimuth_deg_1 = 0.0;
-            azimuth_deg_2 = 0.0;
-        }
-    }
-
-
-    return {
-        'input' : {
-            'point_1' : {
-                'latitude' : lat1_in,
-                'longitude' : lon1_in
-            },
-            'point_2' : {
-                'latitude' : lat2_in,
-                'longitude' : lon2_in
-            }
-        },
-        'output': {
-            'distance' : dist,
-            'azimuth_1': azimuth_deg_1,
-            'azimuth_2': azimuth_deg_2,
-            'midpoint_lat': midpoint_lat
-        }
-    };
-}
-
-function btween(lat1_in, lon1_in, lat2_in, lon2_in, coord_units, dist_units) {
-    var lat1, lon1, lat2, lon2;
-    if (coord_units === 'dd') {
-        lat1 = lat1_in * constants.RADIAN;
-        lon1 = lon1_in * constants.RADIAN;
-        lat2 = lat2_in * constants.RADIAN;
-        lon2 = lon2_in * constants.RADIAN;
-    } else {
-        lat1 = lat1_in;
-        lon1 = lon1_in;
-        lat2 = lat2_in;
-        lon2 = lon2_in;
-    }
-
-    var btweenObj = runbtween(lat1, lon1, lat2, lon2);
-
-    if (coord_units === 'dd') {
-        btweenObj.input.point_1.latitude = btweenObj.input.point_1.latitude * constants.DEGREE;
-        btweenObj.input.point_1.longitude = btweenObj.input.point_1.longitude * constants.DEGREE;
-        btweenObj.input.point_2.latitude = btweenObj.input.point_2.latitude * constants.DEGREE;
-        btweenObj.input.point_2.longitude = btweenObj.input.point_2.longitude * constants.DEGREE;
-        btweenObj.output.midpoint_lat = btweenObj.output.midpoint_lat * constants.DEGREE;
-    }
-    btweenObj.output.distance_units = dist_units;
-
-    if (dist_units === 'km') {
-        btweenObj.output.distance = btweenObj.output.distance * constants.KM_MULTIPLIER;
-    }
-
-    return btweenObj;
-}
-
 function gethaat(dlat, dlon, rcamsl, naz, azd) {
     var haat = [];
 
@@ -835,6 +852,58 @@ function gethaat(dlat, dlon, rcamsl, naz, azd) {
         haat[j-1] = haat[0];
     }
     return haat;
+}
+
+function getContour(app, curve, field) {
+
+    function getString(param) {
+        if (param === undefined || param === null) {
+            return '';
+        } else {
+            return param.toString();
+        }
+    }
+
+    // Generate semicolon-delimited pattern string for API
+    var patternString = '';
+    for (var i=0; i<app.antenna.pattern.azimuths.length; i++) {
+        if (i !== 0) {
+            patternString += ';';
+        }
+        patternString += app.antenna.pattern.azimuths[i].azimuth + ',' + app.antenna.pattern.azimuths[i].field_value;
+    }
+
+    var request = {
+        'query': {
+            'src': HAAT_SRC,
+            'lat': getString(roundTo(app.latitude_dd,10)),
+            'lon': getString(roundTo(app.longitude_dd,10)),
+            'serviceType': getString(app.service_code),
+            'nradial': getString(360),
+            'rcamsl': getString(app.rcamsl),
+            'channel': getString(app.afac_channel),
+            'field': getString(field),
+            'erp': getString(app.erp),
+            'curve': getString(curve),
+            'pattern': patternString,
+            'ant_rotation': getString(app.antenna.rotation),
+            'format': 'json'
+        }
+    };
+
+    var response = {};
+
+    try {
+        contours.getContours(request, response, function(data) {
+            response = data.features[0].properties;
+        });
+    }
+    catch(err) {
+        console.error('\n\n execCoverage err '+err);  
+        response = { 'error': err };
+    }
+
+    return response;
 }
 
 function gethaat3(start, napp, dlat, dlon, rcamsl, naz, azd) {
@@ -1098,54 +1167,76 @@ function getFmOverlap(req, res, callback) {
     dataObj.statusMessage = '';
     dataObj.status = 'error';
 
+    var METHOD = req.method;
+
+    var startTime, endTime;
+
     try {
         console.log('\n================== start FM overlap (FMOVER) analysis process ==============');
-        var appIdA = req.query.app_id_applicant;
-        var appIdO = req.query.app_id_other;
+        startTime = new Date().getTime();
 
-        if (appIdA === undefined) {
-            console.log('missing app_id_applicant parameter');
-            dataObj.statusMessage = 'Missing app_id_applicant parameter.';
-            return callback(dataObj);
-        }
+        /******************************************************************************************** 
+        ! Pre-process the request.
+        ! If called via GET method, the query string should contain two parameters containing the DB
+        !    IDs of the applicant's and the other application. The database details are retrieved
+        !    and then the study is executed.
+        ! If called via POST method, the request body should contain two objects in JSON format.
+        !    The first object is the applicant's application and the second is the other application.
+        !    These objects can be used to pass custom application data. 
+        !********************************************************************************************/
 
-        if (!appIdA.match(/^\w+$/)) {
-            console.log('invalid app_id_applicant value');
-            dataObj.statusMessage = 'Invalid app_id_applicant value.';
-            return callback(dataObj);
-        }
+        var appIdA, appIdO;
+        var appList = [];
+        var payload;
+        if (METHOD === 'GET') {
 
-        if (appIdO === undefined) {
-            console.log('missing app_id_other parameter');
-            dataObj.statusMessage = 'Missing app_id_other parameter.';
-            return callback(dataObj);
-        }
+            appIdA = req.query.app_id_applicant;
+            appIdO = req.query.app_id_other;
 
-        if (Array.isArray(appIdO)) {
-            appIdO.forEach(id => {
-                if (!id.match(/^\w+$/)) {
-                    console.log('invalid app_id_other value');
-                    dataObj.statusMessage = 'Invalid app_id_other channel.';
-                    return callback(dataObj);
-                }
-            });
-        } else {
-            if (!appIdO.match(/^\w+$/)) {
-                console.log('invalid app_id_other value');
-                dataObj.statusMessage = 'Invalid app_id_other value.';
+            if (appIdA === undefined) {
+                console.log('missing app_id_applicant parameter');
+                dataObj.statusMessage = 'Missing app_id_applicant parameter.';
                 return callback(dataObj);
             }
-        }
-
-        var appList = [
-            appIdA
-        ];
-        if (Array.isArray(appIdO)) {
-            appIdO.forEach(app => {
-                appList.push(app);
-            });
-        } else if (typeof appIdO === 'string') {
-            appList.push(appIdO);
+    
+            if (!appIdA.match(/^\w+$/)) {
+                console.log('invalid app_id_applicant value');
+                dataObj.statusMessage = 'Invalid app_id_applicant value.';
+                return callback(dataObj);
+            }
+    
+            if (appIdO === undefined) {
+                console.log('missing app_id_other parameter');
+                dataObj.statusMessage = 'Missing app_id_other parameter.';
+                return callback(dataObj);
+            }
+    
+            if (Array.isArray(appIdO)) {
+                appIdO.forEach(id => {
+                    if (!id.match(/^\w+$/)) {
+                        console.log('invalid app_id_other value');
+                        dataObj.statusMessage = 'Invalid app_id_other channel.';
+                        return callback(dataObj);
+                    }
+                });
+            } else {
+                if (!appIdO.match(/^\w+$/)) {
+                    console.log('invalid app_id_other value');
+                    dataObj.statusMessage = 'Invalid app_id_other value.';
+                    return callback(dataObj);
+                }
+            }
+    
+            appList = [
+                appIdA
+            ];
+            if (Array.isArray(appIdO)) {
+                appIdO.forEach(app => {
+                    appList.push(app);
+                });
+            } else if (typeof appIdO === 'string') {
+                appList.push(appIdO);
+            }
         }
 
         // Inputs are clean, continue.
@@ -1158,20 +1249,54 @@ function getFmOverlap(req, res, callback) {
         var rcamsl = [];
 
         db_lms.task(t => {
-            return t.map(GET_APPLICATION_SQL, { 'appIds': appList }, app => {
-                if (app.aant_antenna_record_id !== null) {
-                    return t.any(GET_ANTENNA_SQL, app.aant_antenna_record_id).then(field_values => {
-                        app.field_values = field_values;
+            if (METHOD === 'GET') {
+                return t.map(GET_APPLICATION_SQL, { 'appIds': appList }, app => {
+                    if (app.aant_antenna_record_id !== null) {
+                        return t.any(GET_ANTENNA_SQL, app.aant_antenna_record_id).then(field_values => {
+                            app.field_values = field_values;
+                            return app;
+                        });
+                    } else {
                         return app;
-                    });
-                } else {
-                    return app;
-                }
-            }).then(t.batch);
+                    }
+                }).then(t.batch);
+            } else {
+                return null;
+            }
         })
-        .then(data => {
-            if (data.length < 2) {
-                throw 'Please verify application IDs.';
+        .then(tempdata => {
+            var data;
+            if (tempdata === null) {
+                if (METHOD === 'POST') {
+                    payload = req.body;
+                    data = new Array(2);
+                    if (payload.applicant === undefined) {
+                        console.log('missing applicant object');
+                        throw 'Missing applicant value.';
+                    }
+                    data[0] = payload.applicant;
+                    
+                    if (payload.other === undefined) {
+                        console.log('missing other object');
+                        throw 'Missing other value.';
+                    }
+                    data[1] = payload.other;
+                } else {
+                    throw 'Error retrieving application data from database.';
+                }
+            } else {
+                data = new Array(tempdata.length);
+                var cnt, item;
+                item = 0;
+                appList.forEach(appId => {
+                    for (cnt=0; cnt<tempdata.length; cnt++) {
+                        if (appId === tempdata[cnt].aapp_application_id) {
+                            data[item] = tempdata[cnt];
+                            item++;
+                            break;
+                        }
+                    }
+                });
             }
 
             var antennaObj, patternObj;
@@ -1205,10 +1330,19 @@ function getFmOverlap(req, res, callback) {
             console.log('Adjustments for 73.215');
             // If the first station does not use 73.215 rules, skip 73.215 adjustments
             var adjustmentObj;
+            var adjustIt = false;
             if (data[0].contour_215_protection_ind === 'Y') {
+                adjustIt = true;
                 // If both stations are on reserved channels, skip 73.215 adjustments.
-                if ((data[0].afac_channel < 200 || data[0].afac_channel > 220) ||
-                    (data[1].afac_channel < 200 || data[1].afac_channel > 220)) {
+               
+                if (data[0].afac_channel >= 200 && data[0] <= 220) {
+                    if (data[1].afac_channel >= 200 && data[1] < 220) {
+                        adjustIt = false;
+                    }
+                }
+                data[1].is_215_adjusted = false;
+
+                if (adjustIt) {
                     if (data[1].aafq_horiz_erp_kw >= data[1].aafq_vert_erp_kw) {
                         adjustmentObj = fm215Adjust(data[1].country_code, 
                             data[1].afac_community_state_code, data[1].afac_channel,
@@ -1245,20 +1379,72 @@ function getFmOverlap(req, res, callback) {
                 tOutput.a_ix_con[i] = a_ix_tempcon[i];
             }
 
-            console.log('Get HAATs and contour distances');
-            tOutput.haat = gethaat4(0, tOutput.napp, dlat, dlon, rcamsl, tOutput.naz, tOutput.azd);
+            // Refactored protected contours to use coverage generation function instead of manual
+            // calculations
 
+            var contourObj;
             var sprongObj;
             var flag = [];
             tOutput.pr_dist = new Array(tOutput.napp);
             tOutput.pr_lat = new Array(tOutput.napp);
             tOutput.pr_lon = new Array(tOutput.napp);
+            tOutput.haat = new Array(tOutput.napp);
+            tOutput.pr_dist2 = new Array(tOutput.napp);
+            tOutput.pr_lat2 = new Array(tOutput.napp);
+            tOutput.pr_lon2 = new Array(tOutput.napp);
+            tOutput.haat2 = new Array(tOutput.napp);
             tOutput.a_ix_dist = new Array(tOutput.napp);
             tOutput.a_ix_lat = new Array(tOutput.napp);
             tOutput.a_ix_lon = new Array(tOutput.napp);
             tOutput.o_ix_dist = new Array(tOutput.napp);
             tOutput.o_ix_lat = new Array(tOutput.napp);
             tOutput.o_ix_lon = new Array(tOutput.napp);
+            var currentAz; 
+
+            
+            for (i=0; i<tOutput.napp; i++) {
+                contourObj = getContour(data[i], PR_CURVE, tOutput.pr_con[i]);
+                tOutput.pr_dist2[i] = new Array(tOutput.naz[i]);
+                tOutput.pr_lat2[i] = new Array(tOutput.naz[i]);
+                tOutput.pr_lon2[i] = new Array(tOutput.naz[i]);
+                tOutput.haat2[i] = new Array(tOutput.naz[i]);
+
+                if (contourObj.contourData !== undefined) {
+                    currentAz = null;
+                    for (j=0; j<tOutput.naz[i]; j++) {
+                        currentAz = tOutput.azd[i][j];
+                        for (k=0; k<contourObj.contourData.length; k++) {
+                            if (contourObj.contourData[k].azimuth === currentAz) {
+                                tOutput.haat2[i][j] = contourObj.contourData[k].haat;
+                                tOutput.pr_dist2[i][j] = contourObj.contourData[k].distance;
+                                tOutput.pr_lat2[i][j] = contourObj.contourData[k].x;
+                                tOutput.pr_lon2[i][j] = contourObj.contourData[k].y;
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+            
+            console.log('Get HAATs and contour distances');
+            tOutput.haat = gethaat4(0, tOutput.napp, dlat, dlon, rcamsl, tOutput.naz, tOutput.azd);
+
+            // Temporarily replace 10 degree HAATs with the values from the test file to see if the dist/contour
+            // calculation returns the expected results
+            // Since our haat array is sized in 5 degree, we'll just use the value for both. E.g., 
+            // 0 degrees and 5 degrees will have the 0 degree HAAT from the test file, 10 and 15 will have 
+            // the 10 degree from the test file, etc.
+            /*tOutput.haat[0] = [
+                268.1, 268.1, 281.0, 281.0, 288.8, 288.8, 305.0, 305.0, 310.9, 310.9, 306.7, 306.7, 
+                302.4, 302.4, 288.7, 288.7, 301.5, 301.5, 298.0, 298.0, 300.3, 300.3, 307.1, 307.1,
+                309.8, 309.8, 309.0, 309.0, 306.3, 306.3, 310.9, 310.9, 309.7, 309.7, 303.7, 303.7,
+                293.8, 293.8, 279.9, 279.9, 271.9, 271.9, 282.4, 282.4, 294.5, 294.5, 307.0, 307.0,
+                298.5, 298.5, 279.7, 279.7, 284.2, 284.2, 282.6, 282.6, 271.5, 271.5, 261.8, 261.8,
+                253.6, 253.6, 251.1, 251.1, 252.4, 252.4, 246.3, 246.3, 262.7, 262.7, 260.4, 260.4,
+                268.1
+            ];
+
+            */
 
             // First, get the protected contours
             console.log('First the protected contours');
@@ -1270,11 +1456,9 @@ function getFmOverlap(req, res, callback) {
                     tOutput.pr_dist[i][j-1] = curves.tvfmfs_metric(tOutput.erp[i][j-1], 
                         tOutput.haat[i][j-1], data[i].afac_channel, tOutput.pr_con[i], 
                         tOutput.pr_dist[i][j-1], DIST_SWITCH, PR_CURVE, flag);
-                    tOutput.pr_dist[i][j-1] = tOutput.pr_dist[i][j-1] / constants.KM_MULTIPLIER;
-                    sprongObj = sprong.runsprongDD(dlat[i], dlon[i], tOutput.pr_dist[i][j-1], 
-                        tOutput.azd[i][j-1], SPRONG_DIRECTION);
-                    tOutput.pr_lat[i][j-1] = sprongObj.output.latitude_rad * constants.DEGREE;
-                    tOutput.pr_lon[i][j-1] = sprongObj.output.longitude_rad * constants.DEGREE;
+                    sprongObj = dsprong2(dlat[i], dlon[i], tOutput.pr_dist[i][j-1], tOutput.azd[i][j-1]);
+                    tOutput.pr_lat[i][j-1] = sprongObj.blat;
+                    tOutput.pr_lon[i][j-1] = sprongObj.blong;
                 }
             }
 
@@ -1288,11 +1472,9 @@ function getFmOverlap(req, res, callback) {
                     tOutput.a_ix_dist[i][j-1] = curves.tvfmfs_metric(tOutput.erp[0][j-1], 
                         tOutput.haat[0][j-1], data[0].afac_channel, tOutput.a_ix_con[i], 
                         tOutput.a_ix_dist[i][j-1], DIST_SWITCH, IX_CURVE, flag);
-                    tOutput.a_ix_dist[i][j-1] = tOutput.a_ix_dist[i][j-1] / constants.KM_MULTIPLIER;
-                    sprongObj = sprong.runsprongDD(dlat[0], dlon[0], tOutput.a_ix_dist[i][j-1], 
-                        tOutput.azd[0][j-1], SPRONG_DIRECTION);
-                    tOutput.a_ix_lat[i][j-1] = sprongObj.output.latitude_rad * constants.DEGREE;
-                    tOutput.a_ix_lon[i][j-1] = sprongObj.output.longitude_rad * constants.DEGREE;
+                    sprongObj = dsprong2(dlat[0], dlon[0], tOutput.a_ix_dist[i][j-1], tOutput.azd[0][j-1]);
+                    tOutput.a_ix_lat[i][j-1] = sprongObj.blat;
+                    tOutput.a_ix_lon[i][j-1] = sprongObj.blong;
                 }
             }
 
@@ -1306,11 +1488,9 @@ function getFmOverlap(req, res, callback) {
                     tOutput.o_ix_dist[i][j-1] = curves.tvfmfs_metric(tOutput.erp[i][j-1], 
                         tOutput.haat[i][j-1], data[i].afac_channel, tOutput.o_ix_con[i], 
                         tOutput.o_ix_dist[i][j-1], DIST_SWITCH, IX_CURVE, flag);
-                    tOutput.o_ix_dist[i][j-1] = tOutput.o_ix_dist[i][j-1] / constants.KM_MULTIPLIER;
-                    sprongObj = sprong.runsprongDD(dlat[i], dlon[i], tOutput.o_ix_dist[i][j-1], 
-                        tOutput.azd[i][j-1], SPRONG_DIRECTION);
-                    tOutput.o_ix_lat[i][j-1] = sprongObj.output.latitude_rad * constants.DEGREE;
-                    tOutput.o_ix_lon[i][j-1] = sprongObj.output.longitude_rad * constants.DEGREE;
+                    sprongObj = dsprong2(dlat[i], dlon[i], tOutput.o_ix_dist[i][j-1], tOutput.azd[i][j-1]);
+                    tOutput.o_ix_lat[i][j-1] = sprongObj.blat;
+                    tOutput.o_ix_lon[i][j-1] = sprongObj.blong;
                 }
             }
 
@@ -1335,14 +1515,13 @@ function getFmOverlap(req, res, callback) {
                 for(j=0; j<tOutput.naz[0]; j++) {
                     blat = tOutput.pr_lat[0][j];
                     blon = tOutput.pr_lon[0][j];
-                    btweenObj = btween(dlat[i], dlon[i], blat, blon, BTWEEN_COORD_UNITS, 
-                        BTWEEN_DIST_UNITS);
+                    btweenObj = btween2(dlat[i], dlon[i], blat, blon);
                     tOutput.o_to_a_pr_lat_a[i][j] = dlat[i];
                     tOutput.o_to_a_pr_lon_a[i][j] = dlon[i];
                     tOutput.o_to_a_pr_lat_b[i][j] = blat;
                     tOutput.o_to_a_pr_lon_b[i][j] = blon;
-                    tOutput.o_to_a_pr_dist[i][j] = btweenObj.output.distance;
-                    tOutput.o_to_a_pr_azd[i][j] = btweenObj.output.azimuth_1;
+                    tOutput.o_to_a_pr_dist[i][j] = btweenObj.dist;
+                    tOutput.o_to_a_pr_azd[i][j] = btweenObj.az1;
                 }
             }
 
@@ -1414,14 +1593,13 @@ function getFmOverlap(req, res, callback) {
                 for (j=1,D13=(tOutput.naz[i]-j+1); D13>0; D13--,j+=1) {
                     blat = tOutput.pr_lat[i][j-1];
                     blon = tOutput.pr_lon[i][j-1];
-                    btweenObj = btween(dlat[0], dlon[0], blat, blon, BTWEEN_COORD_UNITS, 
-                        BTWEEN_DIST_UNITS);
+                    btweenObj = btween2(dlat[0], dlon[0], blat, blon);
                     tOutput.a_to_o_pr_lat_a[i][j-1] = dlat[0];
                     tOutput.a_to_o_pr_lon_a[i][j-1] = dlon[0];
                     tOutput.a_to_o_pr_lat_b[i][j-1] = blat;
                     tOutput.a_to_o_pr_lon_b[i][j-1] = blon;
-                    tOutput.a_to_o_pr_dist[i][j-1] = btweenObj.output.distance;
-                    tOutput.a_to_o_pr_azd[i][j-1] = btweenObj.output.azimuth_1;
+                    tOutput.a_to_o_pr_dist[i][j-1] = btweenObj.dist;
+                    tOutput.a_to_o_pr_azd[i][j-1] = btweenObj.az1;
                 }
             }
 
@@ -1478,11 +1656,10 @@ function getFmOverlap(req, res, callback) {
             console.log('Determine if either station is inside the other station\'s protected contour');
             // First get the bearing and distance from each station to the other
             console.log('First get the bearing and distance from each station to the other');
-            btweenObj = btween(dlat[0], dlon[0], dlat[1], dlon[1], BTWEEN_COORD_UNITS, 
-                BTWEEN_DIST_UNITS);
-            var a_to_o_dist = btweenObj.output.distance;
-            var a_to_o_azd = btweenObj.output.azimuth_1;
-            var o_to_a_azd = btweenObj.output.azimuth_2;
+            btweenObj = btween2(dlat[0], dlon[0], dlat[1], dlon[1]);
+            var a_to_o_dist = btweenObj.dist;
+            var a_to_o_azd = btweenObj.az1;
+            var o_to_a_azd = btweenObj.az2;
 
             var last_bear, last_last_bear;
             for (i=1; i<tOutput.napp; i++) {
@@ -1578,7 +1755,7 @@ function getFmOverlap(req, res, callback) {
             tOutput.dbd_o_to_a_pr_dist = new Array(tOutput.napp);
             tOutput.dbd_o_to_a_pr_azd = new Array(tOutput.napp);
             tOutput.dbd_o_to_a_pr_haat = new Array(tOutput.napp);
-            var distmi;
+
             for (i=1; i<tOutput.napp; i++) {
                 tOutput.dbd_a_pr_dist[i] = [];
                 tOutput.dbd_a_pr_lat[i] = [];
@@ -1591,15 +1768,14 @@ function getFmOverlap(req, res, callback) {
                             tOutput.dbd_a_pr_erp[i][j-1], tOutput.dbd_a_pr_haat[i][j-1],
                             data[0].afac_channel, tOutput.pr_con[0], tOutput.dbd_a_pr_dist[i][j-1],
                             DIST_SWITCH, PR_CURVE, flag);
-                        distmi = tOutput.dbd_a_pr_dist[i][j-1] / constants.KM_MULTIPLIER;
-                        sprongObj = sprong.runsprongDD(dlat[0], dlon[0], distmi, 
-                            tOutput.dbd_a_pr_azd[i][j-1], SPRONG_DIRECTION);
-                        tOutput.dbd_a_pr_lat[i][j-1] = sprongObj.output.latitude_rad * constants.DEGREE;
-                        tOutput.dbd_a_pr_lon[i][j-1] = sprongObj.output.longitude_rad * constants.DEGREE;
-                        btweenObj = btween(dlat[i], dlon[i], tOutput.dbd_a_pr_lat[i][j-1], 
-                            tOutput.dbd_a_pr_lon[i][j-1], BTWEEN_COORD_UNITS, BTWEEN_DIST_UNITS);
-                        tOutput.dbd_o_to_a_pr_dist[i][j-1] = btweenObj.output.distance;
-                        tOutput.dbd_o_to_a_pr_azd[i][j-1] = btweenObj.output.azimuth_1;
+                        sprongObj = dsprong2(dlat[0], dlon[0], tOutput.dbd_a_pr_dist[i][j-1], 
+                            tOutput.dbd_a_pr_azd[i][j-1]);
+                        tOutput.dbd_a_pr_lat[i][j-1] = sprongObj.blat;
+                        tOutput.dbd_a_pr_lon[i][j-1] = sprongObj.blong;
+                        btweenObj = btween2(dlat[i], dlon[i], tOutput.dbd_a_pr_lat[i][j-1], 
+                            tOutput.dbd_a_pr_lon[i][j-1]);
+                        tOutput.dbd_o_to_a_pr_dist[i][j-1] = btweenObj.dist;
+                        tOutput.dbd_o_to_a_pr_azd[i][j-1] = btweenObj.az1;
                     }
                 }
             }
@@ -1697,15 +1873,14 @@ function getFmOverlap(req, res, callback) {
                             tOutput.dbd_o_pr_erp[i][j-1], tOutput.dbd_o_pr_haat[i][j-1],
                             data[0].afac_channel, tOutput.pr_con[i], tOutput.dbd_o_pr_dist[i][j-1],
                             DIST_SWITCH, PR_CURVE, flag);
-                        distmi = tOutput.dbd_o_pr_dist[i][j-1] / constants.KM_MULTIPLIER;
-                        sprongObj = sprong.runsprongDD(dlat[i], dlon[i], distmi, 
-                            tOutput.dbd_o_pr_azd[i][j-1], SPRONG_DIRECTION);
-                        tOutput.dbd_o_pr_lat[i][j-1] = sprongObj.output.latitude_rad * constants.DEGREE;
-                        tOutput.dbd_o_pr_lon[i][j-1] = sprongObj.output.longitude_rad * constants.DEGREE;
-                        btweenObj = btween(dlat[0], dlon[0], tOutput.dbd_o_pr_lat[i][j-1], 
-                            tOutput.dbd_o_pr_lon[i][j-1], BTWEEN_COORD_UNITS, BTWEEN_DIST_UNITS);
-                        tOutput.dbd_a_to_o_pr_dist[i][j-1] = btweenObj.output.distance;
-                        tOutput.dbd_a_to_o_pr_azd[i][j-1] = btweenObj.output.azimuth_1;
+                        sprongObj = dsprong2(dlat[i], dlon[i], tOutput.dbd_o_pr_dist[i][j-1], 
+                                tOutput.dbd_o_pr_azd[i][j-1]);
+                        tOutput.dbd_o_pr_lat[i][j-1] = sprongObj.blat;
+                        tOutput.dbd_o_pr_lon[i][j-1] = sprongObj.blong;
+                        btweenObj = btween2(dlat[0], dlon[0], tOutput.dbd_o_pr_lat[i][j-1], 
+                            tOutput.dbd_o_pr_lon[i][j-1]);
+                        tOutput.dbd_a_to_o_pr_dist[i][j-1] = btweenObj.dist;
+                        tOutput.dbd_a_to_o_pr_azd[i][j-1] = btweenObj.az1;
                     }
                 }
             }
@@ -1788,6 +1963,8 @@ function getFmOverlap(req, res, callback) {
             return dataObj;
         })
         .done(obj => {
+            endTime = new Date().getTime();	
+            obj.elapsedTime = endTime - startTime;
             return callback(obj);
         });
 

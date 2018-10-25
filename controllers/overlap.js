@@ -11,7 +11,13 @@ var contours = require('./contours.js');
 
 var roundTo = require('round-to');
 
+var legacy = require('./lib/legacy');
+
 var db_lms;
+
+// true = Use the Entity API to generate the Protected and Interfering contours
+// false = Manually calulate each HAAT and radial for the contours
+const USE_CONTOURS = true;
 
 const K3 = 1;
 const HAAT_SRC = 'ned_1';
@@ -123,8 +129,14 @@ function cleanTechnicalData(application) {
     vertHAAT = parseFloat(application.aant_vert_rc_haat) || 0;
 
     application.rcamsl = Math.max(horizRCAMSL, vertRCAMSL);
+    application.hrcamsl = horizRCAMSL;
+    application.vrcamsl = vertRCAMSL;
     application.erp = Math.max(horizERP, vertERP);
+    application.herp = horizERP;
+    application.verp = vertERP;
     application.haat = Math.max(horizHAAT, vertHAAT);
+    application.hhaat = horizHAAT;
+    application.vhaat = vertHAAT;
     
     return application;
 }
@@ -144,71 +156,14 @@ function cleanAntennaData(application, antenna, pattern) {
     return application;
 }
 
-function dsprong2(clat, clong, dist, az) {
-    var DMC = 111.18;
-    var TOL = 0.08;
-
-    var alat = constants.RADIAN * clat;
-    var along = constants.RADIAN * clong;
-    var blat, blong;
-    if (dist >= TOL) {
-        var isig = 0;
-        var a = az % 360.0;
-        if (a < 0.0) {
-            a = 360.0 + a;
-        }
-        if (a > 180.0) {
-            a = 360.0 - a;
-            isig = 1;
-        }
-
-        a = a * constants.RADIAN;
-        var bb = constants.PI_HALF - alat;
-        var cc = dist * constants.RADIAN / DMC;
-        var sinbb = Math.sin(bb);
-        var cosbb = Math.cos(bb);
-        var coscc = Math.cos(cc);
-        var cosaa = cosbb * coscc + sinbb * Math.sin(cc) * Math.cos(a);
-        if(cosaa <= -1.0) {
-            cosaa = -1.0;
-        }
-        if (cosaa >= 1.0) {
-            cosaa = 1.0;
-        }
-        var aa = Math.acos(cosaa);
-        var cosc = (coscc - cosaa * cosbb) / (Math.sin(aa) * sinbb);
-        if (cosc <= -1.0) {
-            cosc = -1.0;
-        }
-        if (cosc >= 1.0) {
-            cosc = 1.0;
-        }
-        var c = Math.acos(cosc);
-        blat = constants.PI_HALF - aa;
-        blong = along - c;
-        if (isig === 1) {
-            blong = along + c;
-        }
-        if (blong > constants.PI) {
-            blong = blong - constants.TWO_PI;
-        }
-        if (blong < constants.PI * -1) {
-            blong = blong + constants.TWO_PI;
-        }
-        blat = blat * constants.DEGREE;
-        blong = blong * constants.DEGREE;
-    } else {
-        blat = alat;
-        blong = along;
-    }
-
-    return {
-        'blat': blat,
-        'blong': blong
-    };
-}
-
 function btween2(clat, clong, dlat, dlong) {
+    // The two lines below are needed because the legacy btween2 code treats longitude
+    // west as positive and east as negative. We need to switch the sign for each 
+    // longitude since the rest of our program uses W-/E+.
+    clong = clong * -1;
+    dlong = dlong * -1;
+
+
     var az1, az2, dist, amdlat;
     var DMC = 111.18;
     var TOL = 4.0e-6;
@@ -429,7 +384,11 @@ function getRCAMSL(application, res) {
             sumjunk = sumjunk + haatObj.haat_azimuth[k-1];
         }
         var vachaat = sumjunk / haatObj.haat_azimuth.length;
-        return application.erp - vachaat;
+        if (application.herp >= application.verp) {
+            return application.hhaat - vachaat;
+        } else {
+            return application.vhaat - vachaat;
+        }
     } else {
         return application.rcamsl;
     }
@@ -467,12 +426,19 @@ function buildResponse(app, data) {
         baseObj.latitude_dms = prettifyCoordinate(app[i].aloc_lat_deg, app[i].aloc_lat_mm, app[i].aloc_lat_ss, app[i].aloc_lat_dir);
         baseObj.longitude_dd = app[i].longitude_dd;
         baseObj.longitude_dms = prettifyCoordinate(app[i].aloc_long_deg, app[i].aloc_long_mm, app[i].aloc_long_ss, app[i].aloc_long_dir);
-        baseObj.herp = roundTo(app[i].aafq_horiz_erp_kw,2);
-        baseObj.verp = roundTo(app[i].aafq_vert_erp_kw,2);
-        baseObj.hhaat = roundTo(app[i].aant_horiz_rc_haat,1);
-        baseObj.vhaat = roundTo(app[i].aant_vert_rc_haat,1);
-        baseObj.hrcamsl = roundTo(app[i].aant_horiz_rc_amsl,1);
-        baseObj.vrcamsl = roundTo(app[i].aant_vert_rc_amsl,1);
+        baseObj.app_herp = roundTo(app[i].aafq_horiz_erp_kw,2);
+        baseObj.app_verp = roundTo(app[i].aafq_vert_erp_kw,2);
+        baseObj.app_hhaat = roundTo(app[i].aant_horiz_rc_haat,1);
+        baseObj.app_vhaat = roundTo(app[i].aant_vert_rc_haat,1);
+        baseObj.app_hrcamsl = roundTo(app[i].aant_horiz_rc_amsl,1);
+        baseObj.app_vrcamsl = roundTo(app[i].aant_vert_rc_amsl,1);
+        baseObj.is_215_adjusted = app[i].is_215_adjusted || false;
+        baseObj.herp = roundTo(app[i].herp,2);
+        baseObj.verp = roundTo(app[i].verp,2);
+        baseObj.hhaat = roundTo(app[i].hhaat,1);
+        baseObj.vhaat = roundTo(app[i].vhaat,1);
+        baseObj.hrcamsl = roundTo(app[i].hrcamsl,1);
+        baseObj.vrcamsl = roundTo(app[i].vrcamsl,1);
         baseObj.beam_tilt = null;
         baseObj.hrcagl = roundTo(app[i].aant_horiz_rc_hgt,1);
         baseObj.vrcagl = roundTo(app[i].aant_vert_rc_hgt,1);
@@ -630,8 +596,10 @@ function fm215Adjust(country, state, channel, stationClass, erp, haat, rc, chk, 
         'haat_adj': haat,
         'adjusted': false
     };
+
+    console.log("Adjusting for 215, channel="+channel+", class="+stationClass);
     
-    if (channel <= 220 || country !== 'US' || chk === 'Y') {
+    if (channel <= 220 || country !== 'US' || chk === "Y") {
         return resultObj;
     }
 
@@ -799,18 +767,21 @@ function getDirectionalERPs(napp, apps) {
     for (i=1; i<=napp; i++) {
         if (apps[i-1].antenna.directional !== 'Y') {
             output.naz[i-1] = 73;
-            for (j=1,D7=(output.naz[i]-j+1); D7>0; D7--,j+=1) {
-                if (apps[i-1].aafq_horiz_erp_kw >= apps[i-1].aafq_vert_erp_kw) {
-                    output.erp[i-1] = apps[i-1].aafq_horiz_erp_kw;
+            output.azd[i-1] = new Array(73);
+            output.erp[i-1] = new Array(73);
+            for (j=1,D7=(output.naz[i-1]-j+1); D7>0; D7--,j+=1) {
+                if (apps[i-1].herp >= apps[i-1].verp) {
+                    output.erp[i-1][j-1] = apps[i-1].herp;
                 } else {
-                    output.erp[i-1] = apps[i-1].aafq_vert_erp_kw;
+                    output.erp[i-1][j-1] = apps[i-1].verp;
                 }
+                output.azd[i-1][j-1] = (j-1)*5;
             }
         } else {
-            if (apps[i-1].aafq_horiz_erp_kw >= apps[i-1].aafq_vert_erp_kw) {
-                twerp = apps[i-1].aafq_horiz_erp_kw;
+            if (apps[i-1].herp >= apps[i-1].verp) {
+                twerp = apps[i-1].herp;
             } else {
-                twerp = apps[i-1].aafq_vert_erp_kw;
+                twerp = apps[i-1].verp;
             }
             fmdaresult = getFmDA(apps[i-1], twerp);
             output.naz[i-1] = fmdaresult.numaz;
@@ -1054,17 +1025,18 @@ function oneDegreeInfo(napp, a_ix_marker, naz, erp, azd) {
     var dbdazd = new Array(napp);
     var dbdnaz = new Array(napp);
     var dbderp = new Array(napp);
+
     for (i=2; i<=napp; i++) {
-        n = 0;
+        n = 1;
         range[i-1] = [];
         number[i-1] = [];
         for (j=1; j<=naz[0]; j++) {
             if (a_ix_marker[i-1][j-1] === true) {
-                range[i-1].push(j);
+                range[i-1][n-1] = j;
                 n = n + 1;
             }
         }
-        number[i-1] = n;
+        number[i-1] = n - 1;
     }
 
     for (i=2; i<=napp; i++) {
@@ -1318,7 +1290,6 @@ function getFmOverlap(req, res, callback) {
                 dlat[i] = data[i].latitude_dd;
                 dlon[i] = data[i].longitude_dd;
                 data[i].rcamsl = getRCAMSL(data[i], res);
-                rcamsl[i] = data[i].rcamsl;
             }
 
             var output = getContourValues(tOutput.napp, data);
@@ -1335,23 +1306,25 @@ function getFmOverlap(req, res, callback) {
                 adjustIt = true;
                 // If both stations are on reserved channels, skip 73.215 adjustments.
                
-                if (data[0].afac_channel >= 200 && data[0] <= 220) {
-                    if (data[1].afac_channel >= 200 && data[1] < 220) {
+                if (data[0].afac_channel >= 200 && data[0].afac_channel <= 220) {
+                    if (data[1].afac_channel >= 200 && data[1].afac_channel < 220) {
                         adjustIt = false;
                     }
                 }
                 data[1].is_215_adjusted = false;
 
                 if (adjustIt) {
-                    if (data[1].aafq_horiz_erp_kw >= data[1].aafq_vert_erp_kw) {
+                    if (data[1].herp >= data[1].verp) {
                         adjustmentObj = fm215Adjust(data[1].country_code, 
                             data[1].afac_community_state_code, data[1].afac_channel,
-                            data[1].station_class, data[1].aafq_horiz_erp_kw, data[1].rcamsl,
+                            data[1].station_class_code, data[1].herp, 
+                            data[1].hhaat, data[1].rcamsl,
                             data[1].contour_215_protection_ind, K3);
                     } else {
                         adjustmentObj = fm215Adjust(data[1].country_code, 
                             data[1].afac_community_state_code, data[1].afac_channel,
-                            data[1].station_class, data[1].aafq_vert_erp_kw, data[1].rcamsl,
+                            data[1].station_class_code, data[1].verp, 
+                            data[1].vhaat, data[1].rcamsl,
                             data[1].contour_215_protection_ind, K3);
                     }
                     if (adjustmentObj.adjusted) {
@@ -1362,8 +1335,18 @@ function getFmOverlap(req, res, callback) {
                         data[1].erp = adjustmentObj.erp_adj;
                         data[1].rcamsl = adjustmentObj.rcamsl_adj;
                         data[1].haat = adjustmentObj.haat_adj;
+                        data[1].herp = adjustmentObj.erp_adj;
+                        data[1].hrcamsl = adjustmentObj.rcamsl_adj;
+                        data[1].hhaat = adjustmentObj.haat_adj;
+                        data[1].verp = adjustmentObj.erp_adj;
+                        data[1].vrcamsl = adjustmentObj.rcamsl_adj;
+                        data[1].vhaat = adjustmentObj.haat_adj;
                     }
                 }
+            }
+
+            for (i=0; i<tOutput.napp; i++) {
+                rcamsl[i] = data[i].rcamsl;
             }
 
             console.log('Get directional ERPs');
@@ -1382,115 +1365,162 @@ function getFmOverlap(req, res, callback) {
             // Refactored protected contours to use coverage generation function instead of manual
             // calculations
 
-            var contourObj;
-            var sprongObj;
-            var flag = [];
             tOutput.pr_dist = new Array(tOutput.napp);
             tOutput.pr_lat = new Array(tOutput.napp);
             tOutput.pr_lon = new Array(tOutput.napp);
             tOutput.haat = new Array(tOutput.napp);
-            tOutput.pr_dist2 = new Array(tOutput.napp);
-            tOutput.pr_lat2 = new Array(tOutput.napp);
-            tOutput.pr_lon2 = new Array(tOutput.napp);
-            tOutput.haat2 = new Array(tOutput.napp);
             tOutput.a_ix_dist = new Array(tOutput.napp);
             tOutput.a_ix_lat = new Array(tOutput.napp);
             tOutput.a_ix_lon = new Array(tOutput.napp);
             tOutput.o_ix_dist = new Array(tOutput.napp);
             tOutput.o_ix_lat = new Array(tOutput.napp);
             tOutput.o_ix_lon = new Array(tOutput.napp);
-            var currentAz; 
 
-            
-            for (i=0; i<tOutput.napp; i++) {
-                contourObj = getContour(data[i], PR_CURVE, tOutput.pr_con[i]);
-                tOutput.pr_dist2[i] = new Array(tOutput.naz[i]);
-                tOutput.pr_lat2[i] = new Array(tOutput.naz[i]);
-                tOutput.pr_lon2[i] = new Array(tOutput.naz[i]);
-                tOutput.haat2[i] = new Array(tOutput.naz[i]);
+            var flag = [];
 
-                if (contourObj.contourData !== undefined) {
-                    currentAz = null;
-                    for (j=0; j<tOutput.naz[i]; j++) {
-                        currentAz = tOutput.azd[i][j];
-                        for (k=0; k<contourObj.contourData.length; k++) {
-                            if (contourObj.contourData[k].azimuth === currentAz) {
-                                tOutput.haat2[i][j] = contourObj.contourData[k].haat;
-                                tOutput.pr_dist2[i][j] = contourObj.contourData[k].distance;
-                                tOutput.pr_lat2[i][j] = contourObj.contourData[k].x;
-                                tOutput.pr_lon2[i][j] = contourObj.contourData[k].y;
-                                break;
+            if (USE_CONTOURS) {
+                var contourObj;
+                var currentAz; 
+                
+                console.log('Get HAATs and contour distances');
+                console.log('First the protected contours');
+                for (i=0; i<tOutput.napp; i++) {
+                    contourObj = getContour(data[i], PR_CURVE, tOutput.pr_con[i]);
+                    tOutput.pr_dist[i] = new Array(tOutput.naz[i]);
+                    tOutput.pr_lat[i] = new Array(tOutput.naz[i]);
+                    tOutput.pr_lon[i] = new Array(tOutput.naz[i]);
+                    tOutput.haat[i] = new Array(tOutput.naz[i]);
+    
+                    if (contourObj.contourData !== undefined) {
+                        currentAz = null;
+                        for (j=0; j<tOutput.naz[i]; j++) {
+                            currentAz = tOutput.azd[i][j];
+                            for (k=0; k<contourObj.contourData.length; k++) {
+                                if (contourObj.contourData[k].azimuth === currentAz) {
+                                    tOutput.haat[i][j] = contourObj.contourData[k].haat;
+                                    tOutput.pr_dist[i][j] = contourObj.contourData[k].distance;
+                                    tOutput.pr_lat[i][j] = contourObj.contourData[k].y;
+                                    tOutput.pr_lon[i][j] = contourObj.contourData[k].x;
+                                    break;
+                                }
                             }
+                        }
+    
+                        if (j === tOutput.naz[i]) {
+                            tOutput.haat[i][j-1] = tOutput.haat[i][0];
+                            tOutput.pr_dist[i][j-1] = tOutput.pr_dist[i][0];
+                            tOutput.pr_lat[i][j-1] = tOutput.pr_lat[i][0];
+                            tOutput.pr_lon[i][j-1] = tOutput.pr_lon[i][0];
                         }
                     }
                 }
-            }
-            
-            console.log('Get HAATs and contour distances');
-            tOutput.haat = gethaat4(0, tOutput.napp, dlat, dlon, rcamsl, tOutput.naz, tOutput.azd);
 
-            // Temporarily replace 10 degree HAATs with the values from the test file to see if the dist/contour
-            // calculation returns the expected results
-            // Since our haat array is sized in 5 degree, we'll just use the value for both. E.g., 
-            // 0 degrees and 5 degrees will have the 0 degree HAAT from the test file, 10 and 15 will have 
-            // the 10 degree from the test file, etc.
-            /*tOutput.haat[0] = [
-                268.1, 268.1, 281.0, 281.0, 288.8, 288.8, 305.0, 305.0, 310.9, 310.9, 306.7, 306.7, 
-                302.4, 302.4, 288.7, 288.7, 301.5, 301.5, 298.0, 298.0, 300.3, 300.3, 307.1, 307.1,
-                309.8, 309.8, 309.0, 309.0, 306.3, 306.3, 310.9, 310.9, 309.7, 309.7, 303.7, 303.7,
-                293.8, 293.8, 279.9, 279.9, 271.9, 271.9, 282.4, 282.4, 294.5, 294.5, 307.0, 307.0,
-                298.5, 298.5, 279.7, 279.7, 284.2, 284.2, 282.6, 282.6, 271.5, 271.5, 261.8, 261.8,
-                253.6, 253.6, 251.1, 251.1, 252.4, 252.4, 246.3, 246.3, 262.7, 262.7, 260.4, 260.4,
-                268.1
-            ];
+                console.log('Now get the applicant\'s ix contours');
+                for (i=1; i<tOutput.napp; i++) {
+                    contourObj = getContour(data[0], IX_CURVE, tOutput.a_ix_con[i])
+                    tOutput.a_ix_dist[i] = new Array(tOutput.naz[i]);
+                    tOutput.a_ix_lat[i] = new Array(tOutput.naz[i]);
+                    tOutput.a_ix_lon[i] = new Array(tOutput.naz[i]);
 
-            */
-
-            // First, get the protected contours
-            console.log('First the protected contours');
-            for (i=0; i<tOutput.napp; i++) {
-                tOutput.pr_dist[i] = new Array(tOutput.naz[i]);
-                tOutput.pr_lat[i] = new Array(tOutput.naz[i]);
-                tOutput.pr_lon[i] = new Array(tOutput.naz[i]);
-                for (j=1,D6=(tOutput.naz[i]-j+1); D6>0; D6--,j+=1) {
-                    tOutput.pr_dist[i][j-1] = curves.tvfmfs_metric(tOutput.erp[i][j-1], 
-                        tOutput.haat[i][j-1], data[i].afac_channel, tOutput.pr_con[i], 
-                        tOutput.pr_dist[i][j-1], DIST_SWITCH, PR_CURVE, flag);
-                    sprongObj = dsprong2(dlat[i], dlon[i], tOutput.pr_dist[i][j-1], tOutput.azd[i][j-1]);
-                    tOutput.pr_lat[i][j-1] = sprongObj.blat;
-                    tOutput.pr_lon[i][j-1] = sprongObj.blong;
+                    if (contourObj.contourData !== undefined) {
+                        currentAz = null;
+                        for (j=0; j<tOutput.naz[0]; j++) {
+                            currentAz = tOutput.azd[0][j];
+                            for (k=0; k<contourObj.contourData.length; k++) {
+                                if (contourObj.contourData[k].azimuth === currentAz) {
+                                    tOutput.a_ix_dist[i][j] = contourObj.contourData[k].distance;
+                                    tOutput.a_ix_lat[i][j] = contourObj.contourData[k].y;
+                                    tOutput.a_ix_lon[i][j] = contourObj.contourData[k].x;
+                                    break;
+                                }
+                            }
+                        }
+    
+                        if (j === tOutput.naz[0]) {
+                            tOutput.a_ix_dist[i][j-1] = tOutput.a_ix_dist[i][0];
+                            tOutput.a_ix_lat[i][j-1] = tOutput.a_ix_lat[i][0];
+                            tOutput.a_ix_lon[i][j-1] = tOutput.a_ix_lon[i][0];
+                        }
+                    }
                 }
-            }
 
-            // Then, get the applicant's IX contours
-            console.log('Now get the applicant\'s ix contours');
-            for (i=1; i<tOutput.napp; i++) {
-                tOutput.a_ix_dist[i] = new Array(tOutput.naz[i]);
-                tOutput.a_ix_lat[i] = new Array(tOutput.naz[i]);
-                tOutput.a_ix_lon[i] = new Array(tOutput.naz[i]);
-                for (j=1; j<=tOutput.naz[0]; j++) {
-                    tOutput.a_ix_dist[i][j-1] = curves.tvfmfs_metric(tOutput.erp[0][j-1], 
-                        tOutput.haat[0][j-1], data[0].afac_channel, tOutput.a_ix_con[i], 
-                        tOutput.a_ix_dist[i][j-1], DIST_SWITCH, IX_CURVE, flag);
-                    sprongObj = dsprong2(dlat[0], dlon[0], tOutput.a_ix_dist[i][j-1], tOutput.azd[0][j-1]);
-                    tOutput.a_ix_lat[i][j-1] = sprongObj.blat;
-                    tOutput.a_ix_lon[i][j-1] = sprongObj.blong;
+                console.log('Now get the other ix contours');
+                for (i=1; i<tOutput.napp; i++) {
+                    contourObj = getContour(data[i], IX_CURVE, tOutput.o_ix_con[i])
+                    tOutput.o_ix_dist[i] = new Array(tOutput.naz[i]);
+                    tOutput.o_ix_lat[i] = new Array(tOutput.naz[i]);
+                    tOutput.o_ix_lon[i] = new Array(tOutput.naz[i]);
+
+                    if (contourObj.contourData !== undefined) {
+                        currentAz = null;
+                        for (j=0; j<tOutput.naz[i]; j++) {
+                            currentAz = tOutput.azd[i][j];
+                            for (k=0; k<contourObj.contourData.length; k++) {
+                                if (contourObj.contourData[k].azimuth === currentAz) {
+                                    tOutput.o_ix_dist[i][j] = contourObj.contourData[k].distance;
+                                    tOutput.o_ix_lat[i][j] = contourObj.contourData[k].y;
+                                    tOutput.o_ix_lon[i][j] = contourObj.contourData[k].x;
+                                    break;
+                                }
+                            }
+                        }
+    
+                        if (j === tOutput.naz[i]) {
+                            tOutput.o_ix_dist[i][j-1] = tOutput.o_ix_dist[i][0];
+                            tOutput.o_ix_lat[i][j-1] = tOutput.o_ix_lat[i][0];
+                            tOutput.o_ix_lon[i][j-1] = tOutput.o_ix_lon[i][0];
+                        }
+                    }
                 }
-            }
+            } else {
+                console.log('Get HAATs and contour distances');
+                tOutput.haat = gethaat4(0, tOutput.napp, dlat, dlon, rcamsl, tOutput.naz, tOutput.azd);
 
-            // Then, get the others' IX contours
-            console.log('Now get the other ix contours');
-            for (i=1; i<tOutput.napp; i++) {
-                tOutput.o_ix_dist[i] = new Array(tOutput.naz[i]);
-                tOutput.o_ix_lat[i] = new Array(tOutput.naz[i]);
-                tOutput.o_ix_lon[i] = new Array(tOutput.naz[i]);
-                for (j=1,D8=(tOutput.naz[i-1]-j+1); D8>0; D8--,j+=1) {
-                    tOutput.o_ix_dist[i][j-1] = curves.tvfmfs_metric(tOutput.erp[i][j-1], 
-                        tOutput.haat[i][j-1], data[i].afac_channel, tOutput.o_ix_con[i], 
-                        tOutput.o_ix_dist[i][j-1], DIST_SWITCH, IX_CURVE, flag);
-                    sprongObj = dsprong2(dlat[i], dlon[i], tOutput.o_ix_dist[i][j-1], tOutput.azd[i][j-1]);
-                    tOutput.o_ix_lat[i][j-1] = sprongObj.blat;
-                    tOutput.o_ix_lon[i][j-1] = sprongObj.blong;
+                var sprongObj;
+                
+                console.log('First the protected contours');                
+                for (i=0; i<tOutput.napp; i++) {
+                    tOutput.pr_dist[i] = new Array(tOutput.naz[i]);
+                    tOutput.pr_lat[i] = new Array(tOutput.naz[i]);
+                    tOutput.pr_lon[i] = new Array(tOutput.naz[i]);
+                    for (j=1,D6=(tOutput.naz[i]-j+1); D6>0; D6--,j+=1) {
+                        tOutput.pr_dist[i][j-1] = curves.tvfmfs_metric(tOutput.erp[i][j-1], 
+                            tOutput.haat[i][j-1], data[i].afac_channel, tOutput.pr_con[i], 
+                            tOutput.pr_dist[i][j-1], DIST_SWITCH, PR_CURVE, flag);
+                        sprongObj = legacy.dsprong2(dlat[i], dlon[i], tOutput.pr_dist[i][j-1], tOutput.azd[i][j-1]);
+                        tOutput.pr_lat[i][j-1] = sprongObj.blat;
+                        tOutput.pr_lon[i][j-1] = sprongObj.blong;
+                    }
+                }
+
+                console.log('Now get the applicant\'s ix contours');
+                for (i=1; i<tOutput.napp; i++) {
+                    tOutput.a_ix_dist[i] = new Array(tOutput.naz[i]);
+                    tOutput.a_ix_lat[i] = new Array(tOutput.naz[i]);
+                    tOutput.a_ix_lon[i] = new Array(tOutput.naz[i]);
+                    for (j=1; j<=tOutput.naz[0]; j++) {
+                        tOutput.a_ix_dist[i][j-1] = curves.tvfmfs_metric(tOutput.erp[0][j-1], 
+                            tOutput.haat[0][j-1], data[0].afac_channel, tOutput.a_ix_con[i], 
+                            tOutput.a_ix_dist[i][j-1], DIST_SWITCH, IX_CURVE, flag);
+                        sprongObj = legacy.dsprong2(dlat[0], dlon[0], tOutput.a_ix_dist[i][j-1], tOutput.azd[0][j-1]);
+                        tOutput.a_ix_lat[i][j-1] = sprongObj.blat;
+                        tOutput.a_ix_lon[i][j-1] = sprongObj.blong;
+                    }
+                }
+
+                console.log('Now get the other ix contours');
+                for (i=1; i<tOutput.napp; i++) {
+                    tOutput.o_ix_dist[i] = new Array(tOutput.naz[i]);
+                    tOutput.o_ix_lat[i] = new Array(tOutput.naz[i]);
+                    tOutput.o_ix_lon[i] = new Array(tOutput.naz[i]);
+                    for (j=1,D8=(tOutput.naz[i-1]-j+1); D8>0; D8--,j+=1) {
+                        tOutput.o_ix_dist[i][j-1] = curves.tvfmfs_metric(tOutput.erp[i][j-1], 
+                            tOutput.haat[i][j-1], data[i].afac_channel, tOutput.o_ix_con[i], 
+                            tOutput.o_ix_dist[i][j-1], DIST_SWITCH, IX_CURVE, flag);
+                        sprongObj = legacy.dsprong2(dlat[i], dlon[i], tOutput.o_ix_dist[i][j-1], tOutput.azd[i][j-1]);
+                        tOutput.o_ix_lat[i][j-1] = sprongObj.blat;
+                        tOutput.o_ix_lon[i][j-1] = sprongObj.blong;
+                    }
                 }
             }
 
@@ -1624,9 +1654,9 @@ function getFmOverlap(req, res, callback) {
                             if (tOutput.a_to_o_pr_azd[i][j] < tOutput.azd[i][k-1]) {
                                 azdiff = tOutput.azd[i][k-1] - tOutput.azd[i][m-1];
                                 onediff = tOutput.a_to_o_pr_azd[i][j] - tOutput.azd[i][m-1];
-                                erpdiff = tOutput.erp[i][k-1] - tOutput.erp[i][m-1];
+                                erpdiff = tOutput.erp[0][k-1] - tOutput.erp[0][m-1];
                                 sum = onediff * erpdiff / azdiff;
-                                tOutput.a_to_o_pr_erp[i][j] = tOutput.erp[i][m-1] + sum;
+                                tOutput.a_to_o_pr_erp[i][j] = tOutput.erp[0][m-1] + sum;
                                 jump = 1;
                             }
                             if (jump === 1) {
@@ -1768,7 +1798,7 @@ function getFmOverlap(req, res, callback) {
                             tOutput.dbd_a_pr_erp[i][j-1], tOutput.dbd_a_pr_haat[i][j-1],
                             data[0].afac_channel, tOutput.pr_con[0], tOutput.dbd_a_pr_dist[i][j-1],
                             DIST_SWITCH, PR_CURVE, flag);
-                        sprongObj = dsprong2(dlat[0], dlon[0], tOutput.dbd_a_pr_dist[i][j-1], 
+                        sprongObj = legacy.dsprong2(dlat[0], dlon[0], tOutput.dbd_a_pr_dist[i][j-1], 
                             tOutput.dbd_a_pr_azd[i][j-1]);
                         tOutput.dbd_a_pr_lat[i][j-1] = sprongObj.blat;
                         tOutput.dbd_a_pr_lon[i][j-1] = sprongObj.blong;
@@ -1783,7 +1813,7 @@ function getFmOverlap(req, res, callback) {
             // Get the other stations haats to applicant's one degree contour
             console.log('Get the other stations haats to applicant\'s one degree contour');
             tOutput.dbd_o_to_a_pr_haat = gethaat4(1, tOutput.napp, dlat, dlon, 
-                rcamsl, tOutput.dbd_a_pr_naz, tOutput.dbd_a_pr_azd);
+                rcamsl, tOutput.dbd_a_pr_naz, tOutput.dbd_o_to_a_pr_azd);
             
             // Interpolate the other stations one degree erps
             console.log('Interpolate the other stations one degree erps');
@@ -1873,7 +1903,7 @@ function getFmOverlap(req, res, callback) {
                             tOutput.dbd_o_pr_erp[i][j-1], tOutput.dbd_o_pr_haat[i][j-1],
                             data[0].afac_channel, tOutput.pr_con[i], tOutput.dbd_o_pr_dist[i][j-1],
                             DIST_SWITCH, PR_CURVE, flag);
-                        sprongObj = dsprong2(dlat[i], dlon[i], tOutput.dbd_o_pr_dist[i][j-1], 
+                        sprongObj = legacy.dsprong2(dlat[i], dlon[i], tOutput.dbd_o_pr_dist[i][j-1], 
                                 tOutput.dbd_o_pr_azd[i][j-1]);
                         tOutput.dbd_o_pr_lat[i][j-1] = sprongObj.blat;
                         tOutput.dbd_o_pr_lon[i][j-1] = sprongObj.blong;

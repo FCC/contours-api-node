@@ -57,6 +57,7 @@
     "request": "^2.69.0",
     "round-to": "^2.0.0",
     "sybase": "^1.0.8",
+    "@turf/turf": "^5.1.6",
     "uuid": "^2.0.3"
   },
   "devDependencies": {

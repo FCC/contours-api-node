@@ -543,6 +543,12 @@ app.get('/getAmContour.json', function(req, res){
     amPattern.getAmContour(req, res);
 });
 
+// FMOVER can be called via POST or GET. 
+// If GET, two app IDs are passed in the query string.
+// If POST, a JSON body is sent with custom technical parameters to study. 
+// Execute the pre-processor either way to package the technical parameters in a consistent
+//   format to pass to the actual study tool.
+
 app.get('/fmover.json', function(req, res) {
     getFmOverlapAnalysis(req, res, function(err, data) {
         if (err) {
@@ -551,9 +557,18 @@ app.get('/fmover.json', function(req, res) {
         }                                
         console.log('--------- FM Overlap Analysis (FMOVER) API return complete -----------');
         res.status(data.statusCode).send(data);
+        return;     
+    });
+});
 
-
-        //res.status(data.features[0].properties.statusCode).send(data);
+app.post('/fmover.json', function(req, res) {
+    getFmOverlapAnalysis(req, res, function(err, data) {
+        if (err) {
+            console.error('getFmOverlapAnalysis err: '+err);
+            return;            
+        }                                
+        console.log('--------- FM Overlap Analysis (FMOVER) API return complete -----------');
+        res.status(data.statusCode).send(data);
         return;     
     });
 });

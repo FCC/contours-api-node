@@ -1,0 +1,78 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "version": "1.5.0",
+        "title": "FM Overlap API"
+    },
+    "basePath": "/api/contours",
+    "tags": [{
+        "name": "fmover",
+        "description": "get overlap analysis for FM"
+    }],
+    "paths": {
+
+        "/fmover.{format}": {
+            "get": {
+                "tags": ["fmover"],
+                "summary": "Get FM Overlap Analysis",
+                "description": "Determine interference between two stations based on two applications.",
+                "parameters": [{
+                    "name": "app_id_applicant",
+                    "x-label": "Applicant's Application ID",
+                    "x-display": true,
+                    "in": "query",
+                    "description": "Unique ID assigned to an application.",
+                    "required": true,
+                    "type": "string",
+                    "default": ""                    
+                }, {
+                    "name": "app_id_other",
+                    "x-label": "Other Station's Application ID",
+                    "x-display": true,
+                    "in": "query",
+                    "description": "Unique ID assigned to an application.",
+                    "required": true,
+                    "type": "string",
+                    "default": ""
+                },{
+                    "name": "debug",
+                    "x-label": "Debug mode",
+                    "x-display": true,
+                    "in": "query",
+                    "description": "Show raw debugging information.",
+                    "required": false,
+                    "type": "string",
+                    "enum": [
+                        "true",
+                        "false"
+                    ],
+                    "default": "false"
+                }],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                },
+                "produces": [
+                    "application/json"
+                ]
+            },
+            "post": {
+                "tags": ["fmover"],
+                "summary": "Get FM Overlap Analysis",
+                "description": "Determine interference between two stations based on custom technical parameters.",
+                "requestBody": {
+                    "description": "JSON object representation",
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

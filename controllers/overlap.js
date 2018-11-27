@@ -13,7 +13,9 @@ var roundTo = require('round-to');
 
 var legacy = require('./lib/legacy');
 
-var db_lms;
+var db_lms = require('./db_lms_live.js');
+
+var DEBUG_MODE = false;
 
 // true = Use the Entity API to generate the Protected and Interfering contours
 // false = Manually calulate each HAAT and radial for the contours
@@ -546,10 +548,14 @@ function buildResponse(app, data) {
         }
     }
 
-    responseObj.raw_data = {
-        'raw_app_data': app,
-        'raw_toutput_data': data
-    };
+    if (DEBUG_MODE) {
+        responseObj.raw_data = {
+            'raw_app_data': app,
+            'raw_toutput_data': data
+        };
+    } else {
+        responseObj.raw_data = null;
+    }
 
     return responseObj;
 }
@@ -1126,14 +1132,6 @@ function oneDegreeInfo(napp, a_ix_marker, naz, erp, azd) {
 }
 
 function getFmOverlap(req, res, callback) {
-    var NODE_ENV = process.env.NODE_ENV;
-    if (NODE_ENV === 'DEV') {
-        // We can't use LMS LIVE in Contours DEV
-        db_lms = require('./db_lms.js');
-    } else {
-        db_lms = require('./db_lms_live.js');
-    }
-
     var dataObj = {};
     dataObj.statusCode = 400;
     dataObj.statusMessage = '';
@@ -1157,13 +1155,14 @@ function getFmOverlap(req, res, callback) {
         !    These objects can be used to pass custom application data. 
         !********************************************************************************************/
 
-        var appIdA, appIdO;
+        var appIdA, appIdO, debug;
         var appList = [];
         var payload;
         if (METHOD === 'GET') {
 
             appIdA = req.query.app_id_applicant;
             appIdO = req.query.app_id_other;
+            debug = req.query.debug;
 
             if (appIdA === undefined) {
                 console.log('missing app_id_applicant parameter');
@@ -1198,6 +1197,18 @@ function getFmOverlap(req, res, callback) {
                     return callback(dataObj);
                 }
             }
+
+            if (debug === undefined) {
+                DEBUG_MODE = false;
+            } else {
+                if (debug === "true") {
+                    DEBUG_MODE = true;
+                } else {
+                    DEBUG_MODE = false;
+                }
+            }
+
+            console.log("Debug: "+DEBUG_MODE)
     
             appList = [
                 appIdA

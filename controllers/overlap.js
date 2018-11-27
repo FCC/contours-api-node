@@ -603,9 +603,9 @@ function fm215Adjust(country, state, channel, stationClass, erp, haat, rc, chk, 
         'adjusted': false
     };
 
-    console.log("Adjusting for 215, channel="+channel+", class="+stationClass);
+    console.log('Adjusting for 215, channel='+channel+', class='+stationClass);
     
-    if (channel <= 220 || country !== 'US' || chk === "Y") {
+    if (channel <= 220 || country !== 'US' || chk === 'Y') {
         return resultObj;
     }
 
@@ -1201,14 +1201,14 @@ function getFmOverlap(req, res, callback) {
             if (debug === undefined) {
                 DEBUG_MODE = false;
             } else {
-                if (debug === "true") {
+                if (debug === 'true') {
                     DEBUG_MODE = true;
                 } else {
                     DEBUG_MODE = false;
                 }
             }
 
-            console.log("Debug: "+DEBUG_MODE)
+            console.log('Debug: '+DEBUG_MODE);
     
             appList = [
                 appIdA
@@ -1311,7 +1311,7 @@ function getFmOverlap(req, res, callback) {
             // Adjustments for 73.215
             console.log('Adjustments for 73.215');
             // If the first station does not use 73.215 rules, skip 73.215 adjustments
-            var adjustmentObj;
+            var adjustmentObj, sprongObj;
             var adjustIt = false;
             if (data[0].contour_215_protection_ind === 'Y') {
                 adjustIt = true;
@@ -1428,7 +1428,7 @@ function getFmOverlap(req, res, callback) {
 
                 console.log('Now get the applicant\'s ix contours');
                 for (i=1; i<tOutput.napp; i++) {
-                    contourObj = getContour(data[0], IX_CURVE, tOutput.a_ix_con[i])
+                    contourObj = getContour(data[0], IX_CURVE, tOutput.a_ix_con[i]);
                     tOutput.a_ix_dist[i] = new Array(tOutput.naz[i]);
                     tOutput.a_ix_lat[i] = new Array(tOutput.naz[i]);
                     tOutput.a_ix_lon[i] = new Array(tOutput.naz[i]);
@@ -1457,7 +1457,7 @@ function getFmOverlap(req, res, callback) {
 
                 console.log('Now get the other ix contours');
                 for (i=1; i<tOutput.napp; i++) {
-                    contourObj = getContour(data[i], IX_CURVE, tOutput.o_ix_con[i])
+                    contourObj = getContour(data[i], IX_CURVE, tOutput.o_ix_con[i]);
                     tOutput.o_ix_dist[i] = new Array(tOutput.naz[i]);
                     tOutput.o_ix_lat[i] = new Array(tOutput.naz[i]);
                     tOutput.o_ix_lon[i] = new Array(tOutput.naz[i]);
@@ -1486,8 +1486,6 @@ function getFmOverlap(req, res, callback) {
             } else {
                 console.log('Get HAATs and contour distances');
                 tOutput.haat = gethaat4(0, tOutput.napp, dlat, dlon, rcamsl, tOutput.naz, tOutput.azd);
-
-                var sprongObj;
                 
                 console.log('First the protected contours');                
                 for (i=0; i<tOutput.napp; i++) {

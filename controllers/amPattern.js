@@ -11,12 +11,7 @@ var population = require('./population.js');
 var db_lms = require('./db_lms.js');
 var db_contour = require('./db_contour.js');
 
-try {
-    require('dotenv').load();
-} catch(e) {
-    console.log('error trying to load env file, app is probably running in AWS.');
-}
-
+var dotenv = require('dotenv').load();
 var NODE_ENV = process.env.NODE_ENV;
 var NODE_PORT =  process.env.PORT;
 var host =  process.env.HOST;

@@ -22,8 +22,11 @@ var helmet = require('helmet');
 var bodyparser = require('body-parser');
 var package_json = require('./package.json');
 
-var dotenv = require('dotenv');
-dotenv.load();
+try {
+    require('dotenv').load();
+} catch(e) {
+    console.log('error trying to load env file, app is probably running in AWS.');
+}
 
 var contour = require('./controllers/contour.js');
 var elevation = require('./controllers/elevation.js');

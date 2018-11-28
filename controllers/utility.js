@@ -1,4 +1,8 @@
-var dotenv = require('dotenv').load();
+try {
+    require('dotenv').load();
+} catch(e) {
+    console.log('error trying to load env file, app is probably running in AWS.');
+}
 var NODE_ENV = process.env.NODE_ENV;
 var ned_1_files = require('../data/ned_1_files.json');
 var ned_2_files = require('../data/ned_2_files.json');

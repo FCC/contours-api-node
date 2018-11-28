@@ -1,3 +1,5 @@
+'use strict';
+
 var LMS_SCHEMA = 'mass_media';
 var db_lms = require('./db_lms.js');
 

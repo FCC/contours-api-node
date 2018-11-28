@@ -13,7 +13,7 @@ var roundTo = require('round-to');
 
 var legacy = require('./lib/legacy');
 
-var db_lms = require('./db_lms_live.js');
+var db_lms = require('./db_lms.js');
 
 var DEBUG_MODE = false;
 

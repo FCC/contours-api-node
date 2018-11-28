@@ -1,8 +1,5 @@
 'use strict';
 
-var dotenv = require('dotenv');
-dotenv.load();
-
 var constants = require('./constants.js');
 var haat = require('./haat.js');
 var profile = require('./profile.js');

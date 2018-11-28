@@ -6,7 +6,11 @@
 // **********************************************************
 
 //var configEnv = require('../config/env.json');
-var dotenv = require('dotenv').load();
+try {
+    require('dotenv').load();
+} catch(e) {
+    console.log('error trying to load env file, app is probably running in AWS.');
+}
 
 var http = require('http');
 

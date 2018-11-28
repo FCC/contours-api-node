@@ -1,10 +1,6 @@
-'use strict';
 
-try {
-    require('dotenv').load();
-} catch(e) {
-    console.log('error trying to load env file, app is probably running in AWS.');
-}
+var dotenv = require('dotenv');
+dotenv.load();
 
 var CONTOURS_PG = process.env.CONTOURS_PG;
 

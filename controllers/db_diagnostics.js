@@ -3,12 +3,8 @@
 const os = require('os');
 const fs = require('fs');
 const monitor = require('pg-monitor');
-
-try {
-    require('dotenv').load();
-} catch(e) {
-    console.log('error trying to load env file, app is probably running in AWS.');
-}
+const dotenv = require('dotenv');
+dotenv.config();
 
 monitor.setTheme('matrix');
 

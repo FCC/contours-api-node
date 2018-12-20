@@ -22,12 +22,13 @@ var DEBUG_MODE = false;
 const USE_CONTOURS = true;
 
 const K3 = 1;
-const HAAT_SRC = 'ned_1';
 const DIST_SWITCH = 2;
 const FS_SWITCH = 2;
 const DBU_SWITCH = 1;
 const PR_CURVE = 0;
 const IX_CURVE = 1;
+
+var HAAT_SRC = 'ned_1';
 
 const GET_APPLICATION_SQL = 'SELECT app.aapp_application_id, app.aapp_file_num, app.aapp_callsign, '+
     'loc.aloc_lat_dir, loc.aloc_lat_deg, loc.aloc_lat_mm, loc.aloc_lat_ss, loc.aloc_long_dir, '+
@@ -553,8 +554,6 @@ function buildResponse(app, data) {
             'raw_app_data': app,
             'raw_toutput_data': data
         };
-    } else {
-        responseObj.raw_data = null;
     }
 
     return responseObj;
@@ -1155,13 +1154,14 @@ function getFmOverlap(req, res, callback) {
         !    These objects can be used to pass custom application data. 
         !********************************************************************************************/
 
-        var appIdA, appIdO, debug;
+        var appIdA, appIdO, debug, elevSrc;
         var appList = [];
         var payload;
         if (METHOD === 'GET') {
 
             appIdA = req.query.app_id_applicant;
             appIdO = req.query.app_id_other;
+            elevSrc = req.query.elevSrc;
             debug = req.query.debug;
 
             if (appIdA === undefined) {
@@ -1195,6 +1195,12 @@ function getFmOverlap(req, res, callback) {
                     console.log('invalid app_id_other value');
                     dataObj.statusMessage = 'Invalid app_id_other value.';
                     return callback(dataObj);
+                }
+            }
+
+            if (elevSrc !== undefined) {
+                if ([ 'ned_1', 'ned_2', 'globe30' ].indexOf(elevSrc) >= 0) {
+                    HAAT_SRC = elevSrc;
                 }
             }
 
@@ -1264,10 +1270,19 @@ function getFmOverlap(req, res, callback) {
                         throw 'Missing other value.';
                     }
                     data[1] = payload.other;
+
+                    if (payload.elevSrc !== undefined) {
+                        if ([ 'ned_1', 'ned_2', 'globe30' ].indexOf(payload.elevSrc) >= 0) {
+                            HAAT_SRC = payload.elevSrc;
+                        }
+                    }
                 } else {
-                    throw 'Error retrieving application data from database.';
+                    throw new Error('Error retrieving application data from database.');
                 }
             } else {
+                if (!tempdata || tempdata.length === 0) {
+                    throw new Error('Error retrieving application data from database.');
+                }
                 data = new Array(tempdata.length);
                 var cnt, item;
                 item = 0;
@@ -1995,10 +2010,10 @@ function getFmOverlap(req, res, callback) {
             return dataObj;
         })
         .catch(error => {
-            console.log(error);
+            console.log(error.message);
             dataObj.status = 'error';
             dataObj.statusCode = 400;
-            dataObj.statusMessage = error;
+            dataObj.statusMessage = error.message;
             return dataObj;
         })
         .done(obj => {

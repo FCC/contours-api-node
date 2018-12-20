@@ -54,9 +54,9 @@ var numProcs = require('os').cpus().length;
 
 var NODE_ENV = process.env.NODE_ENV;
 var NODE_PORT = process.env.PORT;
+var ENABLE_CLUSTERING = (process.env.ENABLE_CLUSTERING === 'true') ? true : false;
 
-
-if (cluster.isMaster) {
+if (cluster.isMaster && ENABLE_CLUSTERING) {
     console.log('package_json.name : '+ package_json.name );
     console.log('package_json.version : '+ package_json.version );
     console.log('package_json.description : '+ package_json.description );

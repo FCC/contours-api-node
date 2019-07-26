@@ -362,7 +362,7 @@ function getContours(req, res, callback) {
 		haat_req['url'] = haat_url;
 		
 		haat.getHAAT(haat_req, res, function(haat_data){
-            console.log('getHAAT data='+haat_data);
+            // console.log('getHAAT data='+haat_data);
 
 			if(haat_data){
 				console.log('data returned from HAAT');

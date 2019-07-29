@@ -123,7 +123,7 @@ function getHAAT(req, res, callback) {
 		dataObj.lat = lat;
         dataObj.lon = lon;
 
-        if ( !rcamsl.match(/^\d+\.?\d*$/) ) {
+        if ( !rcamsl.match(/^-?\d+\.?\d*$/) ) {
 			dataObj.statusMessage = 'Invalid RCAMSL value.';
             returnError(dataObj, function(ret){
                  returnJson = GeoJSON.parse(ret, {});

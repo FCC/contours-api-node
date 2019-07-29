@@ -209,7 +209,7 @@ function getContours(req, res, callback) {
             return callback(returnJson);
 		}
 			
-		if ( !rcamsl.match(/^\d+\.?\d*$/)) {
+		if ( !rcamsl.match(/^-?\d+\.?\d*$/)) {
 			dataObj.statusMessage = 'Invalid rcamsl value.';
 			returnError(dataObj, function(ret){                                                       
                  returnJson = GeoJSON.parse(ret, {});

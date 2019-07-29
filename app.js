@@ -407,12 +407,12 @@ app.get('/coverage.json', function(req, res){
             console.error('callback getCachedData err: '+err);
             return;            
         }
-        // if(data){
-        //     console.log('response from ElastiCache');
-        //     console.log('--------- Profile API return complete -----------');
-        //     res.status(data.features[0].properties.statusCode).send(data);
-        //     return;
-        // }
+        if(data){
+            console.log('response from ElastiCache');
+            console.log('--------- Profile API return complete -----------');
+            res.status(data.features[0].properties.statusCode).send(data);
+            return;
+        }
         else {
             getCoverageData(req, res, function(err, data) {
                 if(err){

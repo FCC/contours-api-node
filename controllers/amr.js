@@ -59,14 +59,14 @@ function amrProcess(req, res) {
 			var insideUs = data_rows[0].st_intersects;
 
 			if(insideUs){
-				var url = "http://ned.usgs.gov/epqs/pqs.php?x=" + lon + "&y=" + lat + "&units=Meters&output=json";
-	            http.get(url, function(res1) {
+				var url = "https://ned.usgs.gov/epqs/pqs.php?x=" + lon + "&y=" + lat + "&units=Meters&output=json";
+	            https.get(url, function(res1) {
 	                var data = "";
 	                res1.on('data', function(chunk) {
 	                    data += chunk;
 	                });
 	                res1.on("end", function() {
-	                	console.log('Returned from http://ned.usgs.gov');
+	                	console.log('Returned from https://ned.usgs.gov');
 	                    processElevation(data,lon,lat,insideUs,res);
 	                });
 	            }).on("error", function() {

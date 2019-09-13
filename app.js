@@ -323,7 +323,7 @@ app.get('/haat.json', function(req, res){
     getCachedData(req, req_key, function(err, data) {
         if(err){
             console.error('callback getCachedData err: '+err);
-            return;            
+            return;
         }
         if(data){
             console.log('response from ElastiCache');
@@ -348,7 +348,7 @@ app.get('/haat.json', function(req, res){
                 res.status(data.features[0].properties.statusCode).send(data);
                 return;     
             });
-        }        
+        }
     });
 });
 
@@ -402,18 +402,18 @@ app.get('/coverage.json', function(req, res){
     console.log('------------ Coverage API ------------------')
     console.log('request url:'+req_url);    
    
-    getCachedData(req, req_key, function(err, data) {
-        if(err){
-            console.error('callback getCachedData err: '+err);
-            return;            
-        }
-        if(data){
-            console.log('response from ElastiCache');
-            console.log('--------- Profile API return complete -----------');
-            res.status(data.features[0].properties.statusCode).send(data);
-            return;
-        }
-        else {
+    // getCachedData(req, req_key, function(err, data) {
+    //     if(err){
+    //         console.error('callback getCachedData err: '+err);
+    //         return;
+    //     }
+    //     if(data){
+    //         console.log('response from ElastiCache');
+    //         console.log('--------- Profile API return complete -----------');
+    //         res.status(data.features[0].properties.statusCode).send(data);
+    //         return;
+    //     }
+    //     else {
             getCoverageData(req, res, function(err, data) {
                 if(err){
                     console.error('getCoverageData err: '+err);
@@ -430,8 +430,8 @@ app.get('/coverage.json', function(req, res){
                 res.status(data.features[0].properties.statusCode).send(data);
                 return;     
             });
-        }        
-    });    
+        // }
+    // });
 
 });
 

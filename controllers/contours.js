@@ -637,8 +637,12 @@ function getFullAntennaPattern(nradial, pattern) {
     for (i = 0; i < dum.length; i++) {
     	var a = parseFloat(dum[i].split(',')[0]);
     	var f = parseFloat(dum[i].split(',')[1]);
-        if (!isNaN(a)) azimuths.push(a);
-        if (!isNaN(f)) fields.push(f);
+        if (!isNaN(a)) {
+            azimuths.push(a);
+        }
+        if (!isNaN(f)) {
+            fields.push(f);
+        }
     }
 
     for (i = 0; i < nradial; i++) {
@@ -656,7 +660,6 @@ function getFullAntennaPattern(nradial, pattern) {
             }
         }
         if (j1 === -1) {
-        	console.log('j1 === -1')
             j1 = azimuths.length - 1;
             j2 = 0;
         }
@@ -666,9 +669,6 @@ function getFullAntennaPattern(nradial, pattern) {
         az2 = azimuths[j2];
         field2 = fields[j2];
 
-        // if (!field1) field1 = 0
-        // if (!az1) az1 = 0
-
         if (az2 < az1) {
             az2 += 360;
             if (az < az1) {
@@ -677,7 +677,6 @@ function getFullAntennaPattern(nradial, pattern) {
         }
 
         field = field1 + (field2 - field1) * (az - az1) / (az2 - az1);
-        console.log(field1, field2, az, az1, az2)
 
         field = math.round(field, 4);
 
@@ -701,12 +700,14 @@ function rotatePattern(data, ant_rotation) {
         }
         az_value.push([az, parseFloat(data_arr[i].split(',')[1])]);
     }
-    // console.log(`az_value before sort: ${az_value}`)
-    az_value = az_value.sort(function (a, b) {
-        return a[0] - b[0];
-    });
 
-    // console.log(`az_value after sort: ${az_value}`)
+    az_value = az_value.sort(function(a, b) {
+        if (a[0] === b[0]) {
+            return 0;
+        } else if (!isNaN(a[0] && !isNaN(b[0]))) {
+            return (a[0] < b[0]) ? -1 : 1;
+        }
+    });
 
     for (i = 0; i < az_value.length; i++) {
         pattern += az_value[i][0] + ',' + az_value[i][1] + ';';

@@ -1208,7 +1208,6 @@ function tvfmfs_metric(erp, haat, channel, field, distance, fs_or_dist, curve, f
                         flag[2] = 1;
                     }  // off upper end of curve // not common
 
-                    console.log(`### distance: ${distance}`)
                     return distance;
                 }
             }

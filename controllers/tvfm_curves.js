@@ -763,14 +763,13 @@ function itplbv(lx, ly, x, y, z, n, u, v, w) {
         q3 = p30 + dy * (p31 + dy * (p32 + dy * p33));
         dx = u[k] - x3;
         w[k] = q0 + dx * (q1 + dx * (q2 + dx * q3));
-
     }
 
 }  // end itplbv function ---------------------------------------------------------------------
 
 
 function tvfmfs_metric(erp, haat, channel, field, distance, fs_or_dist, curve, flag) {
-	// console.log(`erp: ${erp}\thaat: ${haat}\tchannel: ${channel}\tfield: ${field}\tdistance: ${distance}\tfs_or_dist: ${fs_or_dist}\tcurve: ${curve}\tflag: ${flag}`)
+	console.log(`erp: ${erp}\thaat: ${haat}\tchannel: ${channel}\tfield: ${field}\tdistance: ${distance}\tfs_or_dist: ${fs_or_dist}\tcurve: ${curve}\tflag: ${flag}`)
     var id50 = 25;
     var ih50 = 13;
     var id10 = 31;
@@ -816,7 +815,6 @@ function tvfmfs_metric(erp, haat, channel, field, distance, fs_or_dist, curve, f
     // Input data checks
 
     if ((channel < 2 || channel > 300) || (channel > 69 && channel < 200) || channel == '') {
-        console.log('FLAg 3')
         flag[3] = 1;
     }
     if (erp < 0.0001) {
@@ -841,8 +839,6 @@ function tvfmfs_metric(erp, haat, channel, field, distance, fs_or_dist, curve, f
     }
 
     if (curve < 0 || curve > 2 || curve === '') {
-        console.log('FLAG 4')
-        console.log(curve === '')
         flag[4] = 1;
     }
     if (fs_or_dist < 1 || fs_or_dist > 3 || fs_or_dist == '') {
@@ -999,7 +995,7 @@ function tvfmfs_metric(erp, haat, channel, field, distance, fs_or_dist, curve, f
             }
         }
         if (flag[1] == 1) {
-            ;
+            // pass
         }  // no changes to field value
         if (curve == 0 || curve == 1) {
             field = f[0] + erp_db;
@@ -1196,9 +1192,11 @@ function tvfmfs_metric(erp, haat, channel, field, distance, fs_or_dist, curve, f
 
                     if (d[i] <= 1.5) // free space equation
                     {
+                        console.log(`##### d[i] = ${d[i]}`)
                         flag[1] = 1;
                         e_volts_meter = 1.0e-6 * Math.pow(10, (field / 20.));
                         distance = (7.014271e-3 * Math.sqrt(erp * 1000.)) / e_volts_meter;
+                        console.log(`distance: ${distance}`)
                     } else // linear interpolation
                     {
                         distance = (((f[i - 1] - field) / (f[i - 1] - f[i])) * (d[i] - d[i - 1])) + d[i - 1];

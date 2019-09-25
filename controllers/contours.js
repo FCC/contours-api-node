@@ -391,6 +391,7 @@ function getContours(req, res, callback) {
                 }
                 var contourData = [];
                 for (var i = 0; i < haat_data.features[0].properties.haat_azimuth.length; i++) {
+                    console.log(`\n#### ${i} ####`)
                     azimuth = haat_data.features[0].properties.azimuth[i];
                     haat = haat_data.features[0].properties.haat_azimuth[i];
                     if (haat > 1600) {
@@ -403,7 +404,6 @@ function getContours(req, res, callback) {
                     relativeField = full_pattern[i];
                     ERPincludingRelativeField = math.round(erp * full_pattern[i] * full_pattern[i], 6);
                     // console.log(full_pattern)
-                    // console.log('!!!! calc dist !!!!')
                     dist = tvfm_curves.tvfmfs_metric(ERPincludingRelativeField, haat, channel_use, field, distance_tmp, fs_or_dist, curve, flag);
 
                     // console.log('azimuth', azimuth, 'haat', haat, 'power', ERPincludingRelativeField, 'channel', channel_use, 'field', field, 'distance_tmp', distance_tmp, 'curve', curve, 'dist', dist)
@@ -693,12 +693,15 @@ function rotatePattern(data, ant_rotation) {
     var az_value = [];
     var data_arr = data.split(';');
     // console.log(data_arr)
+
     for (i = 0; i < data_arr.length; i++) {
         az = parseFloat(data_arr[i].split(',')[0]) + ant_rotation;
         if (az >= 360) {
             az -= 360;
         }
-        az_value.push([az, parseFloat(data_arr[i].split(',')[1])]);
+        if (!isNaN(az)) {
+            az_value.push([az, parseFloat(data_arr[i].split(',')[1])]);
+        }
     }
 
     az_value = az_value.sort(function(a, b) {

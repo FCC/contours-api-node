@@ -391,7 +391,6 @@ function getContours(req, res, callback) {
                 }
                 var contourData = [];
                 for (var i = 0; i < haat_data.features[0].properties.haat_azimuth.length; i++) {
-                    console.log(`\n#### ${i} ####`)
                     azimuth = haat_data.features[0].properties.azimuth[i];
                     haat = haat_data.features[0].properties.haat_azimuth[i];
                     if (haat > 1600) {
@@ -402,6 +401,7 @@ function getContours(req, res, callback) {
                     }
 
                     relativeField = full_pattern[i];
+
                     ERPincludingRelativeField = math.round(erp * full_pattern[i] * full_pattern[i], 6);
                     // console.log(full_pattern)
                     dist = tvfm_curves.tvfmfs_metric(ERPincludingRelativeField, haat, channel_use, field, distance_tmp, fs_or_dist, curve, flag);

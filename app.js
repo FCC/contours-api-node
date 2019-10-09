@@ -323,7 +323,7 @@ app.get('/haat.json', function(req, res){
     getCachedData(req, req_key, function(err, data) {
         if(err){
             console.error('callback getCachedData err: '+err);
-            return;            
+            return;
         }
         if(data){
             console.log('response from ElastiCache');
@@ -348,7 +348,7 @@ app.get('/haat.json', function(req, res){
                 res.status(data.features[0].properties.statusCode).send(data);
                 return;     
             });
-        }        
+        }
     });
 });
 
@@ -405,7 +405,7 @@ app.get('/coverage.json', function(req, res){
     getCachedData(req, req_key, function(err, data) {
         if(err){
             console.error('callback getCachedData err: '+err);
-            return;            
+            return;
         }
         if(data){
             console.log('response from ElastiCache');
@@ -430,8 +430,8 @@ app.get('/coverage.json', function(req, res){
                 res.status(data.features[0].properties.statusCode).send(data);
                 return;     
             });
-        }        
-    });    
+        }
+    });
 
 });
 

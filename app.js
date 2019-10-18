@@ -45,6 +45,7 @@ var coordsAPI = require('./controllers/coordsAPI.js');
 //var conductivity_batch = require('./controllers/conductivity_batch.js');
 
 var batch = require('./controllers/batch.js');
+var overlap = require('./controllers/overlap.js');
 
 // **********************************************************
 // config
@@ -523,6 +524,36 @@ app.get('/getAmContour.json', function(req, res){
     amPattern.getAmContour(req, res);
 });
 
+// FMOVER can be called via POST or GET.
+// If GET, two app IDs are passed in the query string.
+// If POST, a JSON body is sent with custom technical parameters to study.
+// Execute the pre-processor either way to package the technical parameters in a consistent
+//   format to pass to the actual study tool.
+
+app.get('/fmover.json', function(req, res) {
+    getFmOverlapAnalysis(req, res, function(err, data) {
+        if (err) {
+            console.error('getFmOverlapAnalysis err: '+err);
+            return;
+        }
+        console.log('--------- FM Overlap Analysis (FMOVER) API return complete -----------');
+        res.status(data.statusCode).send(data);
+        return;
+    });
+});
+
+app.post('/fmover.json', function(req, res) {
+    getFmOverlapAnalysis(req, res, function(err, data) {
+        if (err) {
+            console.error('getFmOverlapAnalysis err: '+err);
+            return;
+        }
+        console.log('--------- FM Overlap Analysis (FMOVER) API return complete -----------');
+        res.status(data.statusCode).send(data);
+        return;
+    });
+});
+
 // Batch Processor
 app.post('/batch.json', function(req, res) {
     processBatch(req, res, function(response) {
@@ -632,6 +663,22 @@ function getElevationData(req, res, success) {
         console.error('\n\n getElevationData err '+err);  
         return success(err, null);
     }  
+}
+
+function getFmOverlapAnalysis(req, res, success) {
+    console.log('app getFmOverlapAnalysis');
+    try {
+        overlap.getFmOverlap(req, res, function(data) {
+            console.log('app getFmOverlapAnalysis data='+data);
+            if (data) {
+                return success(null, data);
+            }
+            return success(null, null);
+        });
+    } catch (err) {
+        console.error('\n\n getFmOverlapAnalysis err '+err);
+        return success(err, null);
+    }
 }
 
 function getHaatData(req, res, success) {

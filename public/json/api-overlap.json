@@ -10,7 +10,6 @@
         "description": "get overlap analysis for FM"
     }],
     "paths": {
-
         "/fmover.{format}": {
             "get": {
                 "tags": ["fmover"],

@@ -769,7 +769,7 @@ function itplbv(lx, ly, x, y, z, n, u, v, w) {
 
 
 function tvfmfs_metric(erp, haat, channel, field, distance, fs_or_dist, curve, flag) {
-	// console.log(`erp: ${erp}\thaat: ${haat}\tchannel: ${channel}\tfield: ${field}\tdistance: ${distance}\tfs_or_dist: ${fs_or_dist}\tcurve: ${curve}\tflag: ${flag}`)
+	console.log(`erp: ${erp}\thaat: ${haat}\tchannel: ${channel}\tfield: ${field}\tdistance: ${distance}\tfs_or_dist: ${fs_or_dist}\tcurve: ${curve}\tflag: ${flag}`)
     var id50 = 25;
     var ih50 = 13;
     var id10 = 31;

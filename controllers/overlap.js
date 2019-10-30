@@ -459,7 +459,6 @@ function buildResponse(app, data) {
     }
 
     // Print the following data for each other IX against the applicant protected
-    
     var tmpObj;
     responseObj.o_ix_to_a_pr = [];
     for (i=1; i<app.length; i++) {

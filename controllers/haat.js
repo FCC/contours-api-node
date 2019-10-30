@@ -295,8 +295,6 @@ function getHAAT(req, res, callback) {
         inputData['format'] = format;
         inputData['azimuths'] = azimuths;
 
-        // console.log(`src: ${src}`)
-
         if (src === 'ned_1' && filenames_no_ned_1.length === 0 || src === '' && filenames_no_ned_1.length === 0) {
             src = 'ned_1';
             inputData.src = src;

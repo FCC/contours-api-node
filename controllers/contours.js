@@ -342,7 +342,7 @@ function getContours(req, res, callback) {
         if (hostname === "localhost" || hostname === "127.0.0.1") {
             hostname = hostname + ":" + NODE_PORT;
         }
-        console.log(req.protocol);
+        console.log(`req.protocol: ${req.protocol}`);
 
         var root_url = req.protocol + "://" + hostname;
 

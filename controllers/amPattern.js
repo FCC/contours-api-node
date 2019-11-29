@@ -61,7 +61,7 @@ var getfth = function(theta,ht,a,b,c,d,tls) {
 	var i, denom, ch, g, asq, g, h, l, sl, cl, cg, cb, sb, sd, cd, csq, casq, numerator, denominator;
 	var c_8, d_8, a_1;
     var ntow = ht.length;
-    var q = theta // Short-hand reference in formulas.
+    var q = theta; // Short-hand reference in formulas.
     var sq = Math.sin(theta);
     var cq = Math.cos(theta);
     var fth = 0;
@@ -141,6 +141,52 @@ var getfth = function(theta,ht,a,b,c,d,tls) {
 				var y_imag= (d_8 * cq) * ( Math.sin(ht[i]+sq)/sq + a_1/(a_1*a_1 - sq*sq) * inner3terms );
 
 				fth = Math.sqrt(x_real*x_real + y_imag*y_imag)/c_8;
+			}
+		}
+
+		else if (tls[i]=='3') { // Case 1, Heads Formula, Jasik Handbook.
+								// h=0; a: height of bottom section; b: height of bottom section plus lamda/4.0
+			L4 = 1.57079633
+			b[i] = a[i] + L4
+
+			sq = Math.sin(q)
+			numerator = (2*Math.cos( L4*sq)*Math.cos(b[i]*sq) + Math.cos(a[i]*sq) - Math.cos(a[i]) )
+			denominator = cq * ( 3.0 - Math.cos(a[i]) )
+
+			if (denominator != 0) {
+				fth = numerator/denominator;
+			}
+		}
+
+		else if (tls[i]=='6') { // Silliman's KREM (==> KZZU), Spokane WA 970 KHz
+								// h=0; a: overall height; b: height of lower section
+			sq = Math.sin(q)
+			cq = Math.cos(q)
+
+			numerator = Math.cos( a[i] * sq ) - Math.cos( a[i] - b[i])*Math.cos( b[i] * sq ) + sq*Math.sin(a[i]-b[i])*Math.sin(b[i]*sq)
+			denominator = cq * (1.0 - Math.cos(a[i]-b[i]))
+
+			if (denominator != 0) {
+				fth = numerator/denominator;
+			}
+		}
+
+		else if (tls[i]=='7') { // WHO, Des Moines 1040, Filing 12/14/1951, Appendix to Exhibit 7
+								// If A = B, reduces to formula for regular tower
+								// h: unused; a: height of lower element; b: total height of antenna;
+								// c: ratio of loop currents in two elements; d: unused
+			sq = Math.sin(q)
+			cq = Math.cos(q)
+			asq = a[i]*sq
+			ca = Math.cos(a[i])
+			cba = Math.cos(b[i]-a[i])
+			sba = Math.sin(b[i]-a[i])
+
+			numerator = c[i]*(Math.cos(asq)-ca) + Math.cos(b[i]*sq) - sq*Math.sin(asq)*(cba*Math.cos(asq)+sba)
+			denominator = cq * ( c[i]*(1.0-ca) + (1.0-cba) )
+
+			if (denominator != 0) {
+				fth = numerator/denominator;
 			}
 		}
 
@@ -284,8 +330,8 @@ var bessel = function(x) {
 	
 	return bess;
 	
-}	
-		
+}
+
 var curlos = function(fld,hgt,a,b,c,d,tls,no_loss_k) {
 
 	var i, field, ab, cd, cda, ba, divide, current;

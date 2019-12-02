@@ -7,7 +7,7 @@
     "basePath": "/api/contours",
     "tags": [{
         "name": "entity",
-        "description": "get service contour for TV or FM"
+        "description": "get service contour for TV, FM, and AM"
     }],
     "paths": {
 
@@ -15,13 +15,13 @@
             "get": {
                 "tags": ["entity"],
                 "summary": "Get Contour by Service Type",
-                "description": "Get contour based on serviceType (TV or FM), idType (callsign, applicationid, fileNumber, antennaid), and idValue. Response returned in GeoJSON, JSONP, Shapefile, KML, GML, CSV.",
+                "description": "Get contour based on serviceType (TV, FM, AM), idType (callsign, applicationid, fileNumber, antennaid), and idValue. Response returned in GeoJSON, JSONP, Shapefile, KML, GML, CSV.",
                 "parameters": [{
                     "name": "serviceType",
                     "x-label": "Service Type",
                     "x-display": true,
                     "in": "query",
-                    "description": "Type of broadcast service. <br /><br />Valid values: tv or fm",
+                    "description": "Type of broadcast service. <br /><br />Valid values: tv, fm, am",
                     "required": true,
                     "type": "string",
                     "defaultValue": "tv",

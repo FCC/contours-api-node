@@ -504,7 +504,7 @@ console.log('\n' + 'getOneContour recordData='+JSON.stringify(recordData));
 	recordData.lon_deg,
 	recordData.lon_min,
 	recordData.lon_sec,
-	recordData.lon_dir].indexOf(undefined) >= 0) {
+	recordData.lon_dir].indexOf(null) >= 0) {
 		console.log('\n' + 'record lat/lon not available');
 		callback('record lat/lon not available', null);
 		return;

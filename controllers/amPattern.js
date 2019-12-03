@@ -58,7 +58,7 @@ var getfth = function(theta,ht,a,b,c,d,tls) {
            // 1: Top-Loaded
            // 2: Sectionalized
            // 3+: Special Sectionalized formulas
-	var i, denom, ch, g, asq, g, h, l, sl, cl, cg, cb, sb, sd, cd, csq, casq, numerator, denominator;
+	var i, denom, ch, g, asq, g, h, l, sl, cl, cg, cb, sb, sd, cd, csq, casq, numerator, denominator, L4, ca, cba, sba;
 	var c_8, d_8, a_1;
     var ntow = ht.length;
     var q = theta; // Short-hand reference in formulas.

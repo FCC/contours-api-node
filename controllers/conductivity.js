@@ -37,23 +37,21 @@ var getLineConductivity = function(lineOption){ return function(callback) {
 			
 	var line = createLine(lineOption);
 	
-	//console.log(line)
-	
+
 	var line = "ST_GeomFromText('LineString(" + line + ")', 4326)";
+	// console.log(line)
 
 	findIntersects(line, function(error, response) {
 		if (error) {
 			callback(error, []);
 		}
 		else {
-		
 			var asyncTasks = [];
 			for (i = 0; i < response.length; i++) {
 			//console.log(i)
 				asyncTasks.push(findIntersection(line, response[i]));
 			}
-			//console.log(asyncTasks)
-			
+
 			async.parallel(asyncTasks, function(error, result){
 				//console.log("findInterseection asyncTasks all done");
 				if (error) {
@@ -121,10 +119,8 @@ var getLatLonFromDist = function(lat1, lon1, az, d) {
 
 var findIntersects = function(line, callback) {
 	// The table name is changed from conductivity_m3 to conductivity_m3_new
-	var q = "SELECT * FROM " + CONTOURS_SCHEMA + ".conductivity_m3_new WHERE ST_Intersects(geom, " + line + ")";
-	
-	//console.log(q)
-	
+	var q = "SELECT * FROM " + CONTOURS_SCHEMA + ".conductivity_m3_new WHERE ST_Intersects(st_setsrid(geom, 4326), " + line + ")";
+	// var q = "SELECT * FROM " + CONTOURS_SCHEMA + ".conductivity WHERE ST_Intersects(st_setsrid(geom, 4326), " + line + ")";
 	db_contour.any(q)
 		.then(function (data) {
 			callback(null, data);	
@@ -137,9 +133,11 @@ var findIntersects = function(line, callback) {
 
 var findIntersection = function (line, seg) {return function(callback) {
 	// The table name is changed from conductivity_m3 to conductivity_m3_new
-	var q = "SELECT ST_AsGeoJSON(ST_Intersection(geom, " + line + ")) as data FROM " + CONTOURS_SCHEMA + ".conductivity_m3_new " +
+	var q = "SELECT ST_AsGeoJSON(ST_Intersection(st_setsrid(geom, 4326), " + line + ")) as data FROM " + CONTOURS_SCHEMA + ".conductivity_m3_new " +
 			"WHERE seg_id = " + seg.seg_id;
-			
+	// var q = "SELECT ST_AsGeoJSON(ST_Intersection(geom, " + line + ")) as data FROM " + CONTOURS_SCHEMA + ".conductivity " +
+	// 		"WHERE id = " + seg.id;
+
 	db_contour.any(q)
 		.then(function (data) {
 			var result = {"seg": seg, "intersection": data}
@@ -313,65 +311,65 @@ var getZones = function(this_line, opposite_line) {
 
 var getConductivity = function(latStart, lonStart, nradial, distance, callback) {
 
-var asyncTasks = [];
-var lineOption, azimuth;
-var i, ii, zones;
-var delta = 360/nradial;
-for (i = 0; i <nradial; i++) {
-	azimuth = i * delta;
-	lineOption = {"latStart": latStart, "lonStart": lonStart, "azimuth": azimuth, "distance": distance};
-	asyncTasks.push(getLineConductivity(lineOption));
-}
-
-//console.log(asyncTasks);
-
-async.parallel(asyncTasks, function(error, result){
-	//console.log("conductivity - getLineConductivity asyncTasks all done");
-	//console.log('getLineConductivity asyncTasks error: ' + error)
-	
-	//console.log(result)
-	if (error) {
-		callback(error, []);
-	
+	var asyncTasks = [];
+	var lineOption, azimuth;
+	var i, ii, zones;
+	var delta = 360/nradial;
+	for (i = 0; i <nradial; i++) {
+		azimuth = i * delta;
+		lineOption = {"latStart": latStart, "lonStart": lonStart, "azimuth": azimuth, "distance": distance};
+		asyncTasks.push(getLineConductivity(lineOption));
 	}
-	else {
-		var zones_all = [];
-		for (i = 0; i < nradial; i++) {	
-			ii = i + nradial/2;
-			if (i >= nradial/2) {
-				ii = i - nradial/2;
-			}
-	
-			zones = getZones(result[i], result[ii]);
-			
-			zones_all.push(zones);
-		}
-		
-		//handle empty zones
-		//get conductivity at antenna location
-		var conductivity_antenna = 5000;
-		for (i = 0; i < nradial; i++) {
-			if (zones_all[i].zones.length > 0 && zones_all[i].zones[0].conductivity != 5000) {
-				conductivity_antenna = zones_all[i].zones[0].conductivity;
-				break;
-			}
-		}
-		for (i = 0; i < nradial; i++) {
-			if (zones_all[i].zones[0].conductivity == 5000) {
-				zones_all[i].zones[0].conductivity = conductivity_antenna;
-			}
-		}
-		
-		//console.log(zones_all);
-		
-		//in inputData, convert lat/;on to original value bu subtracting the 0.000001, which is added at the beginning
-		//to prevent the radial from hitting the joining points of 2 conductivity segments.
-		var inputData = {"lat": latStart - 0.000001, "lon": lonStart - 0.000001, "nradial": nradial, "distance": distance};
 
-		callback(null, {"inputData": inputData, "conductivity": zones_all});
-	
-	}
-});
+	//console.log(asyncTasks);
+
+	async.parallel(asyncTasks, function(error, result){
+		//console.log("conductivity - getLineConductivity asyncTasks all done");
+		//console.log('getLineConductivity asyncTasks error: ' + error)
+
+		//console.log(result)
+		if (error) {
+			callback(error, []);
+
+		}
+		else {
+			var zones_all = [];
+			for (i = 0; i < nradial; i++) {
+				ii = i + nradial/2;
+				if (i >= nradial/2) {
+					ii = i - nradial/2;
+				}
+
+				zones = getZones(result[i], result[ii]);
+
+				zones_all.push(zones);
+			}
+
+			//handle empty zones
+			//get conductivity at antenna location
+			var conductivity_antenna = 5000;
+			for (i = 0; i < nradial; i++) {
+				if (zones_all[i].zones.length > 0 && zones_all[i].zones[0].conductivity != 5000) {
+					conductivity_antenna = zones_all[i].zones[0].conductivity;
+					break;
+				}
+			}
+			for (i = 0; i < nradial; i++) {
+				if (zones_all[i].zones[0].conductivity == 5000) {
+					zones_all[i].zones[0].conductivity = conductivity_antenna;
+				}
+			}
+
+			//console.log(zones_all);
+
+			//in inputData, convert lat/;on to original value bu subtracting the 0.000001, which is added at the beginning
+			//to prevent the radial from hitting the joining points of 2 conductivity segments.
+			var inputData = {"lat": latStart - 0.000001, "lon": lonStart - 0.000001, "nradial": nradial, "distance": distance};
+
+			callback(null, {"inputData": inputData, "conductivity": zones_all});
+
+		}
+	});
 
 }
 
@@ -455,18 +453,16 @@ var fetchConductivity = function(req, res) {
 	
 	
 	getConductivity(lat_use, lon_use, nradial, distance, function(error, response) {
-	if (error) {
-	res.send({"error": error});
-	}
-	else {
-	
-	res.send(response);
-	
-	}
+		if (error) {
+			res.send({"error": error});
+		}
+		else {
+			res.send(response);
+		}
 
-});
+	});
 	
-}
+};
 
 
 var getConductivityFromDB = function(ant_sys_id, application_id, lat_deg, lat_min, lat_sec, lat_dir, lon_deg, lon_min, lon_sec, lon_dir, callback) {
@@ -549,15 +545,6 @@ var adjustRadials = function(cond, n) {
 module.exports.selectConductivity = selectConductivity;
 module.exports.getConductivity = getConductivity;
 module.exports.fetchConductivity = fetchConductivity;
-
-
-
-
-
-
-
-
-
 
 
 

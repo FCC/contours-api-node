@@ -37,7 +37,7 @@
     "fast-isnumeric": "^1.1.1",
     "file-stream-rotator": "^0.2.1",
     "geojson": "0.3.0",
-    "handlebars": "^4.0.5",
+    "handlebars": "^4.3.0",
     "helmet": "^3.13.0",
     "html-entities": "^1.2.0",
     "htmlencode": "0.0.4",

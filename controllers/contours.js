@@ -610,7 +610,7 @@ function getContours(req, res, callback) {
                                 data[az] = {'fs1km': rad, 'distance': dist, 'cond': []}
 
                                 // find conductivities
-                                var line = conductivity.createLine({'latStart': lat, 'lonStart': lon, 'azimuth': az, 'distance': 300}) //dist
+                                var line = conductivity.createLine({'latStart': lat, 'lonStart': lon, 'azimuth': az, 'distance': dist}) //dist
                                 line = "ST_GeomFromText('LineString(" + line + ")', 4326)";
 
                                 var q = "select " + az + " as az, " + rad + " as fs1km, st_astext((st_dump(foo.st_intersection)).geom) as wkt," +

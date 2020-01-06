@@ -585,32 +585,33 @@ function getContours(req, res, callback) {
 
             });
         } else if (serviceType === 'am') {
-            console.log(`====== coverage am =======`)
+            console.log(`====== coverage am =======`);
             var frequency = req.query.frequency;
-            var power = req.query.power; //1
+            var power = req.query.power;
             var cMethod = req.query.cMethod;
 
-            var data = new Object
-            pattern = pattern.split(';')
+            var data = {};
+            pattern = pattern.split(';');
             pattern = pattern.filter(n => n);
 
-            var q = "with pt as (select st_geomfromtext('POINT(" + lon + " " + lat + ")', 4326) as geom) select conductivity from contour.conductivity c, pt where st_intersects(c.geom, pt.geom)"
+            var q = "with pt as (select st_geomfromtext('POINT(" + lon + " " + lat + ")', 4326) as geom) select conductivity from contour.conductivity_m3 c, pt where st_intersects(c.geom, pt.geom)";
+
             db_contour.one(q)
                 .then(cond => {
                     if (cond) {
                         try {
                             var c = cond['conductivity'];
 
-                            var queries = []
+                            var queries = [];
                             for (var i = 0; i < pattern.length; i++) {
-                                var p = pattern[i].split(',')
-                                var az = p[0]
-                                var rad = p[1]
-                                var dist = gwave.amDistance(c, 0, frequency, field, rad)
-                                data[az] = {'fs1km': rad, 'distance': dist, 'cond': []}
+                                var p = pattern[i].split(',');
+                                var az = p[0];
+                                var rad = p[1];
+                                var dist = gwave.amDistance(c, 0, frequency, field, rad);
+                                data[az] = {'fs1km': rad, 'distance': dist, 'cond': []};
 
                                 // find conductivities
-                                var line = conductivity.createLine({'latStart': lat, 'lonStart': lon, 'azimuth': az, 'distance': dist}) //dist
+                                var line = conductivity.createLine({'latStart': lat, 'lonStart': lon, 'azimuth': az, 'distance': dist});
                                 line = "ST_GeomFromText('LineString(" + line + ")', 4326)";
 
                                 var q = "select " + az + " as az, " + rad + " as fs1km, st_astext((st_dump(foo.st_intersection)).geom) as wkt," +
@@ -620,8 +621,8 @@ function getContours(req, res, callback) {
                                   "foo.conductivity " +
                                   "from (with line as (select " + line + " as geom) " +
                                   "select st_intersection(cond.geom, line.geom), * " +
-                                  "from contour.conductivity cond, line " +
-                                  "where st_intersects(cond.geom, line.geom)) as foo"
+                                  "from contour.conductivity_m3 cond, line " +
+                                  "where st_intersects(cond.geom, line.geom)) as foo";
 
                                 queries.push(q)
                             }
@@ -646,129 +647,101 @@ function getContours(req, res, callback) {
                                                         data[i['az']]['cond'].push({'az': i['az'], 'fs1km': fs1km, 'distance': dist, 'conductivity': cond, 'lat': lat2, 'lon': lon2})
                                                     }
                                                 })
-                                            })
+                                            });
 
-                                            var coordinates = []
-                                            var latlon_1st
+                                            var coordinates = [];
+                                            var latlon_1st;
                                             for (var d in data) {
                                                 var az = d;
-                                                var conds = []
+                                                console.log(`\n========= azimuth ${az} ============`);
+                                                var conds = [];
                                                 for (var c in data[d]['cond']) {
                                                     conds.push(data[d]['cond'][c]['conductivity'])
                                                 }
 
-                                                console.log('\n')
-                                                console.log(conds)
+                                                console.log(`conductivities:`);
+                                                console.log(conds);
                                                 if (conds.every((val, i, arr) => val === arr[0])) {
-                                                    console.log('homogenous')
-                                                    console.log(`dist: ${dist}`)
-                                                    var latlon = conductivity.getLatLonFromDist(lat, lon, az, dist)
+                                                    console.log('homogenous');
+                                                    console.log(`dist: ${dist}`);
+                                                    var latlon = conductivity.getLatLonFromDist(lat, lon, az, dist);
                                                     if (parseInt(az) === 0) {
                                                         latlon_1st = latlon;
                                                     }
                                                     coordinates.push([math.round(latlon[1], 10), math.round(latlon[0], 10)]);
                                                 } else {
-                                                    console.log('multiple')
-                                                    // order by intersection
+                                                    console.log('multiple');
+                                                    // order by ascending intersection
                                                     var sorted = data[d]['cond'].sort(function(a, b) {
                                                         return a['distance'] - b['distance']
-                                                    })
-                                                    console.log(sorted)
+                                                    });
+                                                    console.log(sorted);
 
+                                                    // get equivalent distance
                                                     var ed = 0;
-                                                    var prevDist = sorted[0]['distance'];
-                                                    var _fs = 0;
                                                     var i = 0;
+
                                                     while (i < sorted.length) {
+                                                        console.log(`------- section ${i} --------`);
                                                         try {
-                                                            console.log(`\nintersection ${i}`)
-                                                            var _dist = sorted[i]['distance']
-                                                            var _cond = sorted[i]['conductivity']
-                                                            var _fs1km = sorted[i]['fs1km']
-                                                            var _lat = sorted[i]['lat']
-                                                            var _lon = sorted[i]['lon']
-                                                            var _az = sorted[i]['az']
+                                                            // var rms = parseFloat(sorted[i]['fs1km']);
+                                                            // var m = rms * Math.sqrt(power / 1);
 
-                                                            console.log(`dist= ${_dist}`)
-                                                            console.log(`cond= ${_cond}`)
-                                                            console.log(`fs1km= ${_fs1km}`)
+                                                            // console.log(`rms= ${rms}`);
+                                                            // console.log(`m= ${m}`);
 
-                                                            _fs = gwave.amField(_cond, 0, frequency, _dist, _fs1km)
-                                                            var newDist = gwave.amDistance(_cond, 0, frequency, _fs, _fs1km);
+                                                            var fs1 = gwave.amField(sorted[i]['conductivity'], 0, frequency, sorted[i]['distance'], sorted[i]['fs1km']);
+                                                            console.log(`fs1= ${fs1}`);
 
-                                                            console.log(`field strength= ${_fs}`)
-                                                            console.log(`new dist= ${newDist}`)
+                                                            var ed1 = gwave.amDistance(sorted[i+1]['conductivity'], 0, frequency, fs1, sorted[i+1]['fs1km']);
+                                                            console.log(`ed1= ${ed1}`);
 
-                                                            var ed = _dist + newDist; // _dist: distance to intersection, newDist: distance that the wave will reach
-                                                            console.log(`ed= ${ed}`)
-                                                            // This if statement breaks out of the loop if the ed is less than the distance of the next intersection
-                                                            if ((i + 1 ) < sorted.length) {
-                                                                console.log("--------------")
-                                                                var next_distance = sorted[ i + 1]['distance'];
-                                                                console.log(`next dist= ${next_distance}`)
+                                                            var ed2 = gwave.amDistance(sorted[i+1]['conductivity'], 0, frequency, field, sorted[i+1]['fs1km']);
+                                                            console.log(`ed2= ${ed2}`);
 
-                                                                if (ed < next_distance) {
-                                                                    break;
-                                                                }
-                                                            }
+                                                            ed2 = ed2 + (sorted[i].distance - ed1);
+                                                            console.log(`final ed= ${ed2}`);
 
-
-                                                            /*if (newDist <= _dist) {
-                                                                ed = newDist + (newDist - prevDist)
-                                                                prevDist = newDist
-                                                            } else {
-                                                                console.log('!!!! new dist is greater')
-                                                                var _latlon = conductivity.getLatLonFromDist(_lat, _lon, _az, newDist)
-                                                                var _line = conductivity.createLine({'latStart': _latlon[0], 'lonStart': _latlon[1], 'azimuth': _az, 'distance': newDist})
-                                                                _line = "st_geomfromtext('Linestring(" + _line + ")', 4326)"
-
-                                                                db_contour.any("select " + _az + " as az, " + _fs1km + " as fs1km, st_astext((st_dump(foo.st_intersection)).geom) as wkt," +
-                                                                "st_x(st_endpoint((st_dump(foo.st_intersection)).geom)) as start_lon," +
-                                                                "st_y(st_endpoint((st_dump(foo.st_intersection)).geom)) as start_lat," +
-                                                                "foo.id," +
-                                                                "foo.conductivity " +
-                                                                "from (with line as (select " + _line + " as geom) " +
-                                                                "select st_intersection(cond.geom, line.geom), * " +
-                                                                "from contour.conductivity cond, line " +
-                                                                "where st_intersects(cond.geom, line.geom)) as foo")
-                                                                .then(_res => {
-                                                                console.log(_res)
-                                                                })
-                                                            }*/
-
-                                                            // process next intersection
                                                             i += 1
                                                         } catch (err) {
-                                                        console.log('!!!! err')
+                                                            console.log('!!! err');
+                                                            ed = ed2;
                                                             break
                                                         }
                                                     }
-                                                    console.log(`\nequiv dist= ${ed}`)
+
+                                                    var ed_latlon = conductivity.getLatLonFromDist(lat, lon, az, ed);
+                                                    console.log(`\n*************** equiv dist= ${ed}`);
+                                                    console.log('\n');
+                                                    if (parseInt(az) === 0) {
+                                                        latlon_1st = ed_latlon;
+                                                    }
+                                                    coordinates.push([math.round(ed_latlon[1], 10), math.round(ed_latlon[0], 10)]);
                                                 }
                                             }
                                             // close
                                             coordinates.push([math.round(latlon_1st[1], 10), math.round(latlon_1st[0], 10)]);
 
                                             if (coordinates.length > 0) {
-                                                dataObj.status = 'success'
-                                                dataObj.statusCode = '200'
-                                                dataObj.statusMessage = 'ok'
-                                                dataObj.field = field
-                                                dataObj.serviceType = serviceType
-                                                dataObj.nradial = nradial
-                                                dataObj.frequency = frequency
-                                                dataObj.pattern = pattern
-                                                dataObj.conductivity = data //todo fix
+                                                dataObj.status = 'success';
+                                                dataObj.statusCode = '200';
+                                                dataObj.statusMessage = 'ok';
+                                                dataObj.field = field;
+                                                dataObj.serviceType = serviceType;
+                                                dataObj.nradial = nradial;
+                                                dataObj.frequency = frequency;
+                                                dataObj.pattern = pattern;
+                                                dataObj.conductivity = data; //todo fix
 
-                                                dataObj.coordinates = [[coordinates]]
+                                                dataObj.coordinates = [[coordinates]];
                                                 GeoJSON.defaults = {
                                                     MultiPolygon: [[coordinates]]
-                                                }
+                                                };
                                                 returnJson = GeoJSON.parse([dataObj], {
                                                     MultiPolygon: 'coordinates',
                                                     include: ['status', 'statusCode', 'statusMessage', 'field', 'serviceType', 'nradial', 'frequency', 'pattern', 'conductivity']
-                                                })
-                                                console.log(JSON.stringify(returnJson))
+                                                });
+                                                // console.log(JSON.stringify(returnJson))
                                                 return callback(returnJson)
                                             }
 

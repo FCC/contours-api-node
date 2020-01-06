@@ -18,26 +18,20 @@ if (NODE_ENV === 'DEV' || NODE_ENV === 'LOCAL') {
     CONTEXT_PATH = '';
 }
 
-var fs = require('fs');
-var request = require('request');
-
 var GeoJSON = require('geojson');
 var math = require('mathjs');
 
 var haat = require('./haat.js');
-var distance = require('./distance.js');
 var tvfm_curves = require('./tvfm_curves.js');
 var area = require('./area.js');
 var population = require('./population.js');
 var validate = require('./validate.js');
 var conductivity = require('./conductivity');
 var gwave = require('./gwave.js');
-var async = require('async');
 var db_contour = require('./db_contour');
 
 var data_dir = EFS_ELEVATION_DATASET;
 
-var startTime;
 
 
 function getContours(req, res, callback) {
@@ -86,7 +80,7 @@ function getContours(req, res, callback) {
 
         if (serviceType === undefined) {
             console.log('Missing serviceType');
-            dataObj.statusMessage = 'Missing serviceType.';
+            dataObj.statusMessage = 'Missing serviceType parameter.';
             returnError(dataObj, function (ret) {
                 //res.status(400).send(GeoJSON.parse(ret, {}));
                 returnJson = GeoJSON.parse(ret, {});
@@ -588,11 +582,42 @@ function getContours(req, res, callback) {
             console.log(`====== coverage am =======`);
             var frequency = req.query.frequency;
             var power = req.query.power;
-            var cMethod = req.query.cMethod;
+            var rms = req.query.rms;
+            // var cMethod = req.query.cMethod;
+            dataObj.inputData = {};
+
+            if (!frequency) {
+                dataObj.statusMessage = 'Missing frequency parameter.';
+                returnError(dataObj, function (ret) {
+                    returnJson = GeoJSON.parse(ret, {});
+                });
+                return callback(returnJson);
+            }
+
+            if (!power) {
+                dataObj.statusMessage = 'Missing power parameter.';
+                returnError(dataObj, function (ret) {
+                    returnJson = GeoJSON.parse(ret, {});
+                });
+                return callback(returnJson);
+            }
+
+            if (!rms) {
+                dataObj.statusMessage = 'Missing RMS parameter.';
+                returnError(dataObj, function (ret) {
+                    returnJson = GeoJSON.parse(ret, {});
+                });
+                return callback(returnJson);
+            }
 
             var data = {};
             pattern = pattern.split(';');
             pattern = pattern.filter(n => n);
+            pattern = pattern.map(n => {
+                return n.split(',');
+            });
+            var nonDirectional = pattern.map(n => { return n[1]; }).every((val, i, arr) => val === arr[0]);
+            console.log(`non-directional= ${nonDirectional}`);
 
             var q = "with pt as (select st_geomfromtext('POINT(" + lon + " " + lat + ")', 4326) as geom) select conductivity from contour.conductivity_m3 c, pt where st_intersects(c.geom, pt.geom)";
 
@@ -600,13 +625,17 @@ function getContours(req, res, callback) {
                 .then(cond => {
                     if (cond) {
                         try {
-                            var c = cond['conductivity'];
+                            var c = cond.conductivity;
 
                             var queries = [];
                             for (var i = 0; i < pattern.length; i++) {
-                                var p = pattern[i].split(',');
-                                var az = p[0];
-                                var rad = p[1];
+                                var az = pattern[i][0];
+                                var rad = pattern[i][1];
+
+                                if (nonDirectional) {
+                                    rad = rad * Math.sqrt(power/1);
+                                }
+
                                 var dist = gwave.amDistance(c, 0, frequency, field, rad);
                                 data[az] = {'fs1km': rad, 'distance': dist, 'cond': []};
 
@@ -684,28 +713,22 @@ function getContours(req, res, callback) {
                                                     while (i < sorted.length) {
                                                         console.log(`------- section ${i} --------`);
                                                         try {
-                                                            // var rms = parseFloat(sorted[i]['fs1km']);
-                                                            // var m = rms * Math.sqrt(power / 1);
-
-                                                            // console.log(`rms= ${rms}`);
-                                                            // console.log(`m= ${m}`);
-
                                                             var fs1 = gwave.amField(sorted[i]['conductivity'], 0, frequency, sorted[i]['distance'], sorted[i]['fs1km']);
                                                             console.log(`fs1= ${fs1}`);
 
-                                                            var ed1 = gwave.amDistance(sorted[i+1]['conductivity'], 0, frequency, fs1, sorted[i+1]['fs1km']);
-                                                            console.log(`ed1= ${ed1}`);
+                                                            var d1 = gwave.amDistance(sorted[i+1]['conductivity'], 0, frequency, fs1, sorted[i+1]['fs1km']);
+                                                            console.log(`d1= ${d1}`);
 
-                                                            var ed2 = gwave.amDistance(sorted[i+1]['conductivity'], 0, frequency, field, sorted[i+1]['fs1km']);
-                                                            console.log(`ed2= ${ed2}`);
+                                                            var d2 = gwave.amDistance(sorted[i+1]['conductivity'], 0, frequency, field, sorted[i+1]['fs1km']);
+                                                            console.log(`d2= ${d2}`);
 
-                                                            ed2 = ed2 + (sorted[i].distance - ed1);
-                                                            console.log(`final ed= ${ed2}`);
+                                                            d2 = d2 + (sorted[i]['distance'] - d1);
+                                                            console.log(`ed so far= ${d2}`);
 
                                                             i += 1
                                                         } catch (err) {
                                                             console.log('!!! err');
-                                                            ed = ed2;
+                                                            ed = d2;
                                                             break
                                                         }
                                                     }
@@ -726,20 +749,26 @@ function getContours(req, res, callback) {
                                                 dataObj.status = 'success';
                                                 dataObj.statusCode = '200';
                                                 dataObj.statusMessage = 'ok';
-                                                dataObj.field = field;
-                                                dataObj.serviceType = serviceType;
-                                                dataObj.nradial = nradial;
-                                                dataObj.frequency = frequency;
-                                                dataObj.pattern = pattern;
+
+                                                dataObj.inputData.serviceType = serviceType;
+                                                dataObj.inputData.lat = lat;
+                                                dataObj.inputData.lon = lon;
+                                                dataObj.inputData.frequency = frequency;
+                                                dataObj.inputData.field = field;
+                                                dataObj.inputData.pattern = pattern;
+                                                dataObj.inputData.rms = rms;
+                                                dataObj.inputData.power = power;
+                                                dataObj.inputData.nradial = nradial;
+
                                                 dataObj.conductivity = data; //todo fix
 
-                                                dataObj.coordinates = [[coordinates]];
+                                                // dataObj.coordinates = [[coordinates]];
                                                 GeoJSON.defaults = {
                                                     MultiPolygon: [[coordinates]]
                                                 };
                                                 returnJson = GeoJSON.parse([dataObj], {
                                                     MultiPolygon: 'coordinates',
-                                                    include: ['status', 'statusCode', 'statusMessage', 'field', 'serviceType', 'nradial', 'frequency', 'pattern', 'conductivity']
+                                                    include: ['status', 'statusCode', 'statusMessage', 'inputData', 'conductivity']
                                                 });
                                                 // console.log(JSON.stringify(returnJson))
                                                 return callback(returnJson)

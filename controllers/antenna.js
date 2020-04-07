@@ -169,16 +169,16 @@ function query_by_application_id(application_id,service_type,res){
 	var eng_data_table = LMS_SCHEMA + ".gis_" + service_type + "_eng_data";
 
 	var	q = "select distinct case when lon_dir = 'W' ";
-	q = q + "then round(((lon_deg + lon_min/60 + lon_sec/3600)*-1)::numeric,7) ";
+	q = q + "then round(((lon_deg + lon_min::float/60 + lon_sec/3600)*-1)::numeric,7) ";
 	q = q + "when lon_dir = 'E' ";
-	q = q + "then round((lon_deg + lon_min/60 + lon_sec/3600)::numeric,7) ";
+	q = q + "then round((lon_deg + lon_min::float/60 + lon_sec/3600)::numeric,7) ";
 	q = q + "else -999::numeric ";
 	q = q + "end as lng, "
 	q = q + "case "
 	q = q + "when lat_dir = 'N' ";
-	q = q + "then round((lat_deg + lat_min/60 + lat_sec/3600)::numeric,7) ";
+	q = q + "then round((lat_deg + lat_min::float/60 + lat_sec/3600)::numeric,7) ";
 	q = q + "when lat_dir = 'S' ";
-	q = q + "then round(((lat_deg + lat_min/60 + lat_sec/3600)*-1)::numeric,7) ";
+	q = q + "then round(((lat_deg + lat_min::float/60 + lat_sec/3600)*-1)::numeric,7) ";
 	q = q + "else -999::numeric ";
 	q = q + "end as lat ";
 	q = q + "from " + eng_data_table + " ";
@@ -222,16 +222,16 @@ function query_by_facility_id(facility_id,service_type,res){
 	var eng_data_table = LMS_SCHEMA + ".gis_" + service_type + "_eng_data";
 
 	var	q = "select distinct case when lon_dir = 'W' ";
-	q = q + "then round(((lon_deg + lon_min/60 + lon_sec/3600)*-1)::numeric,7) ";
+	q = q + "then round(((lon_deg + lon_min::float/60 + lon_sec/3600)*-1)::numeric,7) ";
 	q = q + "when lon_dir = 'E' ";
-	q = q + "then round((lon_deg + lon_min/60 + lon_sec/3600)::numeric,7) ";
+	q = q + "then round((lon_deg + lon_min::float/60 + lon_sec/3600)::numeric,7) ";
 	q = q + "else -999::numeric ";
 	q = q + "end as lng, "
 	q = q + "case "
 	q = q + "when lat_dir = 'N' ";
-	q = q + "then round((lat_deg + lat_min/60 + lat_sec/3600)::numeric,7) ";
+	q = q + "then round((lat_deg + lat_min::float/60 + lat_sec/3600)::numeric,7) ";
 	q = q + "when lat_dir = 'S' ";
-	q = q + "then round(((lat_deg + lat_min/60 + lat_sec/3600)*-1)::numeric,7) ";
+	q = q + "then round(((lat_deg + lat_min::float/60 + lat_sec/3600)*-1)::numeric,7) ";
 	q = q + "else -999::numeric ";
 	q = q + "end as lat ";
 	q = q + "from " + eng_data_table + " ";
@@ -347,16 +347,16 @@ function query_by_callsign(callsign,service_type,res){
 			var eng_data_table = LMS_SCHEMA + ".gis_" + service_type + "_eng_data";
 
 			var	q2 = "select distinct case when lon_dir = 'W' ";
-			q2 = q2 + "then round(((lon_deg + lon_min/60 + lon_sec/3600)*-1)::numeric,7) ";
+			q2 = q2 + "then round(((lon_deg + lon_min::float/60 + lon_sec/3600)*-1)::numeric,7) ";
 			q2 = q2 + "when lon_dir = 'E' ";
-			q2 = q2 + "then round((lon_deg + lon_min/60 + lon_sec/3600)::numeric,7) ";
+			q2 = q2 + "then round((lon_deg + lon_min::float/60 + lon_sec/3600)::numeric,7) ";
 			q2 = q2 + "else -999::numeric ";
 			q2 = q2 + "end as lng, "
 			q2 = q2 + "case "
 			q2 = q2 + "when lat_dir = 'N' ";
-			q2 = q2 + "then round((lat_deg + lat_min/60 + lat_sec/3600)::numeric,7) ";
+			q2 = q2 + "then round((lat_deg + lat_min::float/60 + lat_sec/3600)::numeric,7) ";
 			q2 = q2 + "when lat_dir = 'S' ";
-			q2 = q2 + "then round(((lat_deg + lat_min/60 + lat_sec/3600)*-1)::numeric,7) ";
+			q2 = q2 + "then round(((lat_deg + lat_min::float/60 + lat_sec/3600)*-1)::numeric,7) ";
 			q2 = q2 + "else -999::numeric ";
 			q2 = q2 + "end as lat ";
 			q2 = q2 + "from " + eng_data_table + " ";

@@ -6,7 +6,7 @@
 
 var mathjs = require('mathjs');
 
-var ZQ;
+// var ZQ;
 
 // To avoid ReferenceError: function not defined, these anonymous functions need
 // to be declared OUTSIDE the $(document).ready function

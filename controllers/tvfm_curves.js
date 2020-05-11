@@ -763,6 +763,7 @@ function itplbv(lx, ly, x, y, z, n, u, v, w) {
         q3 = p30 + dy * (p31 + dy * (p32 + dy * p33));
         dx = u[k] - x3;
         w[k] = q0 + dx * (q1 + dx * (q2 + dx * q3));
+
     }
 
 }  // end itplbv function ---------------------------------------------------------------------
@@ -782,9 +783,6 @@ function tvfmfs_metric(erp, haat, channel, field, distance, fs_or_dist, curve, f
     var e_volts_meter = 0.0;
     var n_points = 1001;
 
-    var distanceFreeSpace = 0.0;  ////////
-
-	// if (!erp) erp = 0
 
     //var erp_copy = erp;
     //var distance_copy = distance;
@@ -814,7 +812,7 @@ function tvfmfs_metric(erp, haat, channel, field, distance, fs_or_dist, curve, f
 
     // Input data checks
 
-    if ((channel < 2 || channel > 300) || (channel > 69 && channel < 200) || channel == '') {
+    if ((channel < 2 || channel > 300) || (channel > 83 && channel < 200) || channel == '') {
         flag[3] = 1;
     }
     if (erp < 0.0001) {
@@ -875,7 +873,6 @@ function tvfmfs_metric(erp, haat, channel, field, distance, fs_or_dist, curve, f
     }  // All HAAT above 1600 are set to 1600
 
     if (flag[3] == 1 || flag[4] == 1 || flag[5] == 1) {
-
         return flag;
     } //need more info -- NO CALCULATIONS
     else if (flag[12] == 1 || flag[13] == 1 || flag[14] == 1 || flag[15] == 1 || flag[16] == 1 || flag[17] == 1) {
@@ -897,8 +894,6 @@ function tvfmfs_metric(erp, haat, channel, field, distance, fs_or_dist, curve, f
             // Math.log(x)/Math.log(10) = log10(x) which is not supported in some browsers (Internet Explorer)
 
             flag[1] = 1;
-
-            return field;
 
         }
         if ((curve == 0 && distance > 300.0) || (curve == 1 && distance > 500.0)) {
@@ -963,7 +958,7 @@ function tvfmfs_metric(erp, haat, channel, field, distance, fs_or_dist, curve, f
                     // }
                 }
 
-            } else if (channel >= 14 && channel <= 69) {
+            } else if (channel >= 14 && channel <= 83) {
                 if (curve == 0 || (curve == 1 && distance < 15.0)) //F(50,50)
                 {
                     itplbv(id50, ih50, D50, H50, F55U, j, d, h, f);
@@ -995,7 +990,7 @@ function tvfmfs_metric(erp, haat, channel, field, distance, fs_or_dist, curve, f
             }
         }
         if (flag[1] == 1) {
-            // pass
+            ;
         }  // no changes to field value
         if (curve == 0 || curve == 1) {
             field = f[0] + erp_db;
@@ -1116,10 +1111,10 @@ function tvfmfs_metric(erp, haat, channel, field, distance, fs_or_dist, curve, f
 
         if (curve == 1 || curve == 2)  // add in the 3 to 15 km range to the f field strength array
                                        // for F(50,10) interfering contours only.  Since the F(50,10) interfering
-                                       // contours start at 15 km, we use the F(50,50) curves in this range.
+            // contours start at 15 km, we use the F(50,50) curves in this range.
         {
             var d1 = [];
-            var f1 = [];  //alert(channel);
+            var f1 = [];
 
             for (i = 0; i < 30; i++) f[i] = 0.0;
             for (i = 0; i < n_points; i++) {
@@ -1132,86 +1127,80 @@ function tvfmfs_metric(erp, haat, channel, field, distance, fs_or_dist, curve, f
             } else if (channel >= 7 && channel <= 13) {
                 itplbv(id50, ih50, D50, H50, F55HV, j, d1, h, f1);
             } else if (channel >= 14 && channel <= 69) {
-                itplbv(id50, ih50, D50, H50, F55U, j, d1, h, f5050);
+                itplbv(id50, ih50, D50, H50, F55U, j, d1, h, f1);
             }
 
             //i=i for FM vhf uhf
 
             for (i = 0; i < 30; i++) {
+
                 if (curve == 1) {
                     f[i] = f1[i] * 1.0;
+                    d[i] = (i * delta);
                 } else if (curve == 2) {
-                    f[i] = f5010[i] = f5050[i] * 1.0;
+                    f5010[i] = f1[i] * 1.0;
+                    d[i] = (i * delta);
                 }
-
-                d[i] = (i * delta);
             }
 
-            ////for(i=0; i<35; i++) document.write(f[i] + '  ' + i + '  ' + f1[i] + '  ' + d[i] + '<br>');
+//TEST   for(i=0; i<35; i++) document.write(f[i] + '  ' + i + '  ' + f1[i] + '  ' + d[i] + '<br>');
+
 
         }
 
-// alert(f[0]);
 
-        if (field > f[0])  // Check for High field strength, very close to transmitter site // Service AND Interfering contours.
-        // If true, no interpolation possible since value is outside the f[i] values range (point is off the curve).
-        {               // Use the free space equation to find the field strength and distance
-            flag[1] = 1;
-            e_volts_meter = 1.0e-6 * Math.pow(10, (field / 20.));
-            distance = (7.014271e-3 * Math.sqrt(erp * 1000.)) / e_volts_meter;
-
-            // Added 9/2004 to prevent free space distance from exceeding minimum curves distance of
-            // 1.5 km (to eliminate the discontinuity between the free space and curves values)
-            // if(distance >= 1.5) { distance = 1.5; flag[1] = 0; }
-
-            return distance;
-
-        } else (field <= f[0])  // usual case
+        for (i = 3; i > 0; i--)  // i = 2,1 0 (3 points) 1.5, 1, 0.5
         {
+            if (field > f[i])  // High field strength, very close to transmitter site // Service AND Interfering contours.
+            {               // Use the free space equation to find the field strength and distance
+                flag[1] = 1;
+                e_volts_meter = 1.0e-6 * Math.pow(10, (field / 20.));
+                distance = (7.014271e-3 * Math.sqrt(erp * 1000.)) / e_volts_meter;
 
-            for (i = 1; i < n_points; i++) // initially assume points i=0,1,2 not covered by free space equation immediately below
-            {
-                if (curve == 0 || curve == 1) {
-                    f[i] = f[i] + erp_db;
-                } else if (curve == 2) {
-                    ZQ = fzq(T);  // T is the time variable in F(50,90) = the 90
-                    RT = (f5010[i] - f5050[i]) * (ZQ / 1.28155);
+                // Added 9/2004 to prevent free space distance from exceeding minimum curves distance of
+                // 1.5 km (to eliminate the discontinuity between the free space and curves values)
 
-                    f[i] = f5050[i] + RL + RT + erp_db;
+                if (distance >= 1.5) {
+                    distance = 1.5;
+                    flag[1] = 0;
                 }
-            }
 
-            // Continuing, for service and interfering contours
-
-            for (i = 1; i < n_points; i++)  // start at 1 because of i-1
-            {
-                if (field >= f[i] && field <= f[i - 1]) // field values decrease on graph as i increases
-                {
-                    // TEST to see what we have:
-                    // alert(i + '  f[i-1]='  + f[i-1] + '  field=' + field + '  f[i]=' + f[i] + '  d[i]=' + d[i] + '  d[i-1]=' + d[i-1]);
-
-                    if (d[i] <= 1.5) // free space equation
-                    {
-                        flag[1] = 1;
-                        e_volts_meter = 1.0e-6 * Math.pow(10, (field / 20.));
-                        distance = (7.014271e-3 * Math.sqrt(erp * 1000.)) / e_volts_meter;
-                    } else // linear interpolation
-                    {
-                        distance = (((f[i - 1] - field) / (f[i - 1] - f[i])) * (d[i] - d[i - 1])) + d[i - 1];
-                    }
-
-                    if (distance > d_last) {
-                        flag[2] = 1;
-                    }  // off upper end of curve // not common
-
-                    return distance;
-                }
+                return distance;
             }
         }
+
+
+        for (i = 0; i < n_points; i++) // points i=0,1,2 covered by free space equation immediately above
+        {
+            if (curve == 0 || curve == 1) {
+                f[i] = f[i] + erp_db;
+            } else if (curve == 2) {
+                ZQ = fzq(T);  // T is the time variable in F(50,90) = the 90
+                RT = (f5010[i] - f5050[i]) * (ZQ / 1.28155);
+
+                f[i] = f5050[i] + RL + RT + erp_db;
+            }
+        }
+
+        // Most common, for service and interfering contours
+
+        for (i = 1; i < n_points; i++)  // start at 1
+        {
+            if (field > f[i] && field < f[i - 1]) {
+
+                distance = (((f[i - 1] - field) / (f[i - 1] - f[i])) * (d[i] - d[i - 1])) + d[i - 1];
+
+                if (distance > d_last) flag[2] = 1;
+
+                return distance;
+            }
+        }
+
         // should not get here!
 
     } // end distance
 } // end tvfmfs_metric ----------------------------------------------------------------------------------
+
 
 function tvfmfs_comment(i) {
     var comment;
@@ -1236,9 +1225,8 @@ function tvfmfs_comment(i) {
     else if (i == 16) comment = "<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Maximum curve <b>distance</b> for interfering contours is limited to 500 km.<br>\n";
 
     else if (i == 17) comment = "<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;The 'Find ERP' calculation is not valid for the TV service.<br>\n";
-    else if (i == 18) comment = "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Maximum ERP for VHF, FM Channel 6, is 400 kW. <br>\n";
 
-    else if (i == 19) comment = "Feature not yet implemented."
+
     else comment = "";
     return comment;
 }
@@ -1249,7 +1237,7 @@ function fzq(Q) // for F(50,90) curves prediction
     var k;
     var ZGRID = [];
 
-    ZQ = 0.0; // Initialize
+    var ZQ = 0.0; // Initialize
 
     for (k = 0; k <= 57; k++) {
         ZGRID[k] = -ZGRI[k];

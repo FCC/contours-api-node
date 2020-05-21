@@ -1180,7 +1180,7 @@ function tvfmfs_metric(erp, haat, channel, field, distance, fs_or_dist, curve, f
 
            for(i=3; i > 0; i--)  // i = 2,1 0 (3 points) 1.5, 1, 0.5
              {
-             if(field > f[i])  // High field strength, very close to transmitter site // Service AND Interfering contours.
+             if((field > f[i]&&(curve==0||curve==1)) || (field > f5010[i] && curve==2))    // High field strength, very close to transmitter site // Service AND Interfering contours.
                {               // Use the free space equation to find the field strength and distance
                       flag[1] = 1;
                       e_volts_meter =  1.0e-6 * Math.pow(10,(field / 20.));

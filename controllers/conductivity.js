@@ -504,7 +504,7 @@ var selectConductivity = function(ant_sys_id, application_id, lat_deg, lat_min, 
 				console.log('conductivity does not exists in DB');
 				getConductivity(latStart, lonStart, nradial, distance, function(error, response) {
 					if (error) {
-						callback(error, null);
+						callback('missing conductivity data for this station', null);
 					}
 					else {
 						callback(null, response);

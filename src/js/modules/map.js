@@ -14,15 +14,11 @@
 
             L.mapbox.accessToken = 'pk.eyJ1IjoiZmNjIiwiYSI6InBiaGMyLU0ifQ.LOmVYpUCFv2yWpbvxDdQNg';
 
-            Map.map = L.mapbox.map('map', 'fcc.k74ed5ge', {
-                    attributionControl: true,
-                    maxZoom: 19
-                })
-                .setView([41.05, -95], 4);
+            Map.map = L.mapbox.map('map').setView([41.05, -95], 4);
 
-            var baseStreet = L.mapbox.tileLayer('fcc.k74ed5ge').addTo(Map.map);
-            var baseSatellite = L.mapbox.tileLayer('fcc.k74d7n0g');
-            var baseTerrain = L.mapbox.tileLayer('fcc.k74cm3ol');
+            var baseStreet = L.mapbox.styleLayer('mapbox://styles/mapbox/light-v10').addTo(Map.map);
+            var baseSatellite = L.mapbox.styleLayer('mapbox://styles/mapbox/satellite-streets-v11');
+            var baseTerrain = L.mapbox.styleLayer('mapbox://styles/mapbox/satellite-v9');
 
             L.control.scale({
                 position: 'bottomright'

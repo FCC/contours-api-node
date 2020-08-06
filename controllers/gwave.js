@@ -1229,6 +1229,7 @@ var amField = function(conductivity, dielectric, freq_mhz, distance, fs1km) {
 	var distance_arr = gwave_field.distance;
 	var num_distance = distance_arr.length;
 	var freq_khz_str = Math.floor(freq_mhz * 100 + 0.5) * 10 + '';
+	freq_khz_str = freq_mhz
 	var field_arr = gwave_field[freq_khz_str];
 	var conductivity_arr = [];
 	for (var key in field_arr) {
@@ -1327,44 +1328,44 @@ var amField = function(conductivity, dielectric, freq_mhz, distance, fs1km) {
 
 var amFieldFromFormula = function(sigma, epsilon, freq_mhz, distance, fs1km) {
 
-var startTime = new Date().getTime();
-var i_method, A;
+	var startTime = new Date().getTime();
+	var i_method, A;
 
-var radius_factor = 1.333333;  // 4/3 four-thirds earth
-var dist_critical = 80 * Math.pow(radius_factor, 0.6667) / Math.pow( freq_mhz, 0.3333);
+	var radius_factor = 1.333333;  // 4/3 four-thirds earth
+	var dist_critical = 80 * Math.pow(radius_factor, 0.6667) / Math.pow( freq_mhz, 0.3333);
 
-var gwcon = gwconst(sigma, epsilon, freq_mhz, radius_factor, distance);
-//console.log(gwcon)
+	var gwcon = gwconst(sigma, epsilon, freq_mhz, radius_factor, distance);
+	//console.log(gwcon)
 
-i_method = 1;
-if (distance > dist_critical) {
-	i_method = 2;
-}
+	i_method = 1;
+	if (distance > dist_critical) {
+		i_method = 2;
+	}
 
-//console.log('i_method=', i_method);
+	//console.log('i_method=', i_method);
 
-if (i_method === 1) {
-	A = surface(gwcon.P, gwcon.B, gwcon.K);
-}
-else {
-	var PSI = 0.5 * gwcon.B;
-	A = residues(gwcon.CHI, gwcon.K, PSI)
-}
+	if (i_method === 1) {
+		A = surface(gwcon.P, gwcon.B, gwcon.K);
+	}
+	else {
+		var PSI = 0.5 * gwcon.B;
+		A = residues(gwcon.CHI, gwcon.K, PSI)
+	}
 
-var mvm = fs1km * A / distance;
+	var mvm = fs1km * A / distance;
 
-var endTime = new Date().getTime();
-var dt = endTime - startTime;
+	var endTime = new Date().getTime();
+	var dt = endTime - startTime;
 
-console.log("field: " + mvm + " time: " + dt);
+	console.log("field: " + mvm + " time: " + dt);
 
-return mvm;
+	return mvm;
 
 }
 
 
 var amDistance = function(conductivity, dielectric, freq, field, fs1km) {
-
+	// fs1km = inverse distance field strength of 100 mV/m at 1km
 	//console.log('in amDistance');
 	var startTime = new Date().getTime();
 	var dist, f, f1, f2;

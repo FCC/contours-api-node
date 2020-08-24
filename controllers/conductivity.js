@@ -120,8 +120,7 @@ var getLatLonFromDist = function(lat1, lon1, az, d) {
 }
 
 var findIntersects = function(line, callback) {
-	// The table name is changed from conductivity_m3 to conductivity_m3_new
-	var q = "SELECT * FROM " + CONTOURS_SCHEMA + ".conductivity_m3_new WHERE ST_Intersects(geom, " + line + ")";
+	var q = "SELECT * FROM " + CONTOURS_SCHEMA + ".conductivity WHERE ST_Intersects(geom, " + line + ")";
 	
 	//console.log(q)
 	
@@ -136,8 +135,7 @@ var findIntersects = function(line, callback) {
 
 
 var findIntersection = function (line, seg) {return function(callback) {
-	// The table name is changed from conductivity_m3 to conductivity_m3_new
-	var q = "SELECT ST_AsGeoJSON(ST_Intersection(geom, " + line + ")) as data FROM " + CONTOURS_SCHEMA + ".conductivity_m3_new " +
+	var q = "SELECT ST_AsGeoJSON(ST_Intersection(geom, " + line + ")) as data FROM " + CONTOURS_SCHEMA + ".conductivity " +
 			"WHERE seg_id = " + seg.seg_id;
 			
 	db_contour.any(q)
@@ -549,15 +547,6 @@ var adjustRadials = function(cond, n) {
 module.exports.selectConductivity = selectConductivity;
 module.exports.getConductivity = getConductivity;
 module.exports.fetchConductivity = fetchConductivity;
-
-
-
-
-
-
-
-
-
-
-
-
+module.exports.getDistFromLatLon = getDistFromLatLon;
+module.exports.getLatLonFromDist = getLatLonFromDist;
+module.exports.createLine = createLine;

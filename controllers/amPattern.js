@@ -1556,7 +1556,12 @@ function getLatLonFromDist(lat1, lon1, az, d) {
 }
 
 var cal_equivalent_distance = function(zones, field, freq, power) {
-
+	console.log('\nin cal_equivalent_distance')
+	console.log(`zones= `)
+	console.log(zones)
+	console.log(`field= ${field}`)
+	console.log(`freq= ${freq}`)
+	console.log(`power= ${power}`)
 	var dist_to_required_field = [];
 	var dist_to_break = [];
 	var field_at_break = [];
@@ -1567,42 +1572,42 @@ var cal_equivalent_distance = function(zones, field, freq, power) {
 	var zone_number = 0;
 	var isDone = false;
 	
-	//console.log('start while loop')
+	console.log('start while loop')
 	
 	while(!isDone) {
-		//console.log('zone_number', zone_number)
+		console.log('zone_number', zone_number)
 		if (zone_number == 0) {
-			//console.log('inside 1')
+			console.log('inside 1')
 			dist_delta[zone_number] = 0
-			//console.log('inside 2')
-			dist_to_required_field.push(gwave.amDistance(zones[zone_number].conductivity, 15, freq, field, power));
-			//console.log('inside 3')
+			console.log('inside 2')
+			dist_to_required_field.push(gwave.amDistance(zones[zone_number].conductivity, 0, freq, field, power));
+			console.log('inside 3')
 			dist_to_break.push(zones[zone_number].distance);
-			//console.log('cond=', zones[zone_number].conductivity, 'freq', freq, 'field', field, 'power', power)
-			field_at_break.push(gwave.amField(zones[zone_number].conductivity, 15, freq, dist_to_break[zone_number], power));
+			console.log('cond=', zones[zone_number].conductivity, 'freq', freq, 'field', field, 'power', power)
+			field_at_break.push(gwave.amField(zones[zone_number].conductivity, 0, freq, dist_to_break[zone_number], power));
 			dist_to_previous_field.push(0);
-			//console.log('field_at_break', field_at_break[zone_number])
+			console.log('field_at_break', field_at_break[zone_number])
 			//field_at_break.push(
 		}
 		else {
-			dist_to_previous_field_0 = gwave.amDistance(zones[zone_number].conductivity, 15, freq, field_at_break[zone_number-1], power)
+			dist_to_previous_field_0 = gwave.amDistance(zones[zone_number].conductivity, 0, freq, field_at_break[zone_number-1], power)
 			dist_to_previous_field.push(dist_to_previous_field_0);
 			dist_delta.push(dist_to_previous_field[zone_number] - dist_to_break[zone_number-1]);
 			dist_to_break.push(zones[zone_number].distance + mathjs.sum(dist_delta));
-			field_at_break.push(gwave.amField(zones[zone_number].conductivity, 15, freq, dist_to_break[zone_number], power));
-			//console.log('dist_to_previous_field', dist_to_previous_field[zone_number], 'dist_to_break', dist_to_break[zone_number-1], 'dist_delta',dist_delta[zone_number], 'field_at_break', field_at_break[zone_number] )
-			dist_to_required_field.push(gwave.amDistance(zones[zone_number].conductivity, 15, freq, field, power));
+			field_at_break.push(gwave.amField(zones[zone_number].conductivity, 0, freq, dist_to_break[zone_number], power));
+			console.log('dist_to_previous_field', dist_to_previous_field[zone_number], 'dist_to_break', dist_to_break[zone_number-1], 'dist_delta',dist_delta[zone_number], 'field_at_break', field_at_break[zone_number] )
+			dist_to_required_field.push(gwave.amDistance(zones[zone_number].conductivity, 0, freq, field, power));
 		}
-		//console.log('field_at_break', field_at_break)
-		//console.log('dist_to_previous_field', dist_to_previous_field)
-		//console.log('dist_delta', dist_delta)
-		//console.log('dist_to_break', dist_to_break)
+		console.log('field_at_break', field_at_break)
+		console.log('dist_to_previous_field', dist_to_previous_field)
+		console.log('dist_delta', dist_delta)
+		console.log('dist_to_break', dist_to_break)
 		
-		//console.log('zone', zone_number, 'dist_to_required_field',dist_to_required_field[zone_number], 'dist_to_previous_field', dist_to_previous_field[zone_number], 'dist_delta', dist_delta[zone_number], 'dist_to_break', dist_to_break[zone_number], 'field_at_break', field_at_break[zone_number]);
+		console.log('zone', zone_number, 'dist_to_required_field',dist_to_required_field[zone_number], 'dist_to_previous_field', dist_to_previous_field[zone_number], 'dist_delta', dist_delta[zone_number], 'dist_to_break', dist_to_break[zone_number], 'field_at_break', field_at_break[zone_number]);
 		if (field_at_break[zone_number] <= field) {
 			var distance = dist_to_required_field[zone_number] - mathjs.sum(dist_delta) ;
 			
-			//console.log('distance=', distance)
+			console.log('distance=', distance)
 			isDone = true;
 		}
 		else {
@@ -1614,6 +1619,8 @@ var cal_equivalent_distance = function(zones, field, freq, power) {
 		}
 	}
 	distance = Math.floor(distance*10 + 0.5)/10;
+
+	console.log(`dist= ${distance}`)
 	
 	return distance;		
 }
@@ -1655,3 +1662,4 @@ module.exports.congen = congen;
 module.exports.getAmPattern = getAmPattern;
 module.exports.getAmContour = getAmContour;
 module.exports.amContour = amContour;
+module.exports.calEquivDistance = cal_equivalent_distance;

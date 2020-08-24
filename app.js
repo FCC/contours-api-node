@@ -3,7 +3,6 @@
 'use strict';
 
 // **********************************************************
-// require 
 
 var http = require("http");
 var https = require("https");
@@ -719,7 +718,7 @@ function getCoverageData(req, res, success) {
     console.log('app getCoverageData');
     try {
         contours.getContours(req, res, function(data){
-            console.log('app getCoverageData data='+data);
+            // console.log(`app getCoverageData data=${JSON.stringify(data)}`);
             if(data){
                 return success(null, data);    
             }

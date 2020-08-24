@@ -5,7 +5,7 @@
     var APIResponse = require('./apiResponse.js');
 
     var APIForm = {
-        bindEvents: function() {            
+        bindEvents: function() {
             $('#apiType').on('change', APIForm.switchForm);
 
             $(window).keydown(function(event) {
@@ -37,7 +37,7 @@
             $('label[for="idValue"]').text('Facility ID');
             $('label[for="channel"]').attr('required', true);
 
-            $('#apiType').val(selectedAPI);           
+            $('#apiType').val(selectedAPI);
 
             APIResponse.clear();
             Map.clearLayers();
@@ -45,23 +45,23 @@
         },
         showError: function(data) {
             var errMsg = '';
-            
+
             try {
-                errMsg = data.responseJSON.features[0].properties.statusMessage;            
+                errMsg = data.responseJSON.features[0].properties.statusMessage;
             } catch(e) {
                 errMsg = data.responseJSON.statusMessage;
-            }        
+            }
 
             $('#modal-loading').modal('hide');
 
             $('.alert').hide('fast');
 
             $('#txt-error')
-                .empty()              
+                .empty()
                 .text(errMsg);
 
             $('.alert').slideDown();
-            
+
             Map.clearLayers();
         }
     };

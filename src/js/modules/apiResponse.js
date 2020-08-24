@@ -21,7 +21,7 @@
                 .removeClass('hide');
         },
 
-        clear: function() {   
+        clear: function() {
             $('.apiResponse__out code').text('');
             $('.apiResponse__dwnld').addClass('hide');
         }

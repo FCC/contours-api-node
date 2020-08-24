@@ -99,8 +99,8 @@ module.exports = function (grunt) {
         // Bundle Bootstrap plugins
     concat: {
       pluginsjs: {
-        src: [                    
-          'node_modules/bootstrap/js/modal.js'                    
+        src: [
+          'node_modules/bootstrap/js/modal.js'
         ],
         dest: './public/js/vendor/bootstrap.min.js'
       }

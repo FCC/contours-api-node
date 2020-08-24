@@ -185,13 +185,13 @@ function getContours(req, res, callback) {
             return callback(returnJson);
         }
 
-        if (!field.match(/^-?\d+\.?\d*$/)) {
-            dataObj.statusMessage = 'Invalid dbu value.';
-            returnError(dataObj, function (ret) {
-                returnJson = GeoJSON.parse(ret, {});
-            });
-            return callback(returnJson);
-        }
+        // if (!field.match(/^-?\d+\.?\d*$/)) {
+        //     dataObj.statusMessage = 'Invalid field value.';
+        //     returnError(dataObj, function (ret) {
+        //         returnJson = GeoJSON.parse(ret, {});
+        //     });
+        //     return callback(returnJson);
+        // }
 
         field = parseFloat(field);
 
@@ -627,7 +627,7 @@ function getContours(req, res, callback) {
 
             // get cond at origin
             var q = "with pt as (select st_geomfromtext('POINT(" + lon + " " + lat + ")', 4326) as geom) select conductivity from contour.conductivity c, pt where st_intersects(c.geom, pt.geom)";
-            console.log(q)
+            // console.log(q)
             db_contour.one(q)
                 .then(cond => {
                     if (cond) {
@@ -655,9 +655,9 @@ function getContours(req, res, callback) {
                                 var line = conductivity.createLine({'latStart': lat, 'lonStart': lon, 'azimuth': az, 'distance': 2000}); // hard code dist to 2000?
                                 line = "ST_GeomFromText('LineString(" + line + ")', 4326)";
 
-                                if (az == 0) {
-                                    console.log(line)
-                                }
+                                // if (az == 0) {
+                                //     console.log(line)
+                                // }
 
                                 var q = "select " + az + " as az, " + rad + " as fs1km, st_astext((st_dump(foo.st_intersection)).geom) as wkt," +
                                   "st_x(st_endpoint((st_dump(foo.st_intersection)).geom)) as start_lon," +
@@ -773,6 +773,8 @@ function getContours(req, res, callback) {
 
                                                 dataObj.conductivity = zones; //todo fix
                                                 dataObj.distances = distances;
+                                                dataObj.antenna_lat = lat;
+                                                dataObj.antenna_lon = lon;
 
                                                 dataObj.coordinates = [[coordinates]];
                                                 GeoJSON.defaults = {
@@ -780,7 +782,7 @@ function getContours(req, res, callback) {
                                                 };
                                                 returnJson = GeoJSON.parse([dataObj], {
                                                     MultiPolygon: 'coordinates',
-                                                    include: ['status', 'statusCode', 'statusMessage', 'inputData', 'conductivity', 'distances']
+                                                    include: ['status', 'statusCode', 'statusMessage', 'inputData', 'conductivity', 'distances', 'antenna_lat', 'antenna_lon']
                                                 });
                                                 // console.log(JSON.stringify(returnJson))
                                                 return callback(returnJson)

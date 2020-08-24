@@ -14,7 +14,7 @@ var errLon = {
     range: 'Longitude value is out of range (-180 < lon < 180).'
 };
 
-function latMissing(latitude) { 
+function latMissing(latitude) {
     if (latitude === undefined) {
         return true;
     }

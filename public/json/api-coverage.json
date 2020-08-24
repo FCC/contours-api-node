@@ -67,7 +67,7 @@
                     "default": ""
                 }, {
                     "name": "field",
-                    "x-label": "Field Strength (TV/FM - dBu; AM - mV/m)",
+                    "x-label": "Field Strength",
                     "x-display": true,
                     "in": "query",
                     "description": "field strength (dBu)",

@@ -610,7 +610,11 @@ function getContours(req, res, callback) {
             }
 
             if (!rms) {
-                rms = '' // default
+                dataObj.statusMessage = 'Missing rms parameter.';
+                returnError(dataObj, function (ret) {
+                    returnJson = GeoJSON.parse(ret, {});
+                });
+                return callback(returnJson);
             }
 
             var data = {};
@@ -640,9 +644,9 @@ function getContours(req, res, callback) {
                                 var az = pattern[i][0];
                                 var rad = pattern[i][1];
 
-                                // if (nonDirectional) {
-                                //     rad = rad * Math.sqrt(power/1);
-                                // }
+                                if (rms === 'theoretical') {
+                                    rad = rad * Math.sqrt(power/1);
+                                }
 
                                 // console.log(`rad= ${rad}`)
                                 // console.log(`field= ${field}`)

@@ -7,14 +7,14 @@
     "basePath": "/api/contours",
     "tags": [{
         "name": "coverage",
-        "description": "get service contour for TV and FM"
+        "description": "get service contour for TV, FM, and AM"
     }],
     "paths": {
         "/coverage.{format}": {
             "get": {
                 "tags": ["coverage"],
                 "summary": "Get Contour by Service Type",
-                "description": "Get contour based on serviceType (FM, TV). Response returned in GeoJSON, JSONP, Shapefile, KML, GML, CSV.",
+                "description": "Get contour based on serviceType (TV, FM, AM). Response returned in JSON format.",
                 "parameters": [{
                     "name": "serviceType",
                     "x-label": "Service Type",

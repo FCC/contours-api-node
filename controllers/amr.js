@@ -12,15 +12,6 @@ if (NODE_ENV == 'DEV' || NODE_ENV == 'LOCAL') {
 	var CONTEXT_PATH = '';
 }
 
-//var PG_DB = process.env.CONTOURS_PG;
-//var pg_schema = process.env.CONTOURS_SCHEMA;
-
-//db
-//var pg_query = require('pg-query');
-//pg_query.connectionParameters = PG_DB;
-
-
-
 var http = require('http');
 var https = require('https');
 var async = require('async');

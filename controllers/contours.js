@@ -4,27 +4,12 @@
 
 // **********************************************************
 
-var dotenv = require('dotenv').load();
-var NODE_ENV = process.env.NODE_ENV;
 var NODE_PORT = process.env.PORT;
-var host = process.env.HOST;
-var geo_host = process.env.GEO_HOST;
-var geo_space = process.env.GEO_SPACE;
-var EFS_ELEVATION_DATASET = process.env.EFS_ELEVATION_DATASET;
-
-var CONTEXT_PATH = process.env.CONTEXT_PATH || 'api/contours/';
-if (NODE_ENV === 'DEV' || NODE_ENV === 'LOCAL') {
-    CONTEXT_PATH = '';
-}
-
-var fs = require('fs');
-var request = require('request');
 
 var GeoJSON = require('geojson');
 var math = require('mathjs');
 
 var haat = require('./haat.js');
-var distance = require('./distance.js');
 var tvfm_curves = require('./tvfm_curves.js');
 var area = require('./area.js');
 var population = require('./population.js');
@@ -34,13 +19,9 @@ var gwave = require('./gwave');
 var db_contour = require('./db_contour');
 var amPattern = require('./amPattern');
 
-var data_dir = EFS_ELEVATION_DATASET;
-
-var startTime;
-
 
 function getContours(req, res, callback) {
-    var dataObj = new Object;
+    var dataObj = {};
     dataObj['status'] = 'error';
     dataObj['statusCode'] = '400';
     dataObj['statusMessage'] = '';
@@ -197,7 +178,7 @@ function getContours(req, res, callback) {
 
         if (pattern !== undefined) {
             if (parseInt(pattern.split(';').length) < 8) {
-                dataObj.statusMessage = 'Pattern  provided has too few radials must contain at least 8.';
+                dataObj.statusMessage = 'Pattern provided has too few radials. Must contain at least 8.';
                 returnError(dataObj, function (ret) {
                     returnJson = GeoJSON.parse(ret, {});
                 });
@@ -344,20 +325,17 @@ function getContours(req, res, callback) {
             }
 
             var hostname = req.hostname;
-            if (hostname === "localhost" || hostname === "127.0.0.1") {
-                hostname = hostname + ":" + NODE_PORT;
+            if (hostname === 'localhost' || hostname === '127.0.0.1') {
+                hostname = hostname + ':' + NODE_PORT;
             }
             console.log(`req.protocol: ${req.protocol}`);
 
-            var root_url = req.protocol + "://" + hostname;
-
             //get haat
-            //var url = root_url + "/" + CONTEXT_PATH + "haat.json?lat=" + lat + "&lon=" + lon + "&rcamsl=" + rcamsl + "&nradial=" + nradial + "&src=" + src + "&unit=" + unit + '&outputcache=false';
-            var haat_url = "haat.json?lat=" + lat + "&lon=" + lon + "&rcamsl=" + rcamsl + "&nradial=" + nradial + "&src=" + src + "&unit=" + unit;
+            var haat_url = 'haat.json?lat=' + lat + '&lon=' + lon + '&rcamsl=' + rcamsl + '&nradial=' + nradial + '&src=' + src + '&unit=' + unit;
 
             console.log('calling HAAT with req=' + haat_url);
 
-            var haat_req = new Object;
+            var haat_req = {};
             haat_req['url'] = haat_url;
 
             haat.getHAAT(haat_req, res, function (haat_data) {
@@ -367,7 +345,7 @@ function getContours(req, res, callback) {
                     console.log('data returned from HAAT');
                     console.log('statusCode=' + haat_data.features[0].properties.statusCode);
 
-                    if (haat_data.features[0].properties.statusCode + '' !== "200") {
+                    if (haat_data.features[0].properties.statusCode + '' !== '200') {
                         console.log('HAAT error: ' + haat_data.features[0].properties.statusMessage);
                         dataObj.statusMessage = haat_data.features[0].properties.statusMessage;
                         returnError(dataObj, function (ret) {
@@ -378,7 +356,6 @@ function getContours(req, res, callback) {
 
                     console.log('after status check');
 
-                    var dist_arr = [];
                     var dist;
                     var azimuth;
                     var relativeField;
@@ -433,15 +410,15 @@ function getContours(req, res, callback) {
                         coordinates.push([math.round(latlon[1], 10), math.round(latlon[0], 10)]);
 
                         contourData.push({
-                            "x": math.round(latlon[1], 6),
-                            "y": math.round(latlon[0], 6),
-                            "z": 0,
-                            "distance": math.round(dist, 4),
-                            "haat": haat,
-                            "erp": erp,
-                            "ERPincludingRelativeField": ERPincludingRelativeField,
-                            "relativeField": relativeField,
-                            "azimuth": azimuth
+                            'x': math.round(latlon[1], 6),
+                            'y': math.round(latlon[0], 6),
+                            'z': 0,
+                            'distance': math.round(dist, 4),
+                            'haat': haat,
+                            'erp': erp,
+                            'ERPincludingRelativeField': ERPincludingRelativeField,
+                            'relativeField': relativeField,
+                            'azimuth': azimuth
                         });
 
                     }
@@ -454,11 +431,9 @@ function getContours(req, res, callback) {
                     endTime = new Date().getTime();
 
                     if (coordinates.length > 0) {
-
                         dataObj.status = 'success';
                         dataObj.statusCode = '200';
                         dataObj.statusMessage = 'ok';
-
                         dataObj.coordinates = coordinates;
                         dataObj.antenna_lat = lat;
                         dataObj.antenna_lon = lon;
@@ -473,18 +448,14 @@ function getContours(req, res, callback) {
                         dataObj.elevation_data_source = haat_data.features[0].properties.elevation_data_source;
                         dataObj.elapsed_time = endTime - startTime;
                         dataObj.contourData = contourData;
-                        /*dataObj.crs = {"type": "EPSG",
-                                            "properties": {
-                                                "code": "4326"
-                                        }};*/
 
-                        var geom = JSON.stringify({"type": "MultiPolygon", "coordinates": coordinates});
+                        var geom = JSON.stringify({'type': 'MultiPolygon', 'coordinates': coordinates});
 
-                        console.log('areaFlag', areaFlag)
+                        console.log('areaFlag', areaFlag);
                         if (areaFlag === 'true') {
                             area.getArea(geom, function (error, response) {
                                 if (error) {
-                                    console.log("Area API error: ", error)
+                                    console.log('Area API error: ', error);
                                     dataObj.area = -999;
                                     dataObj.area_unit = response.area_unit;
                                 } else {
@@ -514,7 +485,6 @@ function getContours(req, res, callback) {
                                         });
 
                                         callback(return_json);
-
                                     });
                                 } else {
                                     console.log('output dataObj=' + dataObj);
@@ -555,7 +525,6 @@ function getContours(req, res, callback) {
                                     });
 
                                     callback(return_json);
-
                                 });
                             } else {
                                 console.log('output dataObj=' + dataObj);
@@ -582,7 +551,6 @@ function getContours(req, res, callback) {
                     });
                     return callback(returnJson);
                 }
-
             });
 
         } else if (serviceType === 'am') {
@@ -623,23 +591,25 @@ function getContours(req, res, callback) {
             pattern = pattern.map(n => {
                 return n.split(',');
             });
-            // var nonDirectional = pattern.map(n => { return n[1]; }).every((val, i, arr) => val === arr[0]);
-            // console.log(`non-directional= ${nonDirectional}`);
+
+            var nonDirectional = pattern.map(n => { return n[1]; }).every((val, i, arr) => val === arr[0]);
+            console.log(`non-directional= ${nonDirectional}`);
 
             //convert freq khz to mhz
             frequency = frequency / 1000;
 
             // get cond at origin
-            var q = "with pt as (select st_geomfromtext('POINT(" + lon + " " + lat + ")', 4326) as geom) select conductivity from contour.conductivity c, pt where st_intersects(c.geom, pt.geom)";
+            var q = `with pt as (select st_geomfromtext('POINT(` + lon + ` ` + lat + `)', 4326) as geom) select conductivity from contour.conductivity c, pt where st_intersects(c.geom, pt.geom)`;
             // console.log(q)
             db_contour.one(q)
                 .then(cond => {
                     if (cond) {
                         try {
                             var c = cond.conductivity;
-                            console.log(`cond= ${c}`)
+                            console.log(`cond= ${c}`);
 
                             var queries = [];
+                            var outputData = [];
                             for (var i = 0; i < pattern.length; i++) {
                                 var az = pattern[i][0];
                                 var rad = pattern[i][1];
@@ -657,26 +627,26 @@ function getContours(req, res, callback) {
 
                                 // find conductivities
                                 var line = conductivity.createLine({'latStart': lat, 'lonStart': lon, 'azimuth': az, 'distance': 2000}); // hard code dist to 2000?
-                                line = "ST_GeomFromText('LineString(" + line + ")', 4326)";
+                                line = `ST_GeomFromText('LineString(` + line + `)', 4326)`;
 
                                 // if (az == 0) {
                                 //     console.log(line)
                                 // }
 
-                                var q = "select " + az + " as az, " + rad + " as fs1km, st_astext((st_dump(foo.st_intersection)).geom) as wkt," +
-                                  "st_x(st_endpoint((st_dump(foo.st_intersection)).geom)) as start_lon," +
-                                  "st_y(st_endpoint((st_dump(foo.st_intersection)).geom)) as start_lat," +
-                                  "foo.id," +
-                                  "foo.conductivity " +
-                                  "from (with line as (select " + line + " as geom) " +
-                                  "select st_intersection(cond.geom, line.geom), * " +
-                                  "from contour.conductivity cond, line " +
-                                  "where st_intersects(cond.geom, line.geom)) as foo";
+                                var q = `select ` + az + ` as az, ` + rad + ` as fs1km, st_astext((st_dump(foo.st_intersection)).geom) as wkt,` +
+                                  `st_x(st_endpoint((st_dump(foo.st_intersection)).geom)) as start_lon,` +
+                                  `st_y(st_endpoint((st_dump(foo.st_intersection)).geom)) as start_lat,` +
+                                  `foo.id,` +
+                                  `foo.conductivity ` +
+                                  `from (with line as (select ` + line + ` as geom) ` +
+                                  `select st_intersection(cond.geom, line.geom), * ` +
+                                  `from contour.conductivity cond, line ` +
+                                  `where st_intersects(cond.geom, line.geom)) as foo`;
 
                                 //   console.log(q)
                                 //   console.log('\n')
 
-                                queries.push(q)
+                                queries.push(q);
                             }
 
                             var qArray = queries.join('; ');
@@ -696,12 +666,13 @@ function getContours(req, res, callback) {
                                                         var cond = i['conductivity'];
                                                         var fs1km = i['fs1km'];
                                                         var dist = conductivity.getDistFromLatLon(lat1, lon1, lat2, lon2);
-                                                        data[i['az']]['cond'].push({'az': i['az'], 'fs1km': fs1km, 'distance': dist, 'conductivity': cond, 'lat': lat2, 'lon': lon2})
+                                                        data[i['az']]['cond'].push({'az': i['az'], 'fs1km': fs1km, 'distance': dist, 'conductivity': cond, 'lat': lat2, 'lon': lon2});
                                                     }
-                                                })
+                                                });
                                             });
 
                                             var coordinates = [];
+                                            var zones = [];
                                             var latlon_1st;
                                             var distances = {};
                                             for (var d in data) {
@@ -709,14 +680,14 @@ function getContours(req, res, callback) {
                                                 console.log(`\n================== azimuth ${az} =====================`);
                                                 var conds = [];
                                                 for (var c in data[d]['cond']) {
-                                                    conds.push(data[d]['cond'][c]['conductivity'])
+                                                    conds.push(data[d]['cond'][c]['conductivity']);
                                                 }
 
                                                 // console.log(`conductivities:`);
                                                 // console.log(conds);
 
                                                 if (conds.includes(null)) {
-                                                    console.log('ERROR= null cond found')
+                                                    console.log('ERROR= null cond found');
                                                 }
                                                 if (conds.every((val, i, arr) => val === arr[0])) {
                                                     console.log('conductivity zones= homogenous');
@@ -727,6 +698,7 @@ function getContours(req, res, callback) {
                                                     }
                                                     coordinates.push([math.round(latlon[1], 10), math.round(latlon[0], 10)]);
                                                     distances[az] = dist;
+                                                    outputData.push({'azimuth': az, 'conductivity_zones': [], 'distance': dist})
                                                 } else {
                                                     console.log('conductivity zones= multiple');
                                                     // order by ascending intersection
@@ -737,15 +709,14 @@ function getContours(req, res, callback) {
                                                     console.log('sections=');
                                                     console.log(sorted);
 
-                                                    var zones = []
                                                     sorted.forEach(d=> {
-                                                        zones.push({'conductivity': parseFloat(d.conductivity), 'distance': d.distance})
-                                                    })
+                                                        zones.push({'conductivity': parseFloat(d.conductivity), 'distance': d.distance});
+                                                    });
 
-                                                    var rad = data[d]['fs1km']
+                                                    var rad = data[d]['fs1km'];
 
                                                     var ed = amPattern.calEquivDistance(zones, field, frequency, rad);
-                                                    console.log(ed)
+                                                    console.log(ed);
 
                                                     var ed_latlon = conductivity.getLatLonFromDist(lat, lon, az, ed);
                                                     console.log(`\n*************** equiv dist= ${ed}`);
@@ -755,6 +726,7 @@ function getContours(req, res, callback) {
                                                     }
                                                     coordinates.push([math.round(ed_latlon[1], 10), math.round(ed_latlon[0], 10)]);
                                                     distances[az] = ed;
+                                                    outputData.push({'azimuth': az, 'conductivity_zones': zones, 'distance': ed});
                                                 }
                                             }
                                             // close
@@ -764,7 +736,6 @@ function getContours(req, res, callback) {
                                                 dataObj.status = 'success';
                                                 dataObj.statusCode = '200';
                                                 dataObj.statusMessage = 'ok';
-
                                                 dataObj.inputData.serviceType = req.query.serviceType;
                                                 dataObj.inputData.lat = req.query.lat;
                                                 dataObj.inputData.lon = req.query.lon;
@@ -772,11 +743,10 @@ function getContours(req, res, callback) {
                                                 dataObj.inputData.field = req.query.field;
                                                 dataObj.inputData.power = req.query.power;
                                                 dataObj.inputData.nradial = req.query.nradial;
-                                                dataObj.inputData.pattern = pattern;
+                                                dataObj.inputData.pattern = req.query.pattern;
                                                 dataObj.inputData.rms = req.query.rms;
 
-                                                dataObj.conductivity = zones; //todo fix
-                                                dataObj.distances = distances;
+                                                dataObj.outputData = outputData;
                                                 dataObj.antenna_lat = lat;
                                                 dataObj.antenna_lon = lon;
 
@@ -786,19 +756,19 @@ function getContours(req, res, callback) {
                                                 };
                                                 returnJson = GeoJSON.parse([dataObj], {
                                                     MultiPolygon: 'coordinates',
-                                                    include: ['status', 'statusCode', 'statusMessage', 'inputData', 'conductivity', 'distances', 'antenna_lat', 'antenna_lon']
+                                                    include: ['status', 'statusCode', 'statusMessage', 'inputData', 'outputData', 'antenna_lat', 'antenna_lon']
                                                 });
                                                 // console.log(JSON.stringify(returnJson))
-                                                return callback(returnJson)
+                                                return callback(returnJson);
                                             }
 
                                         } catch (err) {
-                                            console.log(err)
+                                            console.log(err);
                                         }
                                     }
-                                })
+                                });
                         } catch (err) {
-                            console.log(err)
+                            console.log(err);
                         }
                     }
                 });
@@ -926,5 +896,4 @@ function rotatePattern(data, ant_rotation) {
 }
 
 
-//module.exports.elevation = elevation;
 module.exports.getContours = getContours;

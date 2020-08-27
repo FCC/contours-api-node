@@ -672,7 +672,6 @@ function getContours(req, res, callback) {
                                             });
 
                                             var coordinates = [];
-                                            var zones = [];
                                             var latlon_1st;
                                             var distances = {};
                                             for (var d in data) {
@@ -706,9 +705,11 @@ function getContours(req, res, callback) {
                                                         return a['distance'] - b['distance'];
                                                     });
 
-                                                    console.log('sections=');
-                                                    console.log(sorted);
-
+                                                    if (az === 0) {
+                                                        console.log('sections=');
+                                                        console.log(sorted);
+                                                    }
+                                                    var zones = [];
                                                     sorted.forEach(d=> {
                                                         zones.push({'conductivity': parseFloat(d.conductivity), 'distance': d.distance});
                                                     });

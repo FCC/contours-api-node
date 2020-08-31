@@ -176,7 +176,7 @@ app.param('uuid', function(req, res, next, uuid) {
     } else {
         return next();
     }
-})
+});
 
 app.param('ext', function(req, res, next, ext) {
     // check format of id

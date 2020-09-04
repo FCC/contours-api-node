@@ -693,16 +693,17 @@ function getContours(req, res, callback) {
                                             var coordinates = [];
                                             var latlon_1st;
                                             var distances = {};
+                                            var count = 0;
                                             for (var d in data) {
                                                 var az = d;
-                                                console.log(`\n================== azimuth ${az} =====================`);
+                                                console.log(`\n======================================= azimuth ${az} ==========================================`);
                                                 var conds = [];
                                                 for (var c in data[d].cond) {
                                                     conds.push(data[d].cond[c].conductivity);
                                                 }
 
-                                                // console.log(`conductivities:`);
-                                                // console.log(conds);
+                                                console.log(`conductivities:`);
+                                                console.log(conds);
 
                                                 if (conds.includes(null)) {
                                                     console.log('ERROR= null cond found');
@@ -725,17 +726,21 @@ function getContours(req, res, callback) {
                                                     });
 
                                                     var zones = [];
-                                                    sorted.forEach(d => {
-                                                        zones.push({'conductivity': parseFloat(d.conductivity), 'distance': d.distance});
+                                                    sorted.forEach((d, i) => {
+                                                        var _d = d.distance;
+                                                        if (d.conductivity==='5000.0' && i+1===sorted.length) _d = 2000;
+                                                        zones.push({'conductivity': parseFloat(d.conductivity), 'distance': _d});
                                                     });
 
+                                                    console.log('zones=')
+                                                    console.log(zones)
                                                     var rad = data[d].fs1km;
 
                                                     var ed = amPattern.calEquivDistance(zones, field, frequency, rad);
-                                                    console.log(ed);
+                                                    // console.log(ed);
 
                                                     var ed_latlon = conductivity.getLatLonFromDist(lat, lon, az, ed);
-                                                    console.log(`\n*************** equiv dist= ${ed}`);
+                                                    console.log(`\nequiv dist= ${ed}`);
                                                     console.log('\n');
                                                     if (parseInt(az) === 0) {
                                                         latlon_1st = ed_latlon;
@@ -747,11 +752,14 @@ function getContours(req, res, callback) {
                                                         'conductivity_zones': zones,
                                                         'distance': ed
                                                     };
+                                                    // console.log(az)
+                                                    // console.log(debugData[count])
                                                     if (debug) {
-                                                        outData.debug = debugData[parseInt(az)];
+                                                        outData.debug = debugData[count];
                                                     }
                                                     outputData.push(outData);
                                                     // outputData.push({'azimuth': az, 'conductivity_zones': zones, 'distance': ed});
+                                                    count += 1;
                                                 }
                                             }
                                             // close

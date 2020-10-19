@@ -552,6 +552,7 @@ function getContours(req, res, callback) {
             // var power = req.query.power;
             var rms = req.query.rms;
             var debug = req.query.debug === 'true';
+            var condSrc = req.query.conductivity_source;
 
             console.log(`debug= ${debug}`);
 
@@ -594,6 +595,22 @@ function getContours(req, res, callback) {
             pattern = pattern.map(n => {
                 return n.split(',');
             });
+
+            if (!condSrc) {
+                dataObj.statusMessage = 'Missing conductivity source.';
+                returnError(dataObj, function (ret) {
+                    returnJson = GeoJSON.parse(ret, {});
+                });
+                return callback(returnJson);
+            }
+
+            if (condSrc !== 'm3' || condSrc !== 'r2') {
+                dataObj.statusMessage = 'Invalid conductivity source. Must be either M3 or R2.';
+                returnError(dataObj, function (ret) {
+                    returnJson = GeoJSON.parse(ret, {});
+                });
+                return callback(returnJson);
+            }
 
             var nonDirectional = pattern.map(n => { return n[1]; }).every((val, i, arr) => val === arr[0]);
             console.log(`non-directional= ${nonDirectional}`);
@@ -655,7 +672,7 @@ function getContours(req, res, callback) {
                                             'title': az
                                         }
                                     };
-                                    if (az == 115) console.log(JSON.stringify(lineData['geometry']))
+                                    // if (az == 115) console.log(JSON.stringify(lineData['geometry']))
                                     debugData.push(lineData);
                                 }
 

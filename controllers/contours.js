@@ -597,14 +597,16 @@ function getContours(req, res, callback) {
             });
 
             if (!condSrc) {
-                dataObj.statusMessage = 'Missing conductivity source.';
+                dataObj.statusMessage = 'Missing conductivity source parameter.';
                 returnError(dataObj, function (ret) {
                     returnJson = GeoJSON.parse(ret, {});
                 });
                 return callback(returnJson);
             }
 
-            if (condSrc !== 'm3' || condSrc !== 'r2') {
+            condSrc = condSrc.toLowerCase();
+
+            if (['m3', 'r2'].indexOf(condSrc) < 0) {
                 dataObj.statusMessage = 'Invalid conductivity source. Must be either M3 or R2.';
                 returnError(dataObj, function (ret) {
                     returnJson = GeoJSON.parse(ret, {});
@@ -629,7 +631,6 @@ function getContours(req, res, callback) {
                     if (cond) {
                         try {
                             var c = cond.conductivity;
-                            // console.log(`cond= ${c}`);
 
                             var queries = [];
                             var outputData = [];

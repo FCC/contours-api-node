@@ -1618,7 +1618,7 @@ var cal_equivalent_distance = function(zones, field, freq, power) {
 			}
 		}
 	}
-	distance = Math.floor(distance*10 + 0.5)/10;
+	distance = Math.round(distance*100)/100;
 
 	// console.log(`dist= ${distance}`)
 

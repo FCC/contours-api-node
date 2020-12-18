@@ -4,8 +4,6 @@
 
 // **********************************************************
 
-var NODE_PORT = process.env.PORT;
-
 var GeoJSON = require('geojson');
 var math = require('mathjs');
 
@@ -22,9 +20,9 @@ var amPattern = require('./amPattern');
 
 function getContours(req, res, callback) {
     var dataObj = {};
-    dataObj['status'] = 'error';
-    dataObj['statusCode'] = '400';
-    dataObj['statusMessage'] = '';
+    dataObj.status = 'error';
+    dataObj.statusCode = '400';
+    dataObj.statusMessage = '';
     GeoJSON.defaults = {Point: ['lat', 'lon'], include: ['status', 'statusCode', 'statusMessage']};
     var returnJson;
 
@@ -330,7 +328,7 @@ function getContours(req, res, callback) {
             console.log('calling HAAT with req=' + haat_url);
 
             var haat_req = {};
-            haat_req['url'] = haat_url;
+            haat_req.url = haat_url;
 
             haat.getHAAT(haat_req, res, function (haat_data) {
                 // console.log('getHAAT data='+haat_data);
@@ -551,9 +549,10 @@ function getContours(req, res, callback) {
             // AM
             console.log(`====== coverage am =======`);
             var frequency = req.query.frequency;
-            var power = req.query.power;
+            // var power = req.query.power;
             var rms = req.query.rms;
             var debug = req.query.debug === 'true';
+            var condSrc = req.query.conductivity_source;
 
             console.log(`debug= ${debug}`);
 
@@ -567,13 +566,13 @@ function getContours(req, res, callback) {
                 return callback(returnJson);
             }
 
-            if (!power) {
-                dataObj.statusMessage = 'Missing power parameter.';
-                returnError(dataObj, function (ret) {
-                    returnJson = GeoJSON.parse(ret, {});
-                });
-                return callback(returnJson);
-            }
+            // if (!power) {
+            //     dataObj.statusMessage = 'Missing power parameter.';
+            //     returnError(dataObj, function (ret) {
+            //         returnJson = GeoJSON.parse(ret, {});
+            //     });
+            //     return callback(returnJson);
+            // }
 
             if (!rms) {
                 dataObj.statusMessage = 'Missing rms parameter.';
@@ -597,6 +596,24 @@ function getContours(req, res, callback) {
                 return n.split(',');
             });
 
+            if (!condSrc) {
+                dataObj.statusMessage = 'Missing conductivity source parameter.';
+                returnError(dataObj, function (ret) {
+                    returnJson = GeoJSON.parse(ret, {});
+                });
+                return callback(returnJson);
+            }
+
+            condSrc = condSrc.toLowerCase();
+
+            if (['m3', 'r2'].indexOf(condSrc) < 0) {
+                dataObj.statusMessage = 'Invalid conductivity source. Must be either M3 or R2.';
+                returnError(dataObj, function (ret) {
+                    returnJson = GeoJSON.parse(ret, {});
+                });
+                return callback(returnJson);
+            }
+
             var nonDirectional = pattern.map(n => { return n[1]; }).every((val, i, arr) => val === arr[0]);
             console.log(`non-directional= ${nonDirectional}`);
 
@@ -607,14 +624,13 @@ function getContours(req, res, callback) {
             frequency = frequency / 1000;
 
             // get cond at origin
-            var q = `with pt as (select st_geomfromtext('POINT(` + lon + ` ` + lat + `)', 4326) as geom) select conductivity from contour.conductivity c, pt where st_intersects(c.geom, pt.geom)`;
+            var q = `with pt as (select st_geomfromtext('POINT(` + lon + ` ` + lat + `)', 4326) as geom) select conductivity from contour.conductivity_v3 c, pt where st_intersects(c.geom, pt.geom)`;
             // console.log(q)
             db_contour.one(q)
                 .then(cond => {
                     if (cond) {
                         try {
                             var c = cond.conductivity;
-                            // console.log(`cond= ${c}`);
 
                             var queries = [];
                             var outputData = [];
@@ -622,9 +638,9 @@ function getContours(req, res, callback) {
                                 var az = pattern[i][0];
                                 var rad = pattern[i][1];
 
-                                if (rms === 'theoretical') {
-                                    rad = rad * Math.sqrt(power/1);
-                                }
+                                // if (rms === 'theoretical') {
+                                // rad = rad * Math.sqrt(power/1);
+                                // }
 
                                 // console.log(`rad= ${rad}`)
                                 // console.log(`field= ${field}`)
@@ -643,24 +659,35 @@ function getContours(req, res, callback) {
                                         var c = d.split(' ');
                                         lCoords.push([parseFloat(c[0]), parseFloat(c[1])]);
                                     });
+                                    // var lineData = {
+                                    //     'type': 'LineString',
+                                    //     'coordinates': lCoords
+                                    // };
                                     var lineData = {
-                                        'type': 'LineString',
-                                        'coordinates': lCoords
+                                        'type': 'Feature',
+                                        'geometry': {
+                                            'type': 'LineString',
+                                            'coordinates': lCoords
+                                        },
+                                        'properties': {
+                                            'title': az
+                                        }
                                     };
+                                    // if (az == 115) console.log(JSON.stringify(lineData['geometry']))
                                     debugData.push(lineData);
                                 }
 
                                 line = `ST_GeomFromText('LineString(` + line + `)', 4326)`;
 
                                 var q = `select ` + az + ` as az, ` + rad + ` as fs1km, st_astext((st_dump(foo.st_intersection)).geom) as wkt,` +
-                                  `st_x(st_endpoint((st_dump(foo.st_intersection)).geom)) as start_lon,` +
-                                  `st_y(st_endpoint((st_dump(foo.st_intersection)).geom)) as start_lat,` +
-                                  `foo.id,` +
-                                  `foo.conductivity ` +
-                                  `from (with line as (select ` + line + ` as geom) ` +
-                                  `select st_intersection(cond.geom, line.geom), * ` +
-                                  `from contour.conductivity cond, line ` +
-                                  `where st_intersects(cond.geom, line.geom)) as foo`;
+                                    `st_x(st_endpoint((st_dump(foo.st_intersection)).geom)) as start_lon,` +
+                                    `st_y(st_endpoint((st_dump(foo.st_intersection)).geom)) as start_lat,` +
+                                    `foo.id,` +
+                                    `foo.conductivity ` +
+                                    `from (with line as (select ` + line + ` as geom) ` +
+                                    `select st_intersection(cond.geom, line.geom), * ` +
+                                    `from contour.conductivity_v3 cond, line ` +
+                                    `where st_intersects(cond.geom, line.geom)) as foo`;
 
                                 //   console.log(q)
                                 //   console.log('\n')
@@ -707,6 +734,11 @@ function getContours(req, res, callback) {
 
                                                 if (conds.includes(null)) {
                                                     console.log('ERROR= null cond found');
+                                                    dataObj.statusMessage = 'Missing conductivity data.';
+                                                    returnError(dataObj, function (ret) {
+                                                        returnJson = GeoJSON.parse(ret, {});
+                                                    });
+                                                    return callback(returnJson);
                                                 }
                                                 if (conds.every((val, i, arr) => val === arr[0])) {
                                                     console.log('conductivity zones= homogenous');
@@ -728,12 +760,14 @@ function getContours(req, res, callback) {
                                                     var zones = [];
                                                     sorted.forEach((d, i) => {
                                                         var _d = d.distance;
-                                                        if (d.conductivity==='5000.0' && i+1===sorted.length) _d = 2000;
+                                                        if (parseInt(d.conductivity)===5000 && i+1===sorted.length) {
+                                                            _d = 2000;
+                                                        }
                                                         zones.push({'conductivity': parseFloat(d.conductivity), 'distance': _d});
                                                     });
 
-                                                    console.log('zones=')
-                                                    console.log(zones)
+                                                    console.log('zones=');
+                                                    console.log(zones);
                                                     var rad = data[d].fs1km;
 
                                                     var ed = amPattern.calEquivDistance(zones, field, frequency, rad);
@@ -777,7 +811,7 @@ function getContours(req, res, callback) {
                                                 dataObj.inputData.lon = req.query.lon;
                                                 dataObj.inputData.frequency = req.query.frequency;
                                                 dataObj.inputData.field = req.query.field;
-                                                dataObj.inputData.power = req.query.power;
+                                                // dataObj.inputData.power = req.query.power;
                                                 dataObj.inputData.nradial = req.query.nradial;
                                                 dataObj.inputData.pattern = req.query.pattern;
                                                 dataObj.inputData.rms = req.query.rms;
@@ -845,8 +879,8 @@ function getFullAntennaPattern(nradial, pattern) {
     var dum = pattern.split(';');
 
     for (i = 0; i < dum.length; i++) {
-    	var a = parseFloat(dum[i].split(',')[0]);
-    	var f = parseFloat(dum[i].split(',')[1]);
+        var a = parseFloat(dum[i].split(',')[0]);
+        var f = parseFloat(dum[i].split(',')[1]);
         if (!isNaN(a)) {
             azimuths.push(a);
         }

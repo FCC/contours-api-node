@@ -1364,6 +1364,8 @@ return mvm;
 
 
 var amDistance = function(conductivity, dielectric, freq, field, fs1km) {
+
+	//console.log('in amDistance');
 	var startTime = new Date().getTime();
 	var dist, f, f1, f2;
 	var dist1 = 1;

@@ -13,9 +13,9 @@
             var ajaxSuccess = function(data) {
                 if (data.features[0].properties.status === 'success') {
                     $('.alert').hide('fast');
-                    APIMap.createMarker(data);                    
+                    APIMap.createMarker(data);
                 } else {
-                    APIForm.showError(data);                    
+                    APIForm.showError(data);
                 }
 
                 APIResponse.display(data);

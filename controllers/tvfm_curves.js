@@ -869,6 +869,8 @@ function tvfmfs_metric(erp, haat, channel, field, distance, fs_or_dist, curve, f
 
                     flag[1] = 1;
 
+                    return field; // DB update 2/2/21
+
          	  }
 	      if ((curve == 0 && distance > 300.0) || (curve == 1 && distance > 500.0))
                   {

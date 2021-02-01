@@ -15,7 +15,7 @@
             "get": {
                 "tags": ["entity"],
                 "summary": "Get Contour by Service Type",
-                "description": "Get contour based on serviceType (AM, FM, TV), idType (callsign, applicationid, fileNumber, antennaid), and idValue. Response returned in JSON format.",
+                "description": "Get contour based on serviceType (AM, FM, TV), idType (callsign, applicationid, fileNumber, antennaid), and idValue. Response returned in GeoJSON, JSONP, Shapefile, KML, GML, CSV.",
                 "parameters": [{
                     "name": "serviceType",
                     "label": "Service Type",

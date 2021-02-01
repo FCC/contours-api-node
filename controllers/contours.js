@@ -635,8 +635,8 @@ function getFullAntennaPattern(nradial, pattern) {
     var dum = pattern.split(';');
 
     for (i = 0; i < dum.length; i++) {
-    	var a = parseFloat(dum[i].split(',')[0]);
-    	var f = parseFloat(dum[i].split(',')[1]);
+        var a = parseFloat(dum[i].split(',')[0]);
+        var f = parseFloat(dum[i].split(',')[1]);
         if (!isNaN(a)) {
             azimuths.push(a);
         }

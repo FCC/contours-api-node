@@ -869,6 +869,8 @@ function tvfmfs_metric(erp, haat, channel, field, distance, fs_or_dist, curve, f
 
                     flag[1] = 1;
 
+                    return field; // DB update 2/2/21
+
          	  }
 	      if ((curve == 0 && distance > 300.0) || (curve == 1 && distance > 500.0))
                   {
@@ -1189,14 +1191,19 @@ function tvfmfs_metric(erp, haat, channel, field, distance, fs_or_dist, curve, f
                       // Added 9/2004 to prevent free space distance from exceeding minimum curves distance of
                       // 1.5 km (to eliminate the discontinuity between the free space and curves values)
 
-                      if(distance >= 1.5) { distance = 1.5; flag[1] = 0; }
+                                                                              // Added 2/2/2021
+                      if(distance < 0.030) { flag[18]=1; distance = 0.030; }  // Use a distance of 0.030 km (roughly 1 second or 100 feet) for mapping, for very small predicted contours
+                                                                              // Comment this line out for other uses
+
+                      if(distance < 0.001) { distance = 0.001; }  // 1 meter distance minimum avoids zero distance
 
                       return distance;
                   }
              }
 
+  // i=1, next line, avoids overwriting the f[0] value, for very tiny contour calculations
 
-             for(i = 0; i < n_points; i++) // points i=0,1,2 covered by free space equation immediately above
+             for(i = 1; i < n_points; i++) // points i=0,1,2 covered by free space equation immediately above
               {
                   if(curve == 0 || curve == 1)
                   {
@@ -1221,6 +1228,27 @@ function tvfmfs_metric(erp, haat, channel, field, distance, fs_or_dist, curve, f
                    distance = (((f[i-1] - field) / (f[i-1] - f[i])) * (d[i] - d[i-1])) + d[i-1];
 
                    if (distance > d_last) flag[2] = 1;
+
+                   /*  At this point the distance result has been made using the F(50,50) or F(50,10) curves.
+                       But if the predicted distance is below 1.5 km, that calculation was extrapolated from the propagation curves.
+                       Instead, we should be using the free space equation.
+                       So we re-check to see if we need to recalculate the distance.  The next "if" section, added 2/2/2021, takes care of this.
+                   */
+
+                   if(distance < 1.5)  // then recompute using the free space equation
+                   {
+                      flag[1] = 1;
+                      e_volts_meter =  1.0e-6 * Math.pow(10,(field / 20.));
+                      distance = (7.014271e-3 * Math.sqrt(erp * 1000.)) / e_volts_meter;
+                   }
+
+                   // Tiny Contour distances will be set to 0.030 km for mapping purposes.
+                   // This avoids zero contour distances, and allows for a plottable contour polygon.
+                   if(distance < 0.030) flag[18]=1;  // Contour distance will be set to 0.030 km for mapping purposes
+                                                     // This can be commented out for other purposes
+
+                   if(distance < 0.001) distance = 0.001; // 1 meter avoids zero distance.
+
 
                    return distance;
                }
@@ -1255,7 +1283,7 @@ function tvfmfs_comment(i) {
     else if (i == 16) comment = "<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Maximum curve <b>distance</b> for interfering contours is limited to 500 km.<br>\n";
 
     else if (i == 17) comment = "<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;The 'Find ERP' calculation is not valid for the TV service.<br>\n";
-
+    else if (i == 18) comment = "<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;As the predicted distance is less than 0.030 km (30 meters),<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;a distance of 0.030 km should be used for plotting contours.<br>\n";
 
     else comment = "";
     return comment;

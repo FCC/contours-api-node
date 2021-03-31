@@ -165,7 +165,10 @@ app.get('/antenna.json', function(req,res){
 });
 
 app.get('/testing.json', function(req,res){
-    testing.getTesting(req,res);
+    // testing.getTesting(req,res);
+    res.status(200);
+    res.setHeader('Content-Type','application/json');
+    res.send(JSON.stringify({'updated': '2021/02/03'}));
 });
 //**********************************************************
 

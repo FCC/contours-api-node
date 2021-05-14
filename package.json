@@ -43,7 +43,7 @@
     "https": "^1.0.0",
     "is-integer": "^1.0.7",
     "istanbul": "^0.4.5",
-    "mathjs": "^3.5.0",
+    "mathjs": "^7.5.1",
     "memcached": "^2.2.2",
     "morgan": "^1.10.0",
     "pg-monitor": "^1.4.0",

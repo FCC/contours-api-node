@@ -18,7 +18,7 @@
 
             var baseStreet = L.mapbox.styleLayer('mapbox://styles/mapbox/light-v10').addTo(Map.map);
             var baseSatellite = L.mapbox.styleLayer('mapbox://styles/mapbox/satellite-streets-v11');
-            var baseTerrain = L.mapbox.styleLayer('mapbox://styles/mapbox/outdoors-v11');
+            var baseTerrain = L.mapbox.styleLayer('mapbox://styles/mapbox/satellite-v9');
 
             L.control.scale({
                 position: 'bottomright'
